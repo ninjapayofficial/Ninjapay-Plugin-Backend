@@ -17,24 +17,28 @@ module.exports = {
   loadPlugin, // Export the new function
 };
 
-async function installPlugin(repoUrl) {
-  try {
-    const pluginName = repoUrl.split('/').pop().replace('.git', '');
-    const pluginPath = path.join(pluginsDir, pluginName);
-
-    // Clone the plugin repository
-    await simpleGit().clone(repoUrl, pluginPath);
-    console.log(`Cloned ${pluginName} into plugins directory.`);
-
-    // Install plugin dependencies
-    await installDependencies(pluginPath);
-
-    console.log(`Installed dependencies for ${pluginName}.`);
-  } catch (err) {
-    console.error('Error installing plugin:', err);
-    throw err;
-  }
-}
+async function installPlugin(repoUrl, app) {
+    try {
+      const pluginName = repoUrl.split('/').pop().replace('.git', '');
+      const pluginPath = path.join(pluginsDir, pluginName);
+  
+      // Clone the plugin repository
+      await simpleGit().clone(repoUrl, pluginPath);
+      console.log(`Cloned ${pluginName} into plugins directory.`);
+  
+      // Install plugin dependencies
+      await installDependencies(pluginPath);
+  
+      console.log(`Installed dependencies for ${pluginName}.`);
+  
+      // Load the plugin into the application
+      loadPlugin(app, pluginName);
+  
+    } catch (err) {
+      console.error('Error installing plugin:', err);
+      throw err;
+    }
+  }  
 
 function installDependencies(pluginPath) {
   return new Promise((resolve, reject) => {
