@@ -1,0 +1,21 @@
+{
+  "name": "express-web",
+  "version": "1.0.0",
+  "description": "This is a simple hello world express.js server.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "start": "node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ejs": "^3.1.9",
+    "express": "^4.21.1",
+    "simple-git": "^3.27.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": []
+}
