@@ -33,7 +33,7 @@ Replace yourusername with your actual GitHub username.
 Create Data
 bash
 Copy code
-curl -X POST -H "Content-Type: application/json" -d '{"name":"Test Item", "value":42}' http://localhost:3000/plugin-data
+curl -X POST -H "Content-Type: application/json" -d '{"name":"NIN Item3", "value":470}' http://localhost:3000/plugin-data
 
 Expected Output:
 yaml
@@ -55,3 +55,17 @@ Copy code
     "updatedAt": "2023-10-01T12:34:56.789Z"
   }
 ]
+
+
+
+
+curl http://localhost:3000/plugins
+[
+  "sample-plugin"
+]
+
+curl -X POST -H "Content-Type: application/json" -d '{"pluginName":"sample-plugin"}' http://localhost:3000/remove-plugin
+Plugin 'sample-plugin' uninstalled successfully.
+
+curl http://localhost:3000/plugins
+[]

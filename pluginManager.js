@@ -15,7 +15,8 @@ module.exports = {
   installPlugin,
   loadPlugins,
   loadPlugin,
-};
+  uninstallPlugin, // Export the uninstallPlugin function
+}
 
 async function installPlugin(repoUrl, app, sequelize) {
   try {
@@ -81,3 +82,37 @@ function loadPlugins(app, sequelize) {
     loadPlugin(app, sequelize, folder);
   });
 }
+
+function uninstallPlugin(pluginName) {
+  const pluginPath = path.join(pluginsDir, pluginName);
+
+  if (fs.existsSync(pluginPath)) {
+    // Remove the plugin directory
+    fs.rmSync(pluginPath, { recursive: true, force: true });
+    console.log(`Uninstalled plugin: ${pluginName}`);
+
+    // Remove plugin routes (optional)
+    // Note: Express does not provide a straightforward way to remove routes.
+    // You may need to implement a solution to reload the app without the plugin.
+
+  } else {
+    console.error(`Plugin ${pluginName} is not installed.`);
+    throw new Error(`Plugin ${pluginName} is not installed.`);
+  }
+}
+
+module.exports.uninstallPlugin = uninstallPlugin;
+
+
+
+function reloadPlugins(app, sequelize) {
+  // Clear all existing routes (not trivial in Express)
+  // For simplicity, we'll restart the server after uninstalling a plugin.
+
+  // Reload all plugins
+  loadPlugins(app, sequelize);
+}
+
+module.exports.reloadPlugins = reloadPlugins;
+
+

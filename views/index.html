@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Plugin Manager</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    h1 {
+      color: #333;
+    }
+    .section {
+      margin-bottom: 40px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    input[type="text"] {
+      width: 300px;
+      padding: 8px;
+    }
+    button {
+      padding: 8px 12px;
+      margin-top: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .message {
+      margin-top: 10px;
+      color: green;
+    }
+    .error {
+      margin-top: 10px;
+      color: red;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Plugin Manager</h1>
+
+  <!-- Section to Install a Plugin -->
+  <div class="section">
+    <h2>Install a Plugin</h2>
+    <label for="repoUrl">Plugin Repository URL:</label>
+    <input type="text" id="repoUrl" placeholder="https://github.com/user/plugin-repo.git">
+    <button id="installBtn">Install Plugin</button>
+    <div id="installMessage"></div>
+  </div>
+
+  <!-- Section to Show Existing Plugins -->
+  <div class="section">
+    <h2>Installed Plugins</h2>
+    <button id="refreshBtn">Refresh List</button>
+    <table id="pluginsTable">
+      <thead>
+        <tr>
+          <th>Plugin Name</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Plugin rows will be populated here -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    // Function to install a plugin
+    document.getElementById('installBtn').addEventListener('click', () => {
+      const repoUrl = document.getElementById('repoUrl').value.trim();
+      if (repoUrl) {
+        fetch('/install-plugin', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ repoUrl })
+        })
+        .then(response => response.text())
+        .then(data => {
+          document.getElementById('installMessage').innerHTML = '<p class="message">' + data + '</p>';
+          document.getElementById('repoUrl').value = '';
+          loadPlugins();
+        })
+        .catch(error => {
+          console.error('Error installing plugin:', error);
+          document.getElementById('installMessage').innerHTML = '<p class="error">Error installing plugin.</p>';
+        });
+      } else {
+        alert('Please enter a repository URL.');
+      }
+    });
+
+    // Function to load the list of installed plugins
+    function loadPlugins() {
+      fetch('/plugins')
+        .then(response => response.json())
+        .then(plugins => {
+          const tbody = document.querySelector('#pluginsTable tbody');
+          tbody.innerHTML = '';
+          plugins.forEach(plugin => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${plugin}</td>
+              <td><button onclick="removePlugin('${plugin}')">Remove</button></td>
+            `;
+            tbody.appendChild(tr);
+          });
+        })
+        .catch(error => {
+          console.error('Error loading plugins:', error);
+        });
+    }
+
+    // Function to remove a plugin
+    function removePlugin(pluginName) {
+      if (confirm(`Are you sure you want to remove plugin '${pluginName}'?`)) {
+        fetch('/remove-plugin', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ pluginName })
+        })
+        .then(response => response.text())
+        .then(data => {
+          alert(data);
+          loadPlugins();
+        })
+        .catch(error => {
+          console.error('Error removing plugin:', error);
+          alert('Error removing plugin.');
+        });
+      }
+    }
+
+    // Load plugins on page load
+    window.onload = loadPlugins;
+
+    // Refresh button
+    document.getElementById('refreshBtn').addEventListener('click', loadPlugins);
+  </script>
+
+</body>
+</html>
