@@ -14,31 +14,30 @@ if (!fs.existsSync(pluginsDir)) {
 module.exports = {
   installPlugin,
   loadPlugins,
-  loadPlugin, // Export the new function
+  loadPlugin,
 };
 
-async function installPlugin(repoUrl, app) {
-    try {
-      const pluginName = repoUrl.split('/').pop().replace('.git', '');
-      const pluginPath = path.join(pluginsDir, pluginName);
-  
-      // Clone the plugin repository
-      await simpleGit().clone(repoUrl, pluginPath);
-      console.log(`Cloned ${pluginName} into plugins directory.`);
-  
-      // Install plugin dependencies
-      await installDependencies(pluginPath);
-  
-      console.log(`Installed dependencies for ${pluginName}.`);
-  
-      // Load the plugin into the application
-      loadPlugin(app, pluginName);
-  
-    } catch (err) {
-      console.error('Error installing plugin:', err);
-      throw err;
-    }
-  }  
+async function installPlugin(repoUrl, app, sequelize) {
+  try {
+    const pluginName = repoUrl.split('/').pop().replace('.git', '');
+    const pluginPath = path.join(pluginsDir, pluginName);
+
+    // Clone the plugin repository
+    await simpleGit().clone(repoUrl, pluginPath);
+    console.log(`Cloned ${pluginName} into plugins directory.`);
+
+    // Install plugin dependencies
+    await installDependencies(pluginPath);
+
+    console.log(`Installed dependencies for ${pluginName}.`);
+
+    // Load the plugin into the application
+    loadPlugin(app, sequelize, pluginName);
+  } catch (err) {
+    console.error('Error installing plugin:', err);
+    throw err;
+  }
+}
 
 function installDependencies(pluginPath) {
   return new Promise((resolve, reject) => {
@@ -54,36 +53,17 @@ function installDependencies(pluginPath) {
   });
 }
 
-function loadPlugins(app) {
-  fs.readdirSync(pluginsDir).forEach((folder) => {
-    const pluginPath = path.join(pluginsDir, folder);
-    const pluginMainFile = path.join(pluginPath, 'index.js');
-
-    if (fs.existsSync(pluginMainFile)) {
-      const plugin = require(pluginMainFile);
-      if (typeof plugin.init === 'function') {
-        plugin.init(app);
-        console.log(`Loaded plugin: ${folder}`);
-      } else {
-        console.warn(`Plugin ${folder} does not export an init function.`);
-      }
-    } else {
-      console.warn(`No index.js found in ${folder}.`);
-    }
-  });
-}
-
-function loadPlugin(app, pluginName) {
+function loadPlugin(app, sequelize, pluginName) {
+  try {
     const pluginPath = path.join(pluginsDir, pluginName);
-    const pluginMainFile = path.join(pluginPath, 'index.js');
-  
+    const pluginMainFile = path.join(pluginPath, 'index.js'); // Looks for index.js in plugin root
+
     if (fs.existsSync(pluginMainFile)) {
-      // Clear the require cache to ensure the latest version is loaded
       delete require.cache[require.resolve(pluginMainFile)];
-  
+
       const plugin = require(pluginMainFile);
       if (typeof plugin.init === 'function') {
-        plugin.init(app);
+        plugin.init(app, sequelize);
         console.log(`Loaded plugin: ${pluginName}`);
       } else {
         console.warn(`Plugin ${pluginName} does not export an init function.`);
@@ -91,4 +71,13 @@ function loadPlugin(app, pluginName) {
     } else {
       console.warn(`No index.js found in ${pluginName}.`);
     }
+  } catch (error) {
+    console.error(`Error loading plugin ${pluginName}:`, error);
   }
+}
+
+function loadPlugins(app, sequelize) {
+  fs.readdirSync(pluginsDir).forEach((folder) => {
+    loadPlugin(app, sequelize, folder);
+  });
+}
