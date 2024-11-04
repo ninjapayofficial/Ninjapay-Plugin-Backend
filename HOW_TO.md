@@ -21,9 +21,9 @@ rm -rf plugins/sample-plugin
 bash
 Copy code
 node app.js
+
 3. Install the Plugin
 Use curl to install the plugin:
-
 bash
 Copy code
 curl -X POST -H "Content-Type: application/json" -d '{"repoUrl":"https://github.com/yourusername/sample-plugin.git"}' http://localhost:3000/install-plugin
@@ -33,7 +33,7 @@ Replace yourusername with your actual GitHub username.
 Create Data
 bash
 Copy code
-curl -X POST -H "Content-Type: application/json" -d '{"name":"NIN Item3", "value":470}' http://localhost:3000/plugin-data
+curl -X POST -H "Content-Type: application/json" -d '{"name":"NIN Item3", "value":470}' http://localhost:3000/sample-plugin/plugin-data
 
 Expected Output:
 yaml
@@ -42,7 +42,7 @@ Data saved successfully! ID: 1
 
 Retrieve Data
 Copy code
-curl http://localhost:3000/plugin-data
+curl http://localhost:3000/sample-plugin/plugin-data
 Expected Output:
 json
 Copy code
@@ -69,3 +69,8 @@ Plugin 'sample-plugin' uninstalled successfully.
 
 curl http://localhost:3000/plugins
 []
+
+
+
+5. Remove the Plugin
+curl -X POST -H "Content-Type: application/json" -d '{"pluginName":"sample-plugin"}' http://localhost:3000/remove-plugin
