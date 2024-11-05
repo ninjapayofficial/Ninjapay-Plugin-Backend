@@ -74,3 +74,17 @@ curl http://localhost:3000/plugins
 
 5. Remove the Plugin
 curl -X POST -H "Content-Type: application/json" -d '{"pluginName":"sample-plugin"}' http://localhost:3000/remove-plugin
+
+
+
+
+
+///////////
+
+curl http://localhost:3000/lightning-btc-plugin/transactions
+
+curl -X POST -H "Content-Type: application/json" -d '{"amount":1000, "memo":"Test Invoice"}' http://localhost:3000/lightning-btc-plugin/create-invoice
+
+
+
+curl -X POST -H "Content-Type: application/json" -d '{"bolt11":"lnbc10u1p..."}' http://localhost:3000/pay-invoice

@@ -12,8 +12,27 @@ const port = parseInt(process.env.PORT) || process.argv[3] || 3000;
 // Middleware to parse JSON requests
 app.use(express.json());
 
-// Serve static files from the 'views' directory
+// Serve static files from the main 'views' directory
 app.use(express.static(path.join(__dirname, 'views')));
+
+// Middleware to serve static files from plugins' 'views' directories
+app.use((req, res, next) => {
+  const pluginsDir = path.join(__dirname, 'plugins');
+  const pluginName = req.path.split('/')[1]; // Get the first segment after '/'
+  const pluginPath = path.join(pluginsDir, pluginName);
+
+  if (fs.existsSync(pluginPath)) {
+    // Check if the plugin has a 'views' directory
+    const pluginViewsPath = path.join(pluginPath, 'views');
+    if (fs.existsSync(pluginViewsPath)) {
+      express.static(pluginViewsPath)(req, res, next);
+    } else {
+      next();
+    }
+  } else {
+    next();
+  }
+});
 
 // Database Connection
 const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
@@ -44,28 +63,23 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, proces
 // Load the Invoice Key from the .env file
 const invoiceKey = process.env.INVOICE_KEY;
 
-// Test the database connection
-sequelize
-  .authenticate()
-  .then(() => {
+// Wrap the initialization code in an async function
+(async () => {
+  try {
+    await sequelize.authenticate();
     console.log('Connected to PostgreSQL');
 
     // Load existing plugins after DB connection
-    pluginManager.loadPlugins(app, sequelize, invoiceKey);
+    await pluginManager.loadPlugins(app, sequelize, invoiceKey);
 
     // Start the server
     app.listen(port, () => {
       console.log(`Main Application is running on port '${port}'.`);
     });
-  })
-  .catch((err) => {
+  } catch (err) {
     console.error('Unable to connect to the database:', err);
-  });
-
-// Update the root route to serve index.html
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'index.html'));
-});
+  }
+})();
 
 // Endpoint to install plugins
 app.post('/install-plugin', async (req, res) => {
@@ -106,9 +120,3 @@ app.post('/remove-plugin', (req, res) => {
     res.status(500).send(`Failed to uninstall plugin '${pluginName}'.`);
   }
 });
-
-
-
-
-
-
