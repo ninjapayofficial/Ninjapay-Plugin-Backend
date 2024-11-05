@@ -4,10 +4,8 @@ const { Sequelize } = require('sequelize');
 const app = express();
 const pluginManager = require('./pluginManager');
 require('dotenv').config();
-const path = require('path')
+const path = require('path');
 const fs = require('fs');
-
-
 
 const port = parseInt(process.env.PORT) || process.argv[3] || 3000;
 
@@ -17,13 +15,7 @@ app.use(express.json());
 // Serve static files from the 'views' directory
 app.use(express.static(path.join(__dirname, 'views')));
 
-// // Database Connection
-// const sequelize = new Sequelize('mainapp', 'your_username', 'your_password', {
-//   host: 'localhost',
-//   dialect: 'postgres',
-// });
-
-// // Database Connection
+// Database Connection
 const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
   host: process.env.DB_HOST,
   dialect: process.env.DB_DIALECT || 'postgres',
@@ -35,7 +27,6 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, proces
     } : false,
   },
 });
-
 
 // // Alternatively, you can use the connection URI provided:
 // const sequelize = new Sequelize(process.env.DATABASE_URL, {
@@ -50,7 +41,8 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, proces
 // });
 
 
-
+// Load the Invoice Key from the .env file
+const invoiceKey = process.env.INVOICE_KEY;
 
 // Test the database connection
 sequelize
@@ -59,7 +51,7 @@ sequelize
     console.log('Connected to PostgreSQL');
 
     // Load existing plugins after DB connection
-    pluginManager.loadPlugins(app, sequelize);
+    pluginManager.loadPlugins(app, sequelize, invoiceKey);
 
     // Start the server
     app.listen(port, () => {
@@ -70,11 +62,6 @@ sequelize
     console.error('Unable to connect to the database:', err);
   });
 
-// // Routes
-// app.get('/', (req, res) => {
-//   res.send('Welcome to the Main Application!');
-// });
-
 // Update the root route to serve index.html
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'index.html'));
@@ -84,7 +71,7 @@ app.get('/', (req, res) => {
 app.post('/install-plugin', async (req, res) => {
   const { repoUrl } = req.body;
   try {
-    await pluginManager.installPlugin(repoUrl, app, sequelize);
+    await pluginManager.installPlugin(repoUrl, app, sequelize, invoiceKey);
     res.send('Plugin installed and loaded successfully!');
   } catch (error) {
     console.error(error);
@@ -119,3 +106,9 @@ app.post('/remove-plugin', (req, res) => {
     res.status(500).send(`Failed to uninstall plugin '${pluginName}'.`);
   }
 });
+
+
+
+
+
+

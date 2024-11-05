@@ -15,10 +15,10 @@ module.exports = {
   installPlugin,
   loadPlugins,
   loadPlugin,
-  uninstallPlugin, // Export the uninstallPlugin function
-}
+  uninstallPlugin,
+};
 
-async function installPlugin(repoUrl, app, sequelize) {
+async function installPlugin(repoUrl, app, sequelize, invoiceKey) {
   try {
     const pluginName = repoUrl.split('/').pop().replace('.git', '');
     const pluginPath = path.join(pluginsDir, pluginName);
@@ -33,7 +33,7 @@ async function installPlugin(repoUrl, app, sequelize) {
     console.log(`Installed dependencies for ${pluginName}.`);
 
     // Load the plugin into the application
-    loadPlugin(app, sequelize, pluginName);
+    loadPlugin(app, sequelize, pluginName, invoiceKey);
   } catch (err) {
     console.error('Error installing plugin:', err);
     throw err;
@@ -54,7 +54,7 @@ function installDependencies(pluginPath) {
   });
 }
 
-function loadPlugin(app, sequelize, pluginName) {
+function loadPlugin(app, sequelize, pluginName, invoiceKey) {
   try {
     const pluginPath = path.join(pluginsDir, pluginName);
     const pluginMainFile = path.join(pluginPath, 'index.js'); // Looks for index.js in plugin root
@@ -64,7 +64,7 @@ function loadPlugin(app, sequelize, pluginName) {
 
       const plugin = require(pluginMainFile);
       if (typeof plugin.init === 'function') {
-        plugin.init(app, sequelize);
+        plugin.init(app, sequelize, invoiceKey); // Pass invoiceKey to the plugin
         console.log(`Loaded plugin: ${pluginName}`);
       } else {
         console.warn(`Plugin ${pluginName} does not export an init function.`);
@@ -77,11 +77,12 @@ function loadPlugin(app, sequelize, pluginName) {
   }
 }
 
-function loadPlugins(app, sequelize) {
+function loadPlugins(app, sequelize, invoiceKey) {
   fs.readdirSync(pluginsDir).forEach((folder) => {
-    loadPlugin(app, sequelize, folder);
+    loadPlugin(app, sequelize, folder, invoiceKey);
   });
 }
+
 
 function uninstallPlugin(pluginName) {
   const pluginPath = path.join(pluginsDir, pluginName);
