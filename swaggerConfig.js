@@ -7,7 +7,7 @@ const swaggerOptions = {
     info: {
       title: 'NinjaPay API',
       version: '1.0.0',
-      description: 'API documentation for NinjaPay platform',
+      description: 'API documentation for Ninjapay platform',
       contact: {
         name: 'Your Name',
         email: 'your.email@example.com',
