@@ -15,7 +15,9 @@
     "express": "^4.21.1",
     "pg": "^8.13.1",
     "sequelize": "^6.37.5",
-    "simple-git": "^3.27.0"
+    "simple-git": "^3.27.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

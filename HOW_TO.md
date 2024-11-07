@@ -83,7 +83,7 @@ curl -X POST -H "Content-Type: application/json" -d '{"pluginName":"sample-plugi
 
 curl http://localhost:3000/lightning-btc-plugin/transactions
 
-curl -X POST -H "Content-Type: application/json" -d '{"amount":1000, "memo":"Test Invoice"}' http://localhost:3000/lightning-btc-plugin/create-invoice
+curl -X POST -H "Content-Type: application/json" -d '{"amount":4200, "memo":"NIN Test Invoice"}' http://localhost:3000/lightning-btc-plugin/create-invoice
 
 
 

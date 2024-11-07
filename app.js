@@ -6,14 +6,22 @@ const pluginManager = require('./pluginManager');
 require('dotenv').config();
 const path = require('path');
 const fs = require('fs');
+const validator = require('validator');
+const swaggerSpecs = require('./swaggerConfig');
 
 const port = parseInt(process.env.PORT) || process.argv[3] || 3000;
 
 // Middleware to parse JSON requests
 app.use(express.json());
 
+
+
 // Serve static files from the main 'views' directory
 app.use(express.static(path.join(__dirname, 'views')));
+
+// Set up Swagger UI
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
+
 
 // Middleware to serve static files from plugins' 'views' directories
 app.use((req, res, next) => {
@@ -82,8 +90,25 @@ const invoiceKey = process.env.INVOICE_KEY;
 })();
 
 // Endpoint to install plugins
+// app.post('/install-plugin', async (req, res) => {
+//   const { repoUrl } = req.body;
+//   try {
+//     await pluginManager.installPlugin(repoUrl, app, sequelize, invoiceKey);
+//     res.send('Plugin installed and loaded successfully!');
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).send('Failed to install plugin.');
+//   }
+// });
+
+
+
 app.post('/install-plugin', async (req, res) => {
-  const { repoUrl } = req.body;
+  // const { repoUrl } = req.body;
+  let { repoUrl } = req.body;
+  if (!validator.isURL(repoUrl, { protocols: ['http', 'https'], require_tld: true })) {
+    return res.status(400).send('Invalid repository URL.');
+  }
   try {
     await pluginManager.installPlugin(repoUrl, app, sequelize, invoiceKey);
     res.send('Plugin installed and loaded successfully!');
@@ -92,6 +117,7 @@ app.post('/install-plugin', async (req, res) => {
     res.status(500).send('Failed to install plugin.');
   }
 });
+
 
 // Endpoint to list installed plugins
 app.get('/plugins', (req, res) => {
