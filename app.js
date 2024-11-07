@@ -8,13 +8,17 @@ const path = require('path');
 const fs = require('fs');
 const validator = require('validator');
 const swaggerSpecs = require('./swaggerConfig');
+const swaggerUi = require('swagger-ui-express');
+const pluginRoutes = require('./routes/pluginRoutes');
+
 
 const port = parseInt(process.env.PORT) || process.argv[3] || 3000;
 
 // Middleware to parse JSON requests
 app.use(express.json());
 
-
+// to serve routes from pluginRoutes.js
+app.use('/api', pluginRoutes);
 
 // Serve static files from the main 'views' directory
 app.use(express.static(path.join(__dirname, 'views')));
@@ -104,7 +108,6 @@ const invoiceKey = process.env.INVOICE_KEY;
 
 
 app.post('/install-plugin', async (req, res) => {
-  // const { repoUrl } = req.body;
   let { repoUrl } = req.body;
   if (!validator.isURL(repoUrl, { protocols: ['http', 'https'], require_tld: true })) {
     return res.status(400).send('Invalid repository URL.');
