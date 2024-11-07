@@ -88,3 +88,10 @@ curl -X POST -H "Content-Type: application/json" -d '{"amount":4200, "memo":"NIN
 
 
 curl -X POST -H "Content-Type: application/json" -d '{"bolt11":"lnbc10u1p..."}' http://localhost:3000/pay-invoice
+
+
+
+
+curl -X 'POST'   'http://localhost:3000/install-plugin'   -H 'accept: */*'   -H 'Content-Type: application/json'   -d '{
+  "repoUrl": "https://github.com/ninjapayofficial/lightning-btc-plugin"
+}'

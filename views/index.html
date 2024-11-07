@@ -90,7 +90,12 @@
           },
           body: JSON.stringify({ repoUrl })
         })
-        .then(response => response.text())
+        .then(response => {
+          if (!response.ok) {
+            return response.text().then(text => { throw new Error(text) });
+          }
+          return response.text();
+        })
         .then(data => {
           document.getElementById('installMessage').innerHTML = '<p class="message">' + data + '</p>';
           document.getElementById('repoUrl').value = '';
@@ -98,7 +103,7 @@
         })
         .catch(error => {
           console.error('Error installing plugin:', error);
-          document.getElementById('installMessage').innerHTML = '<p class="error">Error installing plugin.</p>';
+          document.getElementById('installMessage').innerHTML = '<p class="error">' + error.message + '</p>';
         });
       } else {
         alert('Please enter a repository URL.');

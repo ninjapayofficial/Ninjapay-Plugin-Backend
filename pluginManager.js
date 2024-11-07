@@ -5,6 +5,7 @@ const fs = require('fs');
 const { exec } = require('child_process');
 
 const pluginsDir = path.join(__dirname, 'plugins');
+const { ESLint } = require('eslint');
 
 // Ensure the plugins directory exists
 if (!fs.existsSync(pluginsDir)) {
@@ -27,6 +28,9 @@ async function installPlugin(repoUrl, app, sequelize, invoiceKey) {
     await simpleGit().clone(repoUrl, pluginPath);
     console.log(`Cloned ${pluginName} into plugins directory.`);
 
+    // Perform static code analysis
+    await performStaticAnalysis(pluginPath);
+
     // Install plugin dependencies
     await installDependencies(pluginPath);
 
@@ -39,6 +43,7 @@ async function installPlugin(repoUrl, app, sequelize, invoiceKey) {
     throw err;
   }
 }
+
 
 function installDependencies(pluginPath) {
   return new Promise((resolve, reject) => {
@@ -117,4 +122,25 @@ function reloadPlugins(app, sequelize) {
 
 module.exports.reloadPlugins = reloadPlugins;
 
+
+// Security
+async function performStaticAnalysis(pluginPath) {
+  const eslint = new ESLint({});
+
+  // Analyze all .js files in the plugin directory
+  const results = await eslint.lintFiles([`${pluginPath}/**/*.js`]);
+
+  const formatter = await eslint.loadFormatter('stylish');
+  const resultText = formatter.format(results);
+
+  // Check if there are any errors with severity 2
+  const hasErrors = results.some(result => result.errorCount > 0);
+
+  if (hasErrors) {
+    console.error(`Static analysis failed:\n${resultText}`);
+    throw new Error('Static analysis failed.');
+  } else {
+    console.log('Static analysis passed.');
+  }
+}
 
