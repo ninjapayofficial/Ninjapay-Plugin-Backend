@@ -139,17 +139,21 @@ app.get('/plugins', (req, res) => {
   });
 });
 
+
+
 // Endpoint to remove a plugin
-app.post('/remove-plugin', (req, res) => {
+app.post('/remove-plugin', async (req, res) => {
   const { pluginName } = req.body;
   if (!pluginName) {
     return res.status(400).send('Plugin name is required.');
   }
   try {
-    pluginManager.uninstallPlugin(pluginName);
+    // Await the asynchronous uninstallPlugin function
+    await pluginManager.uninstallPlugin(pluginName, sequelize);
     res.send(`Plugin '${pluginName}' uninstalled successfully.`);
   } catch (error) {
     console.error(`Error uninstalling plugin '${pluginName}':`, error);
     res.status(500).send(`Failed to uninstall plugin '${pluginName}'.`);
   }
 });
+

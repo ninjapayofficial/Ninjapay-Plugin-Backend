@@ -104,3 +104,12 @@ curl -X 'POST' \
   -d '{
   "repoUrl": "https://github.com/ninjapayofficial/sample-plugin.git"
 }'
+
+
+curl -X 'POST' \
+  'http://localhost:3000/remove-plugin' \
+  -H 'accept: */*' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "pluginName": "lightning-btc-plugin"
+}'

@@ -7,6 +7,7 @@ const { exec } = require('child_process');
 const pluginsDir = path.join(__dirname, 'plugins');
 const { ESLint } = require('eslint');
 const { runPluginMigrations } = require('./migrationManager');
+const { rollbackPluginMigrations } = require('./migrationManager');
 
 // Ensure the plugins directory exists
 if (!fs.existsSync(pluginsDir)) {
@@ -101,25 +102,52 @@ async function loadPlugins(app, sequelize, invoiceKey) {
 
 
 
-async function uninstallPlugin(pluginName) {
+// async function uninstallPlugin(pluginName) {
+//   const pluginPath = path.join(pluginsDir, pluginName);
+
+//   if (fs.existsSync(pluginPath)) {
+//     // // Run down migrations
+//     // await rollbackPluginMigrations(sequelize, pluginName);
+//     // Remove the plugin directory
+//     fs.rmSync(pluginPath, { recursive: true, force: true });
+//     console.log(`Uninstalled plugin: ${pluginName}`);
+
+//     // Remove plugin routes (optional)
+//     // Note: Express does not provide a straightforward way to remove routes.
+//     // You may need to implement a solution to reload the app without the plugin.
+
+//   } else {
+//     console.error(`Plugin ${pluginName} is not installed.`);
+//     throw new Error(`Plugin ${pluginName} is not installed.`);
+//   }
+// }
+
+
+// pluginManager.js
+
+async function uninstallPlugin(pluginName, sequelize) {
   const pluginPath = path.join(pluginsDir, pluginName);
 
   if (fs.existsSync(pluginPath)) {
+    
     // // Run down migrations
     // await rollbackPluginMigrations(sequelize, pluginName);
+
     // Remove the plugin directory
     fs.rmSync(pluginPath, { recursive: true, force: true });
     console.log(`Uninstalled plugin: ${pluginName}`);
 
-    // Remove plugin routes (optional)
-    // Note: Express does not provide a straightforward way to remove routes.
-    // You may need to implement a solution to reload the app without the plugin.
+//     // Remove plugin routes (optional)
+//     // Note: Express does not provide a straightforward way to remove routes.
+//     // You may need to implement a solution to reload the app without the plugin.
 
   } else {
     console.error(`Plugin ${pluginName} is not installed.`);
     throw new Error(`Plugin ${pluginName} is not installed.`);
   }
 }
+
+
 
 
 
