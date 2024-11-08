@@ -10,15 +10,18 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "cookie-parser": "^1.4.7",
     "dotenv": "^16.4.5",
     "ejs": "^3.1.9",
     "express": "^4.21.1",
+    "firebase-admin": "^12.7.0",
     "pg": "^8.13.1",
     "sequelize": "^6.37.5",
     "simple-git": "^3.27.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
-    "umzug": "^3.8.2"
+    "umzug": "^3.8.2",
+    "uuid": "^11.0.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.14.0",

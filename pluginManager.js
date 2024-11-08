@@ -8,6 +8,7 @@ const pluginsDir = path.join(__dirname, 'plugins');
 const { ESLint } = require('eslint');
 const { runPluginMigrations } = require('./migrationManager');
 const { rollbackPluginMigrations } = require('./migrationManager');
+const authMiddleware = require('./middleware/authMiddleware');
 
 // Ensure the plugins directory exists
 if (!fs.existsSync(pluginsDir)) {
@@ -64,7 +65,7 @@ function installDependencies(pluginPath) {
   });
 }
 
-async function loadPlugin(app, sequelize, pluginName, invoiceKey) {
+async function loadPlugin(app, sequelize, pluginName) {
   try {
     const pluginPath = path.join(pluginsDir, pluginName);
     const pluginMainFile = path.join(pluginPath, 'index.js');
@@ -77,10 +78,23 @@ async function loadPlugin(app, sequelize, pluginName, invoiceKey) {
 
       const plugin = require(pluginMainFile);
       if (typeof plugin.init === 'function') {
+        const express = require('express');
+        const router = express.Router();
+
+        // Apply authentication middleware to the router
+        router.use(authMiddleware);
+
+       // Initialize the plugin with the router
+        await plugin.init(router, sequelize);
+
+       // Mount the router
+        app.use(`/plugins/${pluginName}`, router);
+
+
         // Pass 'app' if not using routers per plugin
         // Pass 'pluginName' if using routers per plugin
         // await plugin.init(app, sequelize, invoiceKey, pluginName);
-        await plugin.init(app, sequelize, invoiceKey); // No longer passing pluginName
+        // await plugin.init(app, sequelize, invoiceKey); // No longer passing pluginName
         console.log(`Loaded plugin: ${pluginName}`);
       } else {
         console.warn(`Plugin ${pluginName} does not export an init function.`);

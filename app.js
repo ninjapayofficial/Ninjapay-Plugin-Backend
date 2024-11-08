@@ -11,12 +11,19 @@ const swaggerSpecs = require('./swaggerConfig');
 const swaggerUi = require('swagger-ui-express');
 const pluginRoutes = require('./routes/pluginRoutes');
 const { runCoreMigrations } = require('./migrationManager');
+const authRoutes = require('./authRoutes');
+
+
 
 
 const port = parseInt(process.env.PORT) || process.argv[3] || 3000;
 
 // Middleware to parse JSON requests
 app.use(express.json());
+
+// to serve routes from appRoutes.js
+app.use('/auth', authRoutes);
+
 
 // to serve routes from pluginRoutes.js
 app.use('/api', pluginRoutes);
@@ -26,6 +33,24 @@ app.use(express.static(path.join(__dirname, 'views')));
 
 // Set up Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
+
+// Serve login.html route
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, './login.html'));
+});
+
+// Serve signup page
+app.get('/signup', (req, res) => {
+  res.sendFile(path.join(__dirname, './signup.html'));
+});
+
+
+// to logout the session and rediret to login
+app.post('/logout', (req, res) => {
+  res.clearCookie('session');
+  res.redirect('/login');
+});
+
 
 
 // Middleware to serve static files from plugins' 'views' directories
@@ -96,6 +121,7 @@ const invoiceKey = process.env.INVOICE_KEY;
     console.error('Unable to connect to the database:', err);
   }
 })();
+
 
 // Endpoint to install plugins
 // app.post('/install-plugin', async (req, res) => {

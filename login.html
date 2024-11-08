@@ -1,0 +1,62 @@
+<!-- login.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
+  <!-- Include Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+</head>
+<body>
+  <h1>Login</h1>
+  <input type="email" id="email" placeholder="Email"><br>
+  <input type="password" id="password" placeholder="Password"><br>
+  <button onclick="login()">Login</button>
+
+  <script>
+    // Your Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAkbmy7CVJCRzyDv-Aw37vorNNoi1e5sOc",
+      authDomain: "ninjapay-plugin-backend-dev.firebaseapp.com",
+      projectId: "ninjapay-plugin-backend-dev",
+      storageBucket: "ninjapay-plugin-backend-dev.firebasestorage.app",
+      messagingSenderId: "76820525398",
+      appId: "1:76820525398:web:4378028e4c6f705a73a6f7",
+      measurementId: "G-C8VB4E2X80"
+    };
+    
+
+    firebase.initializeApp(firebaseConfig);
+
+    function login() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      firebase.auth().signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          return userCredential.user.getIdToken();
+        })
+        .then((idToken) => {
+          return fetch('/sessionLogin', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ idToken }),
+          });
+        })
+        .then((response) => {
+          if (response.ok) {
+            window.location.href = '/';
+          } else {
+            // Handle error
+          }
+        })
+        .catch((error) => {
+          console.error('Login error:', error);
+        });
+    }
+  </script>
+</body>
+</html>

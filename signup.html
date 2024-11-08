@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sign Up</title>
+  <!-- Include Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <!-- Optionally include Firebase Firestore if using it -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <h1>Sign Up</h1>
+  <input type="email" id="email" placeholder="Email"><br>
+  <input type="password" id="password" placeholder="Password"><br>
+  <button onclick="signup()">Sign Up</button>
+  <div id="signupMessage"></div>
+
+  <script>
+    // Your Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAkbmy7CVJCRzyDv-Aw37vorNNoi1e5sOc",
+      authDomain: "ninjapay-plugin-backend-dev.firebaseapp.com",
+      projectId: "ninjapay-plugin-backend-dev",
+      storageBucket: "ninjapay-plugin-backend-dev.firebasestorage.app",
+      messagingSenderId: "76820525398",
+      appId: "1:76820525398:web:4378028e4c6f705a73a6f7",
+      measurementId: "G-C8VB4E2X80"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+
+    // Initialize Firestore (if using)
+    const db = firebase.firestore();
+
+    function generateWalletId() {
+      // Simple UUID generator
+      return 'wallet-' + Math.random().toString(36).substr(2, 9);
+    }
+
+    function generateInvoiceKey() {
+      return 'ik_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    function generateAdminKey() {
+      return 'ak_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    function signup() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      firebase.auth().createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          const uid = user.uid;
+
+          // Generate walletId, invoiceKey, adminKey
+          const walletId = generateWalletId();
+          const invoiceKey = generateInvoiceKey();
+          const adminKey = generateAdminKey();
+
+          // Save additional user data to Firestore
+          return db.collection('users').doc(uid).set({
+            walletId,
+            invoiceKey,
+            adminKey,
+          })
+          .then(() => {
+            return user.getIdToken();
+          });
+        })
+        .then((idToken) => {
+          // Send ID token to server to create session cookie
+          return fetch('/sessionLogin', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ idToken }),
+          });
+        })
+        .then((response) => {
+          if (response.ok) {
+            window.location.href = '/';
+          } else {
+            return response.text().then(text => { throw new Error(text); });
+          }
+        })
+        .catch((error) => {
+          console.error('Signup error:', error);
+          document.getElementById('signupMessage').innerHTML = '<p style="color: red;">' + error.message + '</p>';
+        });
+    }
+  </script>
+</body>
+</html>
