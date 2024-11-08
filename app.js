@@ -10,6 +10,7 @@ const validator = require('validator');
 const swaggerSpecs = require('./swaggerConfig');
 const swaggerUi = require('swagger-ui-express');
 const pluginRoutes = require('./routes/pluginRoutes');
+const { runCoreMigrations } = require('./migrationManager');
 
 
 const port = parseInt(process.env.PORT) || process.argv[3] || 3000;
@@ -80,6 +81,9 @@ const invoiceKey = process.env.INVOICE_KEY;
   try {
     await sequelize.authenticate();
     console.log('Connected to PostgreSQL');
+
+    // Run core migrations
+    await runCoreMigrations(sequelize);
 
     // Load existing plugins after DB connection
     await pluginManager.loadPlugins(app, sequelize, invoiceKey);

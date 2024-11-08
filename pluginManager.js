@@ -6,6 +6,7 @@ const { exec } = require('child_process');
 
 const pluginsDir = path.join(__dirname, 'plugins');
 const { ESLint } = require('eslint');
+const { runPluginMigrations } = require('./migrationManager');
 
 // Ensure the plugins directory exists
 if (!fs.existsSync(pluginsDir)) {
@@ -35,6 +36,9 @@ async function installPlugin(repoUrl, app, sequelize, invoiceKey) {
     await installDependencies(pluginPath);
 
     console.log(`Installed dependencies for ${pluginName}.`);
+
+    // Run plugin migrations
+    await runPluginMigrations(sequelize, pluginName);
 
     // Load the plugin into the application
     await loadPlugin(app, sequelize, pluginName, invoiceKey);
@@ -67,8 +71,14 @@ async function loadPlugin(app, sequelize, pluginName, invoiceKey) {
     if (fs.existsSync(pluginMainFile)) {
       delete require.cache[require.resolve(pluginMainFile)];
 
+      // Run plugin migrations
+      await runPluginMigrations(sequelize, pluginName);
+
       const plugin = require(pluginMainFile);
       if (typeof plugin.init === 'function') {
+        // Pass 'app' if not using routers per plugin
+        // Pass 'pluginName' if using routers per plugin
+        // await plugin.init(app, sequelize, invoiceKey, pluginName);
         await plugin.init(app, sequelize, invoiceKey); // No longer passing pluginName
         console.log(`Loaded plugin: ${pluginName}`);
       } else {
@@ -91,10 +101,12 @@ async function loadPlugins(app, sequelize, invoiceKey) {
 
 
 
-function uninstallPlugin(pluginName) {
+async function uninstallPlugin(pluginName) {
   const pluginPath = path.join(pluginsDir, pluginName);
 
   if (fs.existsSync(pluginPath)) {
+    // // Run down migrations
+    // await rollbackPluginMigrations(sequelize, pluginName);
     // Remove the plugin directory
     fs.rmSync(pluginPath, { recursive: true, force: true });
     console.log(`Uninstalled plugin: ${pluginName}`);

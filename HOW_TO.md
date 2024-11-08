@@ -95,3 +95,12 @@ curl -X POST -H "Content-Type: application/json" -d '{"bolt11":"lnbc10u1p..."}' 
 curl -X 'POST'   'http://localhost:3000/install-plugin'   -H 'accept: */*'   -H 'Content-Type: application/json'   -d '{
   "repoUrl": "https://github.com/ninjapayofficial/lightning-btc-plugin"
 }'
+
+
+curl -X 'POST' \
+  'http://localhost:3000/install-plugin' \
+  -H 'accept: */*' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "repoUrl": "https://github.com/ninjapayofficial/sample-plugin.git"
+}'
