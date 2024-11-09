@@ -26,9 +26,10 @@ async function installPlugin(repoUrl, app, sequelize, invoiceKey) {
   try {
     const pluginName = repoUrl.split('/').pop().replace('.git', '');
     const pluginPath = path.join(pluginsDir, pluginName);
+    const branchName = "firebase-integration";
 
     // Clone the plugin repository
-    await simpleGit().clone(repoUrl, pluginPath);
+    await simpleGit().clone(repoUrl,  pluginPath, ['-b', branchName]);
     console.log(`Cloned ${pluginName} into plugins directory.`);
 
     // Perform static code analysis
@@ -144,8 +145,8 @@ async function uninstallPlugin(pluginName, sequelize) {
 
   if (fs.existsSync(pluginPath)) {
     
-    // // Run down migrations
-    // await rollbackPluginMigrations(sequelize, pluginName);
+    // Run down migrations
+    await rollbackPluginMigrations(sequelize, pluginName);
 
     // Remove the plugin directory
     fs.rmSync(pluginPath, { recursive: true, force: true });

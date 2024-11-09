@@ -1,6 +1,6 @@
 // middleware/authMiddleware.js
 const admin = require('../firebase');
-const db = admin.firestore(); // If using Firestore
+const db = admin.firestore();
 
 const SESSION_COOKIE_NAME = 'session';
 
@@ -29,7 +29,7 @@ async function authMiddleware(req, res, next) {
     next();
   } catch (error) {
     console.error('Error verifying session cookie:', error);
-    res.redirect('/login');
+    res.status(401).send('Unauthorized');
   }
 }
 

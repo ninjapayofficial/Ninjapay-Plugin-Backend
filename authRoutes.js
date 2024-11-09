@@ -3,26 +3,23 @@ const express = require('express');
 const router = express.Router();
 const admin = require('./firebase'); // Import Firebase Admin
 const { v4: uuidv4 } = require('uuid');
-const cookieParser = require('cookie-parser');
-const app = express();
 
-app.use(cookieParser());
-app.use(express.json());
+const SESSION_COOKIE_NAME = 'session';
 
 function generateWalletId() {
-    return uuidv4(); // Generates a unique UUID
-  }
-  
-  function generateInvoiceKey() {
-    return 'ik_' + uuidv4(); // Prefix to distinguish keys
-  }
-  
-  function generateAdminKey() {
-    return 'ak_' + uuidv4();
-  }
-  
+  return uuidv4(); // Generates a unique UUID
+}
 
-app.post('/sessionLogin', (req, res) => {
+function generateInvoiceKey() {
+  return 'ik_' + uuidv4(); // Prefix to distinguish keys
+}
+
+function generateAdminKey() {
+  return 'ak_' + uuidv4();
+}
+
+// Endpoint to create session login
+router.post('/sessionLogin', (req, res) => {
   const idToken = req.body.idToken;
   const expiresIn = 60 * 60 * 24 * 5 * 1000; // Session expires in 5 days
 
@@ -31,7 +28,7 @@ app.post('/sessionLogin', (req, res) => {
     .createSessionCookie(idToken, { expiresIn })
     .then((sessionCookie) => {
       // Set cookie with session cookie
-      const options = { maxAge: expiresIn, httpOnly: true, secure: true };// Set secure: true in production with HTTPS
+      const options = { maxAge: expiresIn, httpOnly: true, secure: false }; // Set secure: true in production with HTTPS
       res.cookie(SESSION_COOKIE_NAME, sessionCookie, options);
       res.status(200).send({ status: 'success' });
     })
@@ -41,11 +38,11 @@ app.post('/sessionLogin', (req, res) => {
     });
 });
 
-app.post('/sessionLogout', (req, res) => {
-    res.clearCookie(SESSION_COOKIE_NAME);
-    res.status(200).send({ status: 'success' });
-  });
-  
+// Endpoint to logout
+router.post('/sessionLogout', (req, res) => {
+  res.clearCookie(SESSION_COOKIE_NAME);
+  res.status(200).send({ status: 'success' });
+});
 
 // Endpoint for user signup
 router.post('/signup', async (req, res) => {
@@ -62,7 +59,6 @@ router.post('/signup', async (req, res) => {
     const adminKey = generateAdminKey();
 
     // Save additional user data to Firestore or your database
-    // For this example, we'll use Firestore
     const db = admin.firestore();
     await db.collection('users').doc(userRecord.uid).set({
       walletId,
@@ -77,7 +73,7 @@ router.post('/signup', async (req, res) => {
   }
 });
 
-// Endpoint for user login
+// Endpoint for user login (Not typically needed on the server)
 router.post('/login', async (req, res) => {
   // Firebase Auth is typically handled on the client side
   // For server-side verification, you can accept ID tokens
@@ -91,10 +87,14 @@ router.post('/login', async (req, res) => {
     console.error('Error verifying ID token:', error);
     res.status(401).send('Invalid token.');
   }
+  // Since login is handled on the client, this can be left empty or removed
 });
 
+// to logout the session and rediret to login
+router.post('/logout', (req, res) => {
+  res.clearCookie('session');
+  res.redirect('/login');
+});
+
+
 module.exports = router;
-
-
-
-

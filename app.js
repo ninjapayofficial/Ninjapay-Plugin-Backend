@@ -12,14 +12,29 @@ const swaggerUi = require('swagger-ui-express');
 const pluginRoutes = require('./routes/pluginRoutes');
 const { runCoreMigrations } = require('./migrationManager');
 const authRoutes = require('./authRoutes');
+const cookieParser = require('cookie-parser');
 
+const SESSION_COOKIE_NAME = 'session';
 
-
+// Middleware to parse JSON requests and cookies
+app.use(express.json());
+app.use(cookieParser());
 
 const port = parseInt(process.env.PORT) || process.argv[3] || 3000;
 
-// Middleware to parse JSON requests
-app.use(express.json());
+// Serve static files from the main 'views' directory
+app.use(express.static(path.join(__dirname, 'views')));
+
+// Serve login.html and signup.html routes
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, './login.html'));
+});
+
+app.get('/signup', (req, res) => {
+  res.sendFile(path.join(__dirname, './signup.html'));
+});
+
+
 
 // to serve routes from appRoutes.js
 app.use('/auth', authRoutes);
@@ -28,28 +43,10 @@ app.use('/auth', authRoutes);
 // to serve routes from pluginRoutes.js
 app.use('/api', pluginRoutes);
 
-// Serve static files from the main 'views' directory
-app.use(express.static(path.join(__dirname, 'views')));
 
 // Set up Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
-// Serve login.html route
-app.get('/login', (req, res) => {
-  res.sendFile(path.join(__dirname, './login.html'));
-});
-
-// Serve signup page
-app.get('/signup', (req, res) => {
-  res.sendFile(path.join(__dirname, './signup.html'));
-});
-
-
-// to logout the session and rediret to login
-app.post('/logout', (req, res) => {
-  res.clearCookie('session');
-  res.redirect('/login');
-});
 
 
 

@@ -30,12 +30,11 @@
 
     firebase.initializeApp(firebaseConfig);
 
-    // Initialize Firestore (if using)
+    // Initialize Firestore
     const db = firebase.firestore();
 
     function generateWalletId() {
-      // Simple UUID generator
-      return 'wallet-' + Math.random().toString(36).substr(2, 9);
+            return 'wallet-' + Math.random().toString(36).substr(2, 9);
     }
 
     function generateInvoiceKey() {
@@ -72,12 +71,13 @@
         })
         .then((idToken) => {
           // Send ID token to server to create session cookie
-          return fetch('/sessionLogin', {
+          return fetch('/auth/sessionLogin', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({ idToken }),
+            credentials: 'include', // Include credentials in the request
           });
         })
         .then((response) => {

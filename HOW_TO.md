@@ -3,6 +3,12 @@ npm install express simple-git
 
 curl -X POST -H "Content-Type: application/json" -d '{"repoUrl":"https://github.com/ninjapayofficial/sample-plugin.git"}' http://localhost:3000/install-plugin
 
+curl -X POST -H "Content-Type: application/json" -d '{"repoUrl":"https://github.com/ninjapayofficial/Ninjapay-Plugin-Backend/tree/firebase-integration"}' http://localhost:3000/install-plugin
+
+curl -X 'POST' 'http://localhost:3000/install-plugin' -H 'accept: /' -H 'Content-Type: application/json' -d '{ "repoUrl": "https://github.com/ninjapayofficial/Ninjapay-Plugin-Backend/tree/firebase-integration" }'
+
+
+
 curl http://localhost:3000/current-time
 rm -rf plugins/sample-plugin
 
@@ -28,6 +34,7 @@ bash
 Copy code
 curl -X POST -H "Content-Type: application/json" -d '{"repoUrl":"https://github.com/yourusername/sample-plugin.git"}' http://localhost:3000/install-plugin
 Replace yourusername with your actual GitHub username.
+
 
 4. Test Plugin Endpoints
 Create Data
@@ -113,3 +120,6 @@ curl -X 'POST' \
   -d '{
   "pluginName": "lightning-btc-plugin"
 }'
+
+
+curl -X POST -H "Content-Type: application/json" -d '{"amount":4200, "memo":"NIN Test Invoice"}' http://localhost:3000/plugins/lightning-btc-plugin/create-invoice

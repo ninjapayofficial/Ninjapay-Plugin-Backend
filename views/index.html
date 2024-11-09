@@ -46,11 +46,20 @@
       margin-top: 10px;
       color: red;
     }
+    /* Add some styles for the logout button */
+    .logout-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
   </style>
 </head>
 <body>
 
   <h1>Plugin Manager</h1>
+
+  <!-- Logout Button -->
+  <button class="logout-btn" onclick="logout()">Logout</button>
 
   <!-- Section to Install a Plugin -->
   <div class="section">
@@ -88,7 +97,8 @@
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ repoUrl })
+          body: JSON.stringify({ repoUrl }),
+          credentials: 'include',
         })
         .then(response => {
           if (!response.ok) {
@@ -112,7 +122,9 @@
 
     // Function to load the list of installed plugins
     function loadPlugins() {
-      fetch('/plugins')
+      fetch('/plugins', {
+        credentials: 'include',
+      })
         .then(response => response.json())
         .then(plugins => {
           const tbody = document.querySelector('#pluginsTable tbody');
@@ -139,7 +151,8 @@
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ pluginName })
+          body: JSON.stringify({ pluginName }),
+          credentials: 'include',
         })
         .then(response => response.text())
         .then(data => {
@@ -151,6 +164,25 @@
           alert('Error removing plugin.');
         });
       }
+    }
+
+    // Function to log out the user
+    function logout() {
+      fetch('/auth/sessionLogout', {
+        method: 'POST',
+        credentials: 'include',
+      })
+      .then(response => {
+        if (response.ok) {
+          window.location.href = '/login';
+        } else {
+          return response.text().then(text => { throw new Error(text); });
+        }
+      })
+      .catch(error => {
+        console.error('Logout error:', error);
+        alert('Error logging out.');
+      });
     }
 
     // Load plugins on page load
