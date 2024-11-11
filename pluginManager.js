@@ -9,6 +9,20 @@ const { ESLint } = require('eslint');
 const { runPluginMigrations } = require('./migrationManager');
 const { rollbackPluginMigrations } = require('./migrationManager');
 const authMiddleware = require('./middleware/authMiddleware');
+const rateLimit = require('express-rate-limit');
+const express = require('express');
+const router = express.Router();
+
+// Define rate limiting rule
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.',
+});
+
+// Apply the rate limiting middleware to the plugin router
+router.use(apiLimiter);
+
 
 // Ensure the plugins directory exists
 if (!fs.existsSync(pluginsDir)) {
