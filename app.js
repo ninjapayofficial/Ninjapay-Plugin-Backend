@@ -13,8 +13,15 @@ const pluginRoutes = require('./routes/pluginRoutes');
 const { runCoreMigrations } = require('./migrationManager');
 const authRoutes = require('./authRoutes');
 const cookieParser = require('cookie-parser');
+const cors = require('cors');
+
+
+
 
 const SESSION_COOKIE_NAME = 'session';
+
+// Allow all origins (or specify allowed origins)
+app.use(cors());
 
 // Middleware to parse JSON requests and cookies
 app.use(express.json());

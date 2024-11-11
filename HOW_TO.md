@@ -122,4 +122,8 @@ curl -X 'POST' \
 }'
 
 
-curl -X POST -H "Content-Type: application/json" -d '{"amount":4200, "memo":"NIN Test Invoice"}' http://localhost:3000/plugins/lightning-btc-plugin/create-invoice
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -H "x-invoice-key: aa870b9765d643299430136ec9b2f6a5" \
+  -d '{"amount":1200, "memo":"Purvi Advitha Naidu"}' \
+  http://localhost:3000/plugins/lightning-btc-plugin/create-invoice
