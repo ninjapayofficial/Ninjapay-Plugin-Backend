@@ -1,0 +1,165 @@
+<!-- funding.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Connect Funding Provider</title>
+  <style>
+    /* Basic styling for the page */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    h1, h2 {
+      color: #333;
+    }
+    .section {
+      margin-bottom: 40px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    #message {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <h1>Connect Funding Provider</h1>
+
+  <!-- Section to Add a New Provider -->
+  <div class="section">
+    <h2>Add a New Provider</h2>
+    <label for="provider">Select Provider:</label>
+    <select id="provider">
+      <option value="lnbits">LNbits</option>
+      <!-- Add other providers here -->
+    </select><br><br>
+    
+    <div id="lnbits-fields">
+      <label for="instanceUrl">LNbits Instance URL:</label>
+      <input type="text" id="instanceUrl"><br>
+      <label for="lnbitsInvoiceKey">LNbits Invoice Key:</label>
+      <input type="text" id="lnbitsInvoiceKey"><br>
+      <label for="lnbitsAdminKey">LNbits Admin Key:</label>
+      <input type="text" id="lnbitsAdminKey"><br>
+    </div>
+    
+    <button onclick="connectProvider()">Connect</button>
+    <div id="message"></div>
+  </div>
+
+  <!-- Section to Show Existing Providers -->
+  <div class="section">
+    <h2>Connected Providers</h2>
+    <table id="providersTable">
+      <thead>
+        <tr>
+          <th>Provider</th>
+          <th>Instance URL</th>
+          <th>Provider Invoice Key</th>
+          <th>Provider Admin Key</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Provider rows will be populated here -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    function connectProvider() {
+      const provider = document.getElementById('provider').value;
+      const data = { provider };
+
+      if (provider === 'lnbits') {
+        data.instanceUrl = document.getElementById('instanceUrl').value;
+        data.invoiceKey = document.getElementById('lnbitsInvoiceKey').value;
+        data.adminKey = document.getElementById('lnbitsAdminKey').value;
+      }
+      // Handle other providers as needed
+
+      fetch('/auth/addFundingProvider', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data),
+        credentials: 'include',
+      })
+      .then(response => {
+        if (response.ok) {
+          loadProviders(); // Reload the providers list
+        } else {
+          return response.text().then(text => { throw new Error(text); });
+        }
+      })
+      .catch(error => {
+        document.getElementById('message').innerText = error.message;
+      });
+    }
+
+    function loadProviders() {
+      fetch('/auth/getFundingProviders', {
+        credentials: 'include',
+      })
+      .then(response => response.json())
+      .then(providers => {
+        const tbody = document.querySelector('#providersTable tbody');
+        tbody.innerHTML = '';
+        providers.forEach(provider => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${provider.provider}</td>
+            <td>${provider.instanceUrl}</td>
+            <td>${provider.providerInvoiceKey}</td>
+            <td>${provider.providerAdminKey}</td>
+            <td><button onclick="removeProvider('${provider.providerInvoiceKey}')">Remove</button></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      })
+      .catch(error => {
+        console.error('Error loading providers:', error);
+      });
+    }
+
+    function removeProvider(providerInvoiceKey) {
+      if (confirm('Are you sure you want to remove this provider?')) {
+        fetch('/auth/removeFundingProvider', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ providerInvoiceKey }),
+          credentials: 'include',
+        })
+        .then(response => {
+          if (response.ok) {
+            loadProviders(); // Reload the providers list
+          } else {
+            return response.text().then(text => { throw new Error(text); });
+          }
+        })
+        .catch(error => {
+          console.error('Error removing provider:', error);
+          alert('Error removing provider.');
+        });
+      }
+    }
+
+    // Load providers on page load
+    window.onload = loadProviders;
+  </script>
+</body>
+</html>

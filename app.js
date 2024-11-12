@@ -14,6 +14,10 @@ const { runCoreMigrations } = require('./migrationManager');
 const authRoutes = require('./authRoutes');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
+const authMiddleware = require('./middleware/authMiddleware');
+const admin = require('./firebase');
+const paymentRoutes = require('./routes/paymentRoutes');
+
 
 
 
@@ -37,9 +41,16 @@ app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, './login.html'));
 });
 
+// Route to serve 'signup.html'
+// app.get('/signup', (req, res) => {
+//   res.sendFile(path.join(__dirname, './signup.html'));
+// });
+
 app.get('/signup', (req, res) => {
+  console.log('GET /signup called');
   res.sendFile(path.join(__dirname, './signup.html'));
 });
+
 
 
 
@@ -53,6 +64,14 @@ app.use('/api', pluginRoutes);
 
 // Set up Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
+
+// Serve funding.html (ensure the user is authenticated)
+app.get('/funding', authMiddleware, (req, res) => {
+  res.sendFile(path.join(__dirname, './views/funding.html'));
+});
+
+// to serve routes from paymentRoutes.js
+app.use('/payments', paymentRoutes);
 
 
 
@@ -185,5 +204,32 @@ app.post('/remove-plugin', async (req, res) => {
     console.error(`Error uninstalling plugin '${pluginName}':`, error);
     res.status(500).send(`Failed to uninstall plugin '${pluginName}'.`);
   }
+});
+
+
+
+// Webhook endpoint to receive payment status updates
+app.post('/webhook/:provider/:userId', async (req, res) => {
+  const { provider, userId } = req.params;
+
+  // Get user data from Firestore
+  const db = admin.firestore();
+  const userDoc = await db.collection('users').doc(userId).get();
+
+  if (!userDoc.exists) {
+    return res.status(404).send('User not found');
+  }
+
+  const userData = userDoc.data();
+
+  // Process the webhook data according to the provider
+  if (provider === 'lnbits') {
+    // Handle LNbits webhook
+    console.log('Received LNbits webhook:', req.body);
+    // TODO: Process the webhook data as needed
+  }
+  // Handle other providers
+
+  res.status(200).send('Webhook received');
 });
 

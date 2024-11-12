@@ -1,3 +1,5 @@
+<!-- signup.html -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -33,18 +35,6 @@
     // Initialize Firestore
     const db = firebase.firestore();
 
-    function generateWalletId() {
-            return 'wallet-' + Math.random().toString(36).substr(2, 9);
-    }
-
-    function generateInvoiceKey() {
-      return 'ik_' + Math.random().toString(36).substr(2, 9);
-    }
-
-    function generateAdminKey() {
-      return 'ak_' + Math.random().toString(36).substr(2, 9);
-    }
-
     function signup() {
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
@@ -54,20 +44,11 @@
           const user = userCredential.user;
           const uid = user.uid;
 
-          // Generate walletId, invoiceKey, adminKey
-          const walletId = generateWalletId();
-          const invoiceKey = generateInvoiceKey();
-          const adminKey = generateAdminKey();
-
-          // Save additional user data to Firestore
-          return db.collection('users').doc(uid).set({
-            walletId,
-            invoiceKey,
-            adminKey,
-          })
-          .then(() => {
-            return user.getIdToken();
-          });
+          // Save user data to Firestore (no walletId, invoiceKey, adminKey here)
+          return db.collection('users').doc(uid).set({})
+            .then(() => {
+              return user.getIdToken();
+            });
         })
         .then((idToken) => {
           // Send ID token to server to create session cookie
@@ -82,7 +63,7 @@
         })
         .then((response) => {
           if (response.ok) {
-            window.location.href = '/';
+            window.location.href = '/funding';
           } else {
             return response.text().then(text => { throw new Error(text); });
           }

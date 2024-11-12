@@ -127,3 +127,13 @@ curl -X POST \
   -H "x-invoice-key: aa870b9765d643299430136ec9b2f6a5" \
   -d '{"amount":1200, "memo":"Purvi Advitha Naidu"}' \
   http://localhost:3000/plugins/lightning-btc-plugin/create-invoice
+
+
+
+
+////// 
+Funding Sources
+curl -X POST http://localhost:3000/payments/createPayLink \
+  -H "Content-Type: application/json" \
+  -H "x-provider-invoice-key: p_ik_tre2qkb7l" \
+  -d '{"amount": 1000, "description": "Test Payment"}'

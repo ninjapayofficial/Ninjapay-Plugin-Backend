@@ -1,21 +1,20 @@
 // authRoutes.js
+
 const express = require('express');
 const router = express.Router();
 const admin = require('./firebase'); // Import Firebase Admin
-const { v4: uuidv4 } = require('uuid');
+const authMiddleware = require('./middleware/authMiddleware');
+const crypto = require('crypto'); // For generating random keys
 
 const SESSION_COOKIE_NAME = 'session';
 
-function generateWalletId() {
-  return uuidv4(); // Generates a unique UUID
+// Function to generate provider-specific keys
+function generateProviderInvoiceKey() {
+  return 'p_ik_' + Math.random().toString(36).substr(2, 9);
 }
 
-function generateInvoiceKey() {
-  return 'ik_' + uuidv4(); // Prefix to distinguish keys
-}
-
-function generateAdminKey() {
-  return 'ak_' + uuidv4();
+function generateProviderAdminKey() {
+  return 'p_ak_' + Math.random().toString(36).substr(2, 9);
 }
 
 // Endpoint to create session login
@@ -53,17 +52,14 @@ router.post('/signup', async (req, res) => {
       password,
     });
 
-    // Generate walletId, invoiceKey, adminKey
-    const walletId = generateWalletId();
-    const invoiceKey = generateInvoiceKey();
-    const adminKey = generateAdminKey();
-
-    // Save additional user data to Firestore or your database
+    // Save user data to Firestore
     const db = admin.firestore();
     await db.collection('users').doc(userRecord.uid).set({
-      walletId,
-      invoiceKey,
-      adminKey,
+      // Initialize fields if necessary
+      walletId: '', // Initialize with empty or generate as needed
+      invoiceKey: '', // Initialize empty; can be set when adding a provider
+      adminKey: '', // Initialize empty; can be set when adding a provider
+      fundingProviders: [], // Initialize as empty array
     });
 
     res.status(201).json({ uid: userRecord.uid });
@@ -90,11 +86,138 @@ router.post('/login', async (req, res) => {
   // Since login is handled on the client, this can be left empty or removed
 });
 
-// to logout the session and rediret to login
+// Logout and redirect to login
 router.post('/logout', (req, res) => {
   res.clearCookie('session');
   res.redirect('/login');
 });
 
+// Route to handle adding funding provider
+router.post('/addFundingProvider', authMiddleware, async (req, res) => {
+  const uid = req.user.uid;
+  const { provider } = req.body;
+  try {
+    const db = admin.firestore();
+    const userRef = db.collection('users').doc(uid);
+
+    // Prepare funding provider data
+    let fundingProviderData = { provider };
+
+    if (provider === 'lnbits') {
+      const { instanceUrl, invoiceKey, adminKey } = req.body;
+      fundingProviderData.instanceUrl = instanceUrl;
+      fundingProviderData.invoiceKey = invoiceKey; // Store in plaintext
+      fundingProviderData.adminKey = adminKey; // Store in plaintext
+
+      // Generate provider-specific keys for our system
+      fundingProviderData.providerInvoiceKey = generateProviderInvoiceKey();
+      fundingProviderData.providerAdminKey = generateProviderAdminKey();
+    }
+    // Handle other providers as needed
+
+    // Save funding provider data under user document
+    await userRef.update({
+      fundingProviders: admin.firestore.FieldValue.arrayUnion(fundingProviderData),
+    });
+
+    // Save providerInvoiceKey and providerAdminKey in 'providerKeys' collection
+    const providerKeysRef = db.collection('providerKeys');
+
+    await providerKeysRef.doc(fundingProviderData.providerInvoiceKey).set({
+      userId: uid,
+      providerData: fundingProviderData,
+    });
+
+    await providerKeysRef.doc(fundingProviderData.providerAdminKey).set({
+      userId: uid,
+      providerData: fundingProviderData,
+    });
+
+    res.status(200).send('Funding provider connected successfully.');
+  } catch (error) {
+    console.error('Error adding funding provider:', error);
+    res.status(500).send('Error adding funding provider.');
+  }
+});
+
+// Route to get connected funding providers
+router.get('/getFundingProviders', authMiddleware, async (req, res) => {
+  const uid = req.user.uid;
+  try {
+    const db = admin.firestore();
+    const userDoc = await db.collection('users').doc(uid).get();
+
+    if (!userDoc.exists) {
+      return res.status(404).send('User not found.');
+    }
+
+    const userData = userDoc.data();
+    const fundingProviders = userData.fundingProviders || [];
+
+    // Prepare data to send to frontend
+    const providersData = fundingProviders.map((fp) => {
+      return {
+        provider: fp.provider,
+        instanceUrl: fp.instanceUrl || '',
+        providerInvoiceKey: fp.providerInvoiceKey,
+        providerAdminKey: fp.providerAdminKey,
+        // Do not include invoiceKey and adminKey to prevent exposing sensitive information
+      };
+    });
+
+    res.status(200).json(providersData);
+  } catch (error) {
+    console.error('Error fetching funding providers:', error);
+    res.status(500).send('Error fetching funding providers.');
+  }
+});
+
+// Route to remove a funding provider
+router.post('/removeFundingProvider', authMiddleware, async (req, res) => {
+  const uid = req.user.uid;
+  const { providerInvoiceKey } = req.body;
+
+  try {
+    const db = admin.firestore();
+    const userRef = db.collection('users').doc(uid);
+
+    // Get the user's current funding providers
+    const userDoc = await userRef.get();
+    if (!userDoc.exists) {
+      return res.status(404).send('User not found.');
+    }
+    const userData = userDoc.data();
+    const fundingProviders = userData.fundingProviders || [];
+
+    // Find the provider to remove
+    const providerToRemove = fundingProviders.find(
+      (fp) => fp.providerInvoiceKey === providerInvoiceKey
+    );
+
+    if (!providerToRemove) {
+      return res.status(400).send('Funding provider not found.');
+    }
+
+    // Remove the provider from the user's fundingProviders array
+    const updatedProviders = fundingProviders.filter(
+      (fp) => fp.providerInvoiceKey !== providerInvoiceKey
+    );
+
+    // Update the user's funding providers
+    await userRef.update({
+      fundingProviders: updatedProviders,
+    });
+
+    // Remove entries from providerKeys collection
+    const providerKeysRef = db.collection('providerKeys');
+    await providerKeysRef.doc(providerToRemove.providerInvoiceKey).delete();
+    await providerKeysRef.doc(providerToRemove.providerAdminKey).delete();
+
+    res.status(200).send('Funding provider removed successfully.');
+  } catch (error) {
+    console.error('Error removing funding provider:', error);
+    res.status(500).send('Error removing funding provider.');
+  }
+});
 
 module.exports = router;
