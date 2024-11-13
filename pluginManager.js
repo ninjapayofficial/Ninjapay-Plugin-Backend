@@ -40,7 +40,7 @@ async function installPlugin(repoUrl, app, sequelize, invoiceKey) {
   try {
     const pluginName = repoUrl.split('/').pop().replace('.git', '');
     const pluginPath = path.join(pluginsDir, pluginName);
-    const branchName = "firebase-integration";
+    const branchName = "funding-sources";
 
     // Clone the plugin repository
     await simpleGit().clone(repoUrl,  pluginPath, ['-b', branchName]);

@@ -106,8 +106,8 @@ router.post('/addFundingProvider', authMiddleware, async (req, res) => {
     if (provider === 'lnbits') {
       const { instanceUrl, invoiceKey, adminKey } = req.body;
       fundingProviderData.instanceUrl = instanceUrl;
-      fundingProviderData.invoiceKey = invoiceKey; // Store in plaintext
-      fundingProviderData.adminKey = adminKey; // Store in plaintext
+      fundingProviderData.invoiceKey = invoiceKey; // Store in plaintext but later encrypt
+      fundingProviderData.adminKey = adminKey; // Store in plaintext but later encrypt
 
       // Generate provider-specific keys for our system
       fundingProviderData.providerInvoiceKey = generateProviderInvoiceKey();

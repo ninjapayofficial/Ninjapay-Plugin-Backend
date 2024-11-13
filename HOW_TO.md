@@ -137,3 +137,32 @@ curl -X POST http://localhost:3000/payments/createPayLink \
   -H "Content-Type: application/json" \
   -H "x-provider-invoice-key: p_ik_tre2qkb7l" \
   -d '{"amount": 1000, "description": "Test Payment"}'
+
+curl -X GET http://localhost:3000/api/checkPaymentStatus/7e7a2c4253d95fa1f9ea871460833e55655f94cbdd486f166b911638160bc752 \
+  -H "Content-Type: application/json" \
+  -H "x-provider-invoice-key: p_ik_tre2qkb7l"
+  
+curl -X GET http://localhost:3000/payments/checkPaymentStatus/7e7a2c4253d95fa1f9ea871460833e55655f94cbdd486f166b911638160bc752 \
+  -H "x-provider-invoice-key: p_ik_tre2qkb7l" \
+  -H "Content-Type: application/json"
+
+
+curl -X POST http://localhost:3000/plugins/lightning-btc-plugin/create-invoice \
+  -H "Content-Type: application/json" \
+  -H "x-provider-invoice-key: p_ik_tre2qkb7l" \
+  -d '{"amount": 1000, "memo": "Test Payment"}'
+
+
+
+curl -X POST http://localhost:3000/plugins/lightning-btc-plugin/pay-invoice \
+  -H "Content-Type: application/json" \
+  -H "x-provider-admin-key: p_ak_kcq5mtsp4" \
+  -d '{"bolt11": "lnbc1..."}'
+
+
+curl -X GET http://localhost:3000/plugins/lightning-btc-plugin/balance \
+  -H "x-provider-invoice-key: p_ik_tre2qkb7l"
+
+  curl -X GET http://localhost:3000/plugins/lightning-btc-plugin/transactions \
+  -H "x-provider-invoice-key: p_ik_tre2qkb7l"
+
