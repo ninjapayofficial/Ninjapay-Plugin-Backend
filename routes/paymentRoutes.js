@@ -3,112 +3,152 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
-const axios = require('axios');
+const paymentService = require('../services/paymentService');
 
-// Create Pay Link
-router.post('/createPayLink', authMiddleware, async (req, res) => {
-  const { amount, description } = req.body;
-  const provider = req.provider;
+module.exports = (models) => {
+  const { Transaction } = models;
 
-  if (!provider) {
-    return res.status(400).send('Provider not specified or invalid.');
-  }
+  /**
+   * Create Pay Link
+   * POST /payments/createPayLink
+   */
+  router.post('/createPayLink', authMiddleware, async (req, res) => {
+    const { amount, description } = req.body;
+    const provider = req.provider;
+    const user = req.user;
 
-  try {
-    let payLinkData;
-
-    if (provider.provider === 'lnbits') {
-      payLinkData = await createLNbitsPayLink(provider, amount, description);
+    if (!provider) {
+      return res.status(400).send('Provider not specified or invalid.');
     }
-    // Handle other providers
 
-    if (payLinkData) {
-      res.status(200).json(payLinkData);
-    } else {
-      res.status(500).send('Failed to create pay link.');
-    }
-  } catch (error) {
-    console.error('Error creating pay link:', error);
-    res.status(500).send('Error creating pay link.');
-  }
-});
-
-// Check Payment Status
-router.get('/checkPaymentStatus/:paymentId', authMiddleware, async (req, res) => {
-  const { paymentId } = req.params;
-  const provider = req.provider;
-
-  if (!provider) {
-    return res.status(400).send('Provider not specified or invalid.');
-  }
-
-  try {
-    let paymentStatus;
-
-    if (provider.provider === 'lnbits') {
-      paymentStatus = await checkLNbitsPaymentStatus(provider, paymentId);
-    }
-    // Handle other providers
-
-    if (paymentStatus) {
-      res.status(200).json(paymentStatus);
-    } else {
-      res.status(500).send('Failed to check payment status.');
-    }
-  } catch (error) {
-    console.error('Error checking payment status:', error);
-    res.status(500).send('Error checking payment status.');
-  }
-});
-
-
-
-async function createLNbitsPayLink(provider, amount, description) {
     try {
-      const url = `${provider.instanceUrl}/api/v1/payments`;
-      const data = {
-        out: false,
-        amount: amount,
-        memo: description,
-      };
-      const headers = {
-        'X-Api-Key': provider.invoiceKey, // Use user's decrypted LNbits invoice key
-        'Content-Type': 'application/json',
-      };
-      const response = await axios.post(url, data, { headers });
-  
-      if (response.status === 201 || response.status === 200) {
-        return response.data;
+      let payLinkData;
+
+      if (provider.provider === 'lnbits') {
+        payLinkData = await paymentService.createPayLink(user, provider, amount, description, Transaction);
+      }
+      // Handle other providers here
+
+      if (payLinkData) {
+        res.status(200).json(payLinkData);
       } else {
-        console.error('Failed to create LNbits pay link:', response.statusText);
-        return null;
+        res.status(500).send('Failed to create pay link.');
       }
     } catch (error) {
-      console.error('Error creating LNbits pay link:', error);
-      return null;
+      console.error('Error creating pay link:', error);
+      res.status(500).send('Error creating pay link.');
     }
-  }
-  
-  async function checkLNbitsPaymentStatus(provider, paymentId) {
+  });
+
+  /**
+   * Pay Invoice
+   * POST /payments/payInvoice
+   */
+  router.post('/payInvoice', authMiddleware, async (req, res) => {
+    const { bolt11 } = req.body;
+    const provider = req.provider;
+    const user = req.user;
+
+    if (!bolt11) {
+      return res.status(400).send('BOLT11 invoice is required.');
+    }
+
     try {
-      const url = `${provider.instanceUrl}/api/v1/payments/${paymentId}`;
-      const headers = {
-        'X-Api-Key': provider.invoiceKey, // Use user's decrypted LNbits invoice key
-        'Content-Type': 'application/json',
-      };
-      const response = await axios.get(url, { headers });
-  
-      if (response.status === 200) {
-        return response.data;
+      const paymentData = await paymentService.payInvoice(user, provider, bolt11, Transaction);
+
+      if (paymentData) {
+        res.status(200).json(paymentData);
       } else {
-        console.error('Failed to check LNbits payment status:', response.statusText);
-        return null;
+        res.status(500).send('Failed to pay invoice.');
       }
     } catch (error) {
-      console.error('Error checking LNbits payment status:', error);
-      return null;
+      console.error('Error paying invoice:', error);
+      res.status(500).send('Error paying invoice.');
     }
-  }
-  
+  });
 
-module.exports = router;
+  /**
+   * Check Payment Status
+   * GET /payments/checkPaymentStatus/:paymentId
+   */
+  router.get('/checkPaymentStatus/:paymentId', authMiddleware, async (req, res) => {
+    const { paymentId } = req.params;
+    const provider = req.provider;
+    const user = req.user;
+
+    if (!provider) {
+      return res.status(400).send('Provider not specified or invalid.');
+    }
+
+    try {
+      let paymentStatus;
+
+      if (provider.provider === 'lnbits') {
+        paymentStatus = await paymentService.checkPaymentStatus(user, provider, paymentId);
+      }
+      // Handle other providers here
+
+      if (paymentStatus) {
+        res.status(200).json(paymentStatus);
+      } else {
+        res.status(500).send('Failed to check payment status.');
+      }
+    } catch (error) {
+      console.error('Error checking payment status:', error);
+      res.status(500).send('Error checking payment status.');
+    }
+  });
+
+  /**
+   * Get Balance
+   * GET /payments/balance
+   */
+  router.get('/balance', authMiddleware, async (req, res) => {
+    const provider = req.provider;
+
+    if (!provider) {
+      return res.status(400).send('Provider not specified or invalid.');
+    }
+
+    try {
+      const balance = await paymentService.getBalance(provider);
+
+      if (balance !== null) {
+        res.status(200).json({ balance });
+      } else {
+        res.status(500).send('Failed to retrieve balance.');
+      }
+    } catch (error) {
+      console.error('Error fetching balance:', error);
+      res.status(500).send('Error fetching balance.');
+    }
+  });
+
+  /**
+   * Get Transactions
+   * GET /payments/transactions
+   */
+  router.get('/transactions', authMiddleware, async (req, res) => {
+    const provider = req.provider;
+    const user = req.user;
+
+    if (!provider) {
+      return res.status(400).send('Provider not specified or invalid.');
+    }
+
+    try {
+      const transactions = await paymentService.getTransactions(user, provider, Transaction);
+
+      if (transactions) {
+        res.status(200).json(transactions);
+      } else {
+        res.status(500).send('Failed to fetch transactions.');
+      }
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+      res.status(500).send('Error fetching transactions.');
+    }
+  });
+
+  return router;
+};

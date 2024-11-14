@@ -17,6 +17,7 @@ const cors = require('cors');
 const authMiddleware = require('./middleware/authMiddleware');
 const admin = require('./firebase');
 const paymentRoutes = require('./routes/paymentRoutes');
+const TransactionModel = require('./models/Transaction'); 
 
 
 
@@ -24,76 +25,6 @@ const paymentRoutes = require('./routes/paymentRoutes');
 
 const SESSION_COOKIE_NAME = 'session';
 
-// Allow all origins (or specify allowed origins)
-app.use(cors());
-
-// Middleware to parse JSON requests and cookies
-app.use(express.json());
-app.use(cookieParser());
-
-const port = parseInt(process.env.PORT) || process.argv[3] || 3000;
-
-// Serve static files from the main 'views' directory
-app.use(express.static(path.join(__dirname, 'views')));
-
-// Serve login.html and signup.html routes
-app.get('/login', (req, res) => {
-  res.sendFile(path.join(__dirname, './login.html'));
-});
-
-// Route to serve 'signup.html'
-// app.get('/signup', (req, res) => {
-//   res.sendFile(path.join(__dirname, './signup.html'));
-// });
-
-app.get('/signup', (req, res) => {
-  console.log('GET /signup called');
-  res.sendFile(path.join(__dirname, './signup.html'));
-});
-
-
-
-
-// to serve routes from appRoutes.js
-app.use('/auth', authRoutes);
-
-
-// to serve routes from pluginRoutes.js
-app.use('/api', pluginRoutes);
-
-
-// Set up Swagger UI
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
-
-// Serve funding.html (ensure the user is authenticated)
-app.get('/funding', authMiddleware, (req, res) => {
-  res.sendFile(path.join(__dirname, './views/funding.html'));
-});
-
-// to serve routes from paymentRoutes.js
-app.use('/payments', paymentRoutes);
-
-
-
-
-// Middleware to serve static files from plugins' 'views' directories
-app.use((req, res, next) => {
-  const pluginsDir = path.join(__dirname, 'plugins');
-  const pluginName = req.path.split('/')[1]; // Get the first segment after '/'
-  const pluginPath = path.join(pluginsDir, pluginName);
-
-  if (fs.existsSync(pluginPath)) {
-    // Check if the plugin has a 'views' directory
-    const pluginViewsPath = path.join(pluginPath, 'views');
-    if (fs.existsSync(pluginViewsPath)) {
-      express.static(pluginViewsPath)(req, res, next);
-    } else {
-      next();
-    }
-  } else {
-    next();
-  }
-});
 
 // Database Connection
 const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
@@ -119,6 +50,83 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, proces
 //     } : false,
 //   },
 // });
+
+// Initialize models
+const Transaction = TransactionModel(sequelize);
+const models = require('./models')(sequelize); 
+
+// Allow all origins (or specify allowed origins)
+app.use(cors());
+
+// Middleware to parse JSON requests and cookies
+app.use(express.json());
+app.use(cookieParser());
+
+const port = parseInt(process.env.PORT) || process.argv[3] || 3000;
+
+// Serve static files from the main 'views' directory
+app.use(express.static(path.join(__dirname, 'views')));
+
+// Serve login.html and signup.html routes
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, './login.html'));
+});
+
+// Route to serve 'signup.html'
+app.get('/signup', (req, res) => {
+//   console.log('GET /signup called');
+  res.sendFile(path.join(__dirname, './signup.html'));
+});
+
+
+
+
+
+// to serve routes from appRoutes.js
+app.use('/auth', authRoutes);
+
+
+// to serve routes from pluginRoutes.js
+app.use('/api', pluginRoutes);
+
+
+// Set up Swagger UI
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
+
+// Serve funding.html (ensure the user is authenticated)
+app.get('/funding', authMiddleware, (req, res) => {
+  res.sendFile(path.join(__dirname, './views/funding.html'));
+});
+
+// to serve routes from paymentRoutes.js
+// app.use('/payments', paymentRoutes);
+// Mount payment routes, passing the models
+const initializedPaymentRoutes = paymentRoutes(models);
+app.use('/payments', initializedPaymentRoutes);
+
+
+
+
+// Middleware to serve static files from plugins' 'views' directories
+app.use((req, res, next) => {
+  const pluginsDir = path.join(__dirname, 'plugins');
+  const pluginName = req.path.split('/')[1]; // Get the first segment after '/'
+  const pluginPath = path.join(pluginsDir, pluginName);
+
+  if (fs.existsSync(pluginPath)) {
+    // Check if the plugin has a 'views' directory
+    const pluginViewsPath = path.join(pluginPath, 'views');
+    if (fs.existsSync(pluginViewsPath)) {
+      express.static(pluginViewsPath)(req, res, next);
+    } else {
+      next();
+    }
+  } else {
+    next();
+  }
+});
+
+
 
 
 // Load the Invoice Key from the .env file

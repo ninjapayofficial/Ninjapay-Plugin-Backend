@@ -11,7 +11,6 @@ async function authMiddleware(req, res, next) {
 
   try {
     const sessionCookie = req.cookies[SESSION_COOKIE_NAME] || '';
-
     // Check for provider keys in headers
     const providerInvoiceKey = req.headers['x-provider-invoice-key'];
     const providerAdminKey = req.headers['x-provider-admin-key'];
@@ -52,7 +51,9 @@ async function authMiddleware(req, res, next) {
       req.provider = {
         provider: 'lnbits',
         instanceUrl: lnbitsProvider.instanceUrl || process.env.LNBITS_INSTANCE_URL || 'https://demo.lnbits.com',
-        invoiceKey: lnbitsProvider.invoiceKey, // Use provider-specific keys
+        providerInvoiceKey: lnbitsProvider.providerInvoiceKey, // Use provider-specific keys
+        providerAdminKey: lnbitsProvider.providerAdminKey,
+        invoiceKey: lnbitsProvider.invoiceKey, // Use lnbits-specific keys
         adminKey: lnbitsProvider.adminKey,
       };
 
