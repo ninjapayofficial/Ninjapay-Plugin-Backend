@@ -5,6 +5,14 @@ const path = require('path');
 const fs = require('fs');
 
 
+
+module.exports = {
+  runCoreMigrations,
+  runPluginMigrations,
+  rollbackPluginMigrations,
+};
+
+
 async function runCoreMigrations(sequelize) {
   const umzug = new Umzug({
     migrations: {
@@ -70,11 +78,7 @@ async function rollbackPluginMigrations(sequelize, pluginName) {
     }
   }
   
-  module.exports = {
-    runCoreMigrations,
-    runPluginMigrations,
-    rollbackPluginMigrations,
-  };
+
   
 
 

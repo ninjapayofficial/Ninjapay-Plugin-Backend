@@ -1,9 +1,9 @@
-// authRoutes.js
+// routes/authRoutes.js
 
 const express = require('express');
 const router = express.Router();
-const admin = require('./firebase'); // Import Firebase Admin
-const authMiddleware = require('./middleware/authMiddleware');
+const admin = require('../firebase'); // Import Firebase Admin
+const authMiddleware = require('../middleware/authMiddleware');
 const crypto = require('crypto'); // For generating random keys
 
 const SESSION_COOKIE_NAME = 'session';

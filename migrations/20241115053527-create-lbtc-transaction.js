@@ -1,15 +1,18 @@
-// models/Transaction.js
+// migrations/20241115000000-create-lbtc-transaction.js
 
-const { DataTypes } = require('sequelize');
+'use strict';
 
-module.exports = (sequelize) => {
-  const Transaction = sequelize.define(
-    'Transaction',
-    {
+module.exports = {
+  up: async ({ context: sequelize }) => {
+    const queryInterface = sequelize.getQueryInterface();
+    const { DataTypes } = require('sequelize');
+
+    await queryInterface.createTable('LbtcTransaction', {
       id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
+        allowNull: false,
         autoIncrement: true,
+        primaryKey: true,
+        type: DataTypes.INTEGER
       },
       userId: {
         type: DataTypes.STRING,
@@ -45,11 +48,10 @@ module.exports = (sequelize) => {
         allowNull: false,
         defaultValue: DataTypes.NOW,
       },
-    },
-    {
-      freezeTableName: true, // Prevents Sequelize from pluralizing table name
-    }
-  );
+    });
+  },
 
-  return Transaction;
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.dropTable('LbtcTransaction');
+  }
 };

@@ -6,7 +6,7 @@ const authMiddleware = require('../middleware/authMiddleware');
 const paymentService = require('../services/paymentService');
 
 module.exports = (models) => {
-  const { Transaction } = models;
+  const { LbtcTransaction } = models;
 
   /**
    * Create Pay Link
@@ -25,7 +25,7 @@ module.exports = (models) => {
       let payLinkData;
 
       if (provider.provider === 'lnbits') {
-        payLinkData = await paymentService.createPayLink(user, provider, amount, description, Transaction);
+        payLinkData = await paymentService.createPayLink(user, provider, amount, description, LbtcTransaction);
       }
       // Handle other providers here
 
@@ -54,7 +54,11 @@ module.exports = (models) => {
     }
 
     try {
-      const paymentData = await paymentService.payInvoice(user, provider, bolt11, Transaction);
+      let paymentData;
+      if (provider.provider === 'lnbits') {
+        paymentData = await paymentService.payInvoice(user, provider, bolt11, LbtcTransaction);
+      }
+      
 
       if (paymentData) {
         res.status(200).json(paymentData);
@@ -137,7 +141,7 @@ module.exports = (models) => {
     }
 
     try {
-      const transactions = await paymentService.getTransactions(user, provider, Transaction);
+      const transactions = await paymentService.getTransactions(user, provider, LbtcTransaction);
 
       if (transactions) {
         res.status(200).json(transactions);

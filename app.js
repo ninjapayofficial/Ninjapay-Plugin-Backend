@@ -11,13 +11,13 @@ const swaggerSpecs = require('./swaggerConfig');
 const swaggerUi = require('swagger-ui-express');
 const pluginRoutes = require('./routes/pluginRoutes');
 const { runCoreMigrations } = require('./migrationManager');
-const authRoutes = require('./authRoutes');
+const authRoutes = require('./routes/authRoutes');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const authMiddleware = require('./middleware/authMiddleware');
 const admin = require('./firebase');
 const paymentRoutes = require('./routes/paymentRoutes');
-const TransactionModel = require('./models/Transaction'); 
+const LbtcTransactionModel = require('./models/LbtcTransaction'); 
 
 
 
@@ -52,7 +52,7 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, proces
 // });
 
 // Initialize models
-const Transaction = TransactionModel(sequelize);
+const LbtcTransaction = LbtcTransactionModel(sequelize);
 const models = require('./models')(sequelize); 
 
 // Allow all origins (or specify allowed origins)

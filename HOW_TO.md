@@ -177,3 +177,16 @@ curl -X GET http://localhost:3000/plugins/lightning-btc-plugin/balance \
 npx sequelize-cli db:migrate  \
 
 
+lnbc700n1pnnw56hsp5nnz6kzsqmhg8f9rsqxlhvrvmvf50dwupyu90w39h52zn469q5w8qpp5xmcje9emz26pzvkwmue2ln8vqc9vydk0v2uf8z7nlydt9enplajqdpqf38xy6t5wvszs3z9f48jq5692fty253fcqpjrzjqgj5av5qnh9lgrmz44lc9n3gp8srkpc5a5ss0hn2dpup9vfs5f5fcrrxvyqqnlcqqyqqqqlgqqqqqqqqvs9qxpqysgqu9sn5dewrenunxa2k9dusx0nx4sfunj3nvqse6ksthvw70fulpthh28fz3d8j3je46rd98zkgaahy23defzrtmvwzka2c3j2wcel09qpsa6mx5
+
+curl -X POST http://localhost:3000/plugins/lightning-btc-plugin/pay-invoice \
+  -H "Content-Type: application/json" \
+  -H "x-provider-admin-key: p_ak_kcq5mtsp4" \
+  -d '{"bolt11": "lnbc700n1pnnwel9sp5aqzccyet2yv35l06wjge9pkj4zkp9j099scx8qg5fr7klwe99hcqpp5e9sarwne0q6qgru00h7t8zlrs2g2kwtwe80k69sls2qwvez2h4kqdpqf38xy6t5wvszs3z9f48jq5692fty253fcqpjrzjqfsktpgyjffp7jkg40vmmqygzg6yd5fx7eyv5d0xp7ypwlwpf88tyrxn3qqq7mgqqqqqqqqqqqqqqqgq2q9qxpqysgq4j6rn64c4pqepx9ax98wef4jdrsjhh04mz8d4h82gp8dqmjjtkshg5lezed4l4z7ua0ef79pcck20jhgew8unyyas9ldzwp76szjtxgp8agpvz"}'
+
+
+
+\\\
+
+curl -X POST https://demo.lnbits.com/api/v1/payments -d '{"out": true, "bolt11": "lnbc700n1pnnw56hsp5nnz6kzsqmhg8f9rsqxlhvrvmvf50dwupyu90w39h52zn469q5w8qpp5xmcje9emz26pzvkwmue2ln8vqc9vydk0v2uf8z7nlydt9enplajqdpqf38xy6t5wvszs3z9f48jq5692fty253fcqpjrzjqgj5av5qnh9lgrmz44lc9n3gp8srkpc5a5ss0hn2dpup9vfs5f5fcrrxvyqqnlcqqyqqqqlgqqqqqqqqvs9qxpqysgqu9sn5dewrenunxa2k9dusx0nx4sfunj3nvqse6ksthvw70fulpthh28fz3d8j3je46rd98zkgaahy23defzrtmvwzka2c3j2wcel09qpsa6mx5"}' -H "X-Api-Key: aa870b9765d643299430136ec9b2f6a5" -H "Content-type: application/json"
+
