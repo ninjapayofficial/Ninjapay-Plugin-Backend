@@ -31,31 +31,28 @@ async function authMiddleware(req, res, next) {
 
       userData = userDoc.data();
 
-      // Attach user data to req.user (excluding invoiceKey and adminKey)
+      // Attach user data to req.user
       req.user = {
         uid,
         walletId: userData.walletId, // Nullable
-        // Removed invoiceKey and adminKey
       };
 
       // Retrieve provider data for 'lnbits'
-      // Assuming 'fundingProviders' is an array in userData
       const fundingProviders = userData.fundingProviders || [];
       const lnbitsProvider = fundingProviders.find(provider => provider.provider === 'lnbits');
 
-      if (!lnbitsProvider) {
-        console.log('authMiddleware: No lnbits provider found for user');
-        return res.status(401).send('LNbits provider not connected.');
+      if (lnbitsProvider) {
+        req.provider = {
+          provider: 'lnbits',
+          instanceUrl: lnbitsProvider.instanceUrl || process.env.LNBITS_INSTANCE_URL || 'https://demo.lnbits.com',
+          providerInvoiceKey: lnbitsProvider.providerInvoiceKey,
+          providerAdminKey: lnbitsProvider.providerAdminKey,
+          invoiceKey: lnbitsProvider.invoiceKey,
+          adminKey: lnbitsProvider.adminKey,
+        };
+      } else {
+        req.provider = null; // Allow the request to proceed without a provider
       }
-
-      req.provider = {
-        provider: 'lnbits',
-        instanceUrl: lnbitsProvider.instanceUrl || process.env.LNBITS_INSTANCE_URL || 'https://demo.lnbits.com',
-        providerInvoiceKey: lnbitsProvider.providerInvoiceKey, // Use provider-specific keys
-        providerAdminKey: lnbitsProvider.providerAdminKey,
-        invoiceKey: lnbitsProvider.invoiceKey, // Use lnbits-specific keys
-        adminKey: lnbitsProvider.adminKey,
-      };
 
       next();
     } else if (providerInvoiceKey || providerAdminKey) {
@@ -84,11 +81,10 @@ async function authMiddleware(req, res, next) {
 
       userData = userDoc.data();
 
-      // Attach user data to req.user (excluding invoiceKey and adminKey)
+      // Attach user data to req.user
       req.user = {
         uid,
         walletId: userData.walletId, // Nullable
-        // Removed invoiceKey and adminKey
       };
 
       // Attach the provider to req.provider
