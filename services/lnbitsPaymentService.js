@@ -1,4 +1,4 @@
-// services/paymentService.js
+// services/lnbitsPaymentService.js
 
 const axios = require('axios');
 

@@ -3,7 +3,7 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
-const paymentService = require('../services/paymentService');
+const lnbitsPaymentService = require('../services/lnbitsPaymentService');
 
 module.exports = (models) => {
   const { LbtcTransaction } = models;
@@ -25,7 +25,7 @@ module.exports = (models) => {
       let payLinkData;
 
       if (provider.provider === 'lnbits') {
-        payLinkData = await paymentService.createPayLink(user, provider, amount, description, LbtcTransaction);
+        payLinkData = await lnbitsPaymentService.createPayLink(user, provider, amount, description, LbtcTransaction);
       }
       // Handle other providers here
 
@@ -56,7 +56,7 @@ module.exports = (models) => {
     try {
       let paymentData;
       if (provider.provider === 'lnbits') {
-        paymentData = await paymentService.payInvoice(user, provider, bolt11, LbtcTransaction);
+        paymentData = await lnbitsPaymentService.payInvoice(user, provider, bolt11, LbtcTransaction);
       }
       
 
@@ -88,7 +88,7 @@ module.exports = (models) => {
       let paymentStatus;
 
       if (provider.provider === 'lnbits') {
-        paymentStatus = await paymentService.checkPaymentStatus(user, provider, paymentId);
+        paymentStatus = await lnbitsPaymentService.checkPaymentStatus(user, provider, paymentId);
       }
       // Handle other providers here
 
@@ -115,7 +115,7 @@ module.exports = (models) => {
     }
 
     try {
-      const balance = await paymentService.getBalance(provider);
+      const balance = await lnbitsPaymentService.getBalance(provider);
 
       if (balance !== null) {
         res.status(200).json({ balance });
@@ -141,7 +141,7 @@ module.exports = (models) => {
     }
 
     try {
-      const transactions = await paymentService.getTransactions(user, provider, LbtcTransaction);
+      const transactions = await lnbitsPaymentService.getTransactions(user, provider, LbtcTransaction);
 
       if (transactions) {
         res.status(200).json(transactions);
