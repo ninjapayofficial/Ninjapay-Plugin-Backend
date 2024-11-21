@@ -1,11 +1,12 @@
-// models/LbtcTransaction.js
+// migrations/20241119-create-opennode-transaction.js
 
-const { DataTypes } = require('sequelize');
+'use strict';
 
-module.exports = (sequelize) => {
-  const LbtcTransaction = sequelize.define(
-    'LbtcTransaction',
-    {
+module.exports = {
+  up: async ({ context: sequelize }) => {
+    const queryInterface = sequelize.getQueryInterface();
+    const { DataTypes } = require('sequelize');
+    await queryInterface.createTable('OpennodeTransaction', {
       id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -45,11 +46,10 @@ module.exports = (sequelize) => {
         allowNull: false,
         defaultValue: DataTypes.NOW,
       },
-    },
-    {
-      freezeTableName: true, // Prevents Sequelize from pluralizing table name
-    }
-  );
+    });
+  },
 
-  return LbtcTransaction;
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.dropTable('OpennodeTransaction');
+  },
 };

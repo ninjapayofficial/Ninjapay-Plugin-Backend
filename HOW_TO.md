@@ -9,9 +9,18 @@ curl -X 'POST' 'http://localhost:3000/install-plugin' -H 'accept: /' -H 'Content
 
 
 
+
 curl http://localhost:3000/current-time
 rm -rf plugins/sample-plugin
 
+
+
+
+\/ opennode calls /\
+curl -X POST http://localhost:3000/payments/createPayLink \
+  -H "Content-Type: application/json" \
+  -H "x-provider-invoice-key: p_ik_6stcmkg4o" \
+  -d '{"amount": 77, "description": "nin"}'
 
 
 //////

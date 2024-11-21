@@ -4,9 +4,11 @@ const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
 const lnbitsPaymentService = require('../services/lnbitsPaymentService');
+const opennodePaymentService = require('../services/opennodePaymentService');
+const paymentService = require('../services/paymentService');
 
 module.exports = (models) => {
-  const { LbtcTransaction } = models;
+  const { LbtcTransaction, OpennodeTransaction } = models;
 
   /**
    * Create Pay Link
@@ -18,16 +20,31 @@ module.exports = (models) => {
     const user = req.user;
 
     if (!provider) {
-      return res.status(400).send('Provider not specified or invalid.');
+      return res.status(400).send('No funding provider connected.');
     }
 
     try {
       let payLinkData;
 
       if (provider.provider === 'lnbits') {
-        payLinkData = await lnbitsPaymentService.createPayLink(user, provider, amount, description, LbtcTransaction);
+        payLinkData = await lnbitsPaymentService.createPayLink(
+          user,
+          provider,
+          amount,
+          description,
+          LbtcTransaction
+        );
+      } else if (provider.provider === 'opennode') {
+        payLinkData = await opennodePaymentService.createPayLink(
+          user,
+          provider,
+          amount,
+          description,
+          OpennodeTransaction
+        );
+      } else {
+        return res.status(400).send('Unsupported provider.');
       }
-      // Handle other providers here
 
       if (payLinkData) {
         res.status(200).json(payLinkData);
@@ -49,16 +66,34 @@ module.exports = (models) => {
     const provider = req.provider;
     const user = req.user;
 
+    if (!provider) {
+      return res.status(400).send('No funding provider connected.');
+    }
+
     if (!bolt11) {
       return res.status(400).send('BOLT11 invoice is required.');
     }
 
     try {
       let paymentData;
+
       if (provider.provider === 'lnbits') {
-        paymentData = await lnbitsPaymentService.payInvoice(user, provider, bolt11, LbtcTransaction);
+        paymentData = await lnbitsPaymentService.payInvoice(
+          user,
+          provider,
+          bolt11,
+          LbtcTransaction
+        );
+      } else if (provider.provider === 'opennode') {
+        paymentData = await opennodePaymentService.payInvoice(
+          user,
+          provider,
+          bolt11,
+          OpennodeTransaction
+        );
+      } else {
+        return res.status(400).send('Unsupported provider.');
       }
-      
 
       if (paymentData) {
         res.status(200).json(paymentData);
@@ -81,16 +116,25 @@ module.exports = (models) => {
     const user = req.user;
 
     if (!provider) {
-      return res.status(400).send('Provider not specified or invalid.');
+      return res.status(400).send('No funding provider connected.');
     }
 
     try {
       let paymentStatus;
 
       if (provider.provider === 'lnbits') {
-        paymentStatus = await lnbitsPaymentService.checkPaymentStatus(user, provider, paymentId);
+        paymentStatus = await lnbitsPaymentService.checkPaymentStatus(
+          provider,
+          paymentId
+        );
+      } else if (provider.provider === 'opennode') {
+        paymentStatus = await opennodePaymentService.checkPaymentStatus(
+          provider,
+          paymentId
+        );
+      } else {
+        return res.status(400).send('Unsupported provider.');
       }
-      // Handle other providers here
 
       if (paymentStatus) {
         res.status(200).json(paymentStatus);
@@ -111,11 +155,19 @@ module.exports = (models) => {
     const provider = req.provider;
 
     if (!provider) {
-      return res.status(400).send('Provider not specified or invalid.');
+      return res.status(400).send('No funding provider connected.');
     }
 
     try {
-      const balance = await lnbitsPaymentService.getBalance(provider);
+      let balance;
+
+      if (provider.provider === 'lnbits') {
+        balance = await lnbitsPaymentService.getBalance(provider);
+      } else if (provider.provider === 'opennode') {
+        balance = await opennodePaymentService.getBalance(provider);
+      } else {
+        return res.status(400).send('Unsupported provider.');
+      }
 
       if (balance !== null) {
         res.status(200).json({ balance });
@@ -137,11 +189,27 @@ module.exports = (models) => {
     const user = req.user;
 
     if (!provider) {
-      return res.status(400).send('Provider not specified or invalid.');
+      return res.status(400).send('No funding provider connected.');
     }
 
     try {
-      const transactions = await lnbitsPaymentService.getTransactions(user, provider, LbtcTransaction);
+      let transactions;
+
+      if (provider.provider === 'lnbits') {
+        transactions = await lnbitsPaymentService.getTransactions(
+          user,
+          provider,
+          LbtcTransaction
+        );
+      } else if (provider.provider === 'opennode') {
+        transactions = await opennodePaymentService.getTransactions(
+          user,
+          provider,
+          OpennodeTransaction
+        );
+      } else {
+        return res.status(400).send('Unsupported provider.');
+      }
 
       if (transactions) {
         res.status(200).json(transactions);

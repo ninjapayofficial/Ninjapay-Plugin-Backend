@@ -24,12 +24,19 @@
     th, td {
       border: 1px solid #ddd;
       padding: 8px;
+      vertical-align: top;
     }
     th {
       background-color: #f2f2f2;
     }
     #message {
       color: red;
+    }
+    .success {
+      color: green;
+    }
+    button {
+      margin-right: 5px;
     }
   </style>
 </head>
@@ -40,12 +47,14 @@
   <div class="section">
     <h2>Add a New Provider</h2>
     <label for="provider">Select Provider:</label>
-    <select id="provider">
+    <select id="provider" onchange="showProviderFields()">
       <option value="lnbits">LNbits</option>
+      <option value="opennode">OpenNode</option>
       <!-- Add other providers here -->
     </select><br><br>
     
-    <div id="lnbits-fields">
+    <!-- LNbits Fields -->
+    <div id="lnbits-fields" style="display: none;">
       <label for="instanceUrl">LNbits Instance URL:</label>
       <input type="text" id="instanceUrl"><br>
       <label for="lnbitsInvoiceKey">LNbits Invoice Key:</label>
@@ -54,6 +63,12 @@
       <input type="text" id="lnbitsAdminKey"><br>
     </div>
     
+    <!-- OpenNode Fields -->
+    <div id="opennode-fields" style="display: none;">
+      <label for="opennodeApiKey">OpenNode API Key:</label>
+      <input type="text" id="opennodeApiKey"><br>
+    </div>
+
     <button onclick="connectProvider()">Connect</button>
     <div id="message"></div>
   </div>
@@ -65,9 +80,7 @@
       <thead>
         <tr>
           <th>Provider</th>
-          <th>Instance URL</th>
-          <th>Provider Invoice Key</th>
-          <th>Provider Admin Key</th>
+          <th>Details</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -78,6 +91,12 @@
   </div>
 
   <script>
+    function showProviderFields() {
+      const provider = document.getElementById('provider').value;
+      document.getElementById('lnbits-fields').style.display = provider === 'lnbits' ? 'block' : 'none';
+      document.getElementById('opennode-fields').style.display = provider === 'opennode' ? 'block' : 'none';
+    }
+
     function connectProvider() {
       const provider = document.getElementById('provider').value;
       const data = { provider };
@@ -86,7 +105,12 @@
         data.instanceUrl = document.getElementById('instanceUrl').value;
         data.invoiceKey = document.getElementById('lnbitsInvoiceKey').value;
         data.adminKey = document.getElementById('lnbitsAdminKey').value;
+      } else if (provider === 'opennode') {
+        data.apiKey = document.getElementById('opennodeApiKey').value;
       }
+
+      // // Debug: Log data being sent
+      // console.log('Data being sent:', data);
       // Handle other providers as needed
 
       fetch('/auth/addFundingProvider', {
@@ -99,6 +123,7 @@
       })
       .then(response => {
         if (response.ok) {
+          document.getElementById('message').innerText = '';
           loadProviders(); // Reload the providers list
         } else {
           return response.text().then(text => { throw new Error(text); });
@@ -119,15 +144,31 @@
         tbody.innerHTML = '';
         providers.forEach(provider => {
           const tr = document.createElement('tr');
+          let details = '';
+          if (provider.provider === 'lnbits') {
+            details = `
+              <strong>Instance URL:</strong> ${provider.instanceUrl || ''}<br>
+              <strong>Provider Invoice Key:</strong> ${provider.providerInvoiceKey}<br>
+              <strong>Provider Admin Key:</strong> ${provider.providerAdminKey}
+            `;
+          } else if (provider.provider === 'opennode') {
+            details = `
+              <strong>Provider Invoice Key:</strong> ${provider.providerInvoiceKey}<br>
+              <strong>Provider Admin Key:</strong> ${provider.providerAdminKey}
+            `;
+          }
           tr.innerHTML = `
             <td>${provider.provider}</td>
-            <td>${provider.instanceUrl}</td>
-            <td>${provider.providerInvoiceKey}</td>
-            <td>${provider.providerAdminKey}</td>
-            <td><button onclick="removeProvider('${provider.providerInvoiceKey}')">Remove</button></td>
+            <td>${details}</td>
+            <td>
+              <button onclick="setDefaultProvider('${provider.provider}')">Set as Default</button>
+              <button onclick="removeProvider('${provider.providerInvoiceKey}')">Remove</button>
+            </td>
           `;
           tbody.appendChild(tr);
         });
+        // Fetch the default provider to highlight it
+        getDefaultProvider();
       })
       .catch(error => {
         console.error('Error loading providers:', error);
@@ -158,8 +199,57 @@
       }
     }
 
-    // Load providers on page load
-    window.onload = loadProviders;
+    function setDefaultProvider(provider) {
+      fetch('/auth/setDefaultProvider', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ provider }),
+        credentials: 'include',
+      })
+      .then(response => {
+        if (response.ok) {
+          document.getElementById('message').innerText = 'Default provider set successfully.';
+          document.getElementById('message').className = 'success';
+          loadProviders(); // Reload the providers list to reflect changes
+        } else {
+          return response.text().then(text => { throw new Error(text); });
+        }
+      })
+      .catch(error => {
+        document.getElementById('message').innerText = error.message;
+        document.getElementById('message').className = '';
+      });
+    }
+
+    function getDefaultProvider() {
+      fetch('/auth/getDefaultProvider', {
+        credentials: 'include',
+      })
+      .then(response => response.json())
+      .then(data => {
+        const defaultProvider = data.defaultProvider;
+        const rows = document.querySelectorAll('#providersTable tbody tr');
+        rows.forEach(row => {
+          const providerName = row.cells[0].innerText;
+          if (providerName === defaultProvider) {
+            row.style.backgroundColor = '#d0f0c0'; // Light green background for default provider
+          } else {
+            row.style.backgroundColor = '';
+          }
+        });
+      })
+      .catch(error => {
+        console.error('Error fetching default provider:', error);
+      });
+    }
+
+    // Load providers and set up page on load
+    window.onload = function() {
+      showProviderFields();
+      loadProviders();
+    };
   </script>
 </body>
 </html>

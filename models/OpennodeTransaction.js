@@ -1,10 +1,10 @@
-// models/LbtcTransaction.js
+// models/OpennodeTransaction.js
 
 const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
-  const LbtcTransaction = sequelize.define(
-    'LbtcTransaction',
+  const OpennodeTransaction = sequelize.define(
+    'OpennodeTransaction',
     {
       id: {
         type: DataTypes.INTEGER,
@@ -51,5 +51,5 @@ module.exports = (sequelize) => {
     }
   );
 
-  return LbtcTransaction;
+  return OpennodeTransaction;
 };

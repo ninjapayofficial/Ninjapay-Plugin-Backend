@@ -37,21 +37,27 @@ async function authMiddleware(req, res, next) {
         walletId: userData.walletId, // Nullable
       };
 
-      // Retrieve provider data for 'lnbits'
+      // Retrieve the default provider
       const fundingProviders = userData.fundingProviders || [];
-      const lnbitsProvider = fundingProviders.find(provider => provider.provider === 'lnbits');
+      let provider;
 
-      if (lnbitsProvider) {
+      if (userData.defaultProvider) {
+        // Find the default provider
+        provider = fundingProviders.find(fp => fp.provider === userData.defaultProvider);
+      }
+
+      if (!provider) {
+        // Fall back to the first provider if default is not set or not found
+        provider = fundingProviders[0];
+      }
+
+      if (provider) {
         req.provider = {
-          provider: 'lnbits',
-          instanceUrl: lnbitsProvider.instanceUrl || process.env.LNBITS_INSTANCE_URL || 'https://demo.lnbits.com',
-          providerInvoiceKey: lnbitsProvider.providerInvoiceKey,
-          providerAdminKey: lnbitsProvider.providerAdminKey,
-          invoiceKey: lnbitsProvider.invoiceKey,
-          adminKey: lnbitsProvider.adminKey,
+          ...provider,
+          // Include any additional fields or transformations if needed
         };
       } else {
-        req.provider = null; // Allow the request to proceed without a provider
+        req.provider = null; // No providers connected
       }
 
       next();
@@ -88,7 +94,7 @@ async function authMiddleware(req, res, next) {
       };
 
       // Attach the provider to req.provider
-      req.provider = fundingProvider; // Should include provider: 'lnbits', instanceUrl, providerInvoiceKey, providerAdminKey
+      req.provider = fundingProvider; // Should include provider details
 
       next();
     } else {

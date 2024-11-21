@@ -92,10 +92,15 @@ router.post('/logout', (req, res) => {
   res.redirect('/login');
 });
 
+
 // Route to handle adding funding provider
 router.post('/addFundingProvider', authMiddleware, async (req, res) => {
   const uid = req.user.uid;
   const { provider } = req.body;
+  
+  // console.log('Received provider:', provider);
+  // console.log('Request body:', req.body);
+
   try {
     const db = admin.firestore();
     const userRef = db.collection('users').doc(uid);
@@ -106,14 +111,28 @@ router.post('/addFundingProvider', authMiddleware, async (req, res) => {
     if (provider === 'lnbits') {
       const { instanceUrl, invoiceKey, adminKey } = req.body;
       fundingProviderData.instanceUrl = instanceUrl;
-      fundingProviderData.invoiceKey = invoiceKey; // Store in plaintext but later encrypt
-      fundingProviderData.adminKey = adminKey; // Store in plaintext but later encrypt
+      fundingProviderData.invoiceKey = invoiceKey; // Store in plaintext but consider encrypting
+      fundingProviderData.adminKey = adminKey; // Store in plaintext but consider encrypting
 
       // Generate provider-specific keys for our system
       fundingProviderData.providerInvoiceKey = generateProviderInvoiceKey();
       fundingProviderData.providerAdminKey = generateProviderAdminKey();
+    } else if (provider === 'opennode') {
+      const { apiKey } = req.body;
+
+      console.log('Received apiKey:', apiKey);
+
+      if (!apiKey) {
+        return res.status(400).send('API Key is required for OpenNode.');
+      }
+      fundingProviderData.apiKey = apiKey; // Store in plaintext but consider encrypting
+
+      // Generate provider-specific keys for our system
+      fundingProviderData.providerInvoiceKey = generateProviderInvoiceKey();
+      fundingProviderData.providerAdminKey = generateProviderAdminKey();
+    } else {
+      return res.status(400).send('Unsupported provider.');
     }
-    // Handle other providers as needed
 
     // Save funding provider data under user document
     await userRef.update({
@@ -139,6 +158,7 @@ router.post('/addFundingProvider', authMiddleware, async (req, res) => {
     res.status(500).send('Error adding funding provider.');
   }
 });
+
 
 // Route to get connected funding providers
 router.get('/getFundingProviders', authMiddleware, async (req, res) => {
@@ -219,5 +239,65 @@ router.post('/removeFundingProvider', authMiddleware, async (req, res) => {
     res.status(500).send('Error removing funding provider.');
   }
 });
+
+// Route to set the default provider
+router.post('/setDefaultProvider', authMiddleware, async (req, res) => {
+  const uid = req.user.uid;
+  const { provider } = req.body;
+
+  if (!provider) {
+    return res.status(400).send('Provider is required.');
+  }
+
+  try {
+    const db = admin.firestore();
+    const userRef = db.collection('users').doc(uid);
+
+    // Check if the provider exists in the user's fundingProviders
+    const userDoc = await userRef.get();
+    if (!userDoc.exists) {
+      return res.status(404).send('User not found.');
+    }
+    const userData = userDoc.data();
+    const fundingProviders = userData.fundingProviders || [];
+    const providerExists = fundingProviders.some(fp => fp.provider === provider);
+
+    if (!providerExists) {
+      return res.status(400).send('Provider not connected.');
+    }
+
+    // Update the default provider
+    await userRef.update({
+      defaultProvider: provider,
+    });
+
+    res.status(200).send('Default provider set successfully.');
+  } catch (error) {
+    console.error('Error setting default provider:', error);
+    res.status(500).send('Error setting default provider.');
+  }
+});
+
+// Route to get the default provider
+router.get('/getDefaultProvider', authMiddleware, async (req, res) => {
+  const uid = req.user.uid;
+  try {
+    const db = admin.firestore();
+    const userDoc = await db.collection('users').doc(uid).get();
+
+    if (!userDoc.exists) {
+      return res.status(404).send('User not found.');
+    }
+
+    const userData = userDoc.data();
+    const defaultProvider = userData.defaultProvider || null;
+
+    res.status(200).json({ defaultProvider });
+  } catch (error) {
+    console.error('Error fetching default provider:', error);
+    res.status(500).send('Error fetching default provider.');
+  }
+});
+
 
 module.exports = router;
