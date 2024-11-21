@@ -16,11 +16,7 @@ rm -rf plugins/sample-plugin
 
 
 
-\/ opennode calls /\
-curl -X POST http://localhost:3000/payments/createPayLink \
-  -H "Content-Type: application/json" \
-  -H "x-provider-invoice-key: p_ik_6stcmkg4o" \
-  -d '{"amount": 77, "description": "nin"}'
+
 
 
 //////
@@ -199,3 +195,15 @@ curl -X POST http://localhost:3000/plugins/lightning-btc-plugin/pay-invoice \
 
 curl -X POST https://demo.lnbits.com/api/v1/payments -d '{"out": true, "bolt11": "lnbc700n1pnnw56hsp5nnz6kzsqmhg8f9rsqxlhvrvmvf50dwupyu90w39h52zn469q5w8qpp5xmcje9emz26pzvkwmue2ln8vqc9vydk0v2uf8z7nlydt9enplajqdpqf38xy6t5wvszs3z9f48jq5692fty253fcqpjrzjqgj5av5qnh9lgrmz44lc9n3gp8srkpc5a5ss0hn2dpup9vfs5f5fcrrxvyqqnlcqqyqqqqlgqqqqqqqqvs9qxpqysgqu9sn5dewrenunxa2k9dusx0nx4sfunj3nvqse6ksthvw70fulpthh28fz3d8j3je46rd98zkgaahy23defzrtmvwzka2c3j2wcel09qpsa6mx5"}' -H "X-Api-Key: aa870b9765d643299430136ec9b2f6a5" -H "Content-type: application/json"
 
+
+
+
+\/ opennode calls /\
+curl -X POST http://localhost:3000/payments/createPayLink \
+  -H "Content-Type: application/json" \
+  -H "x-provider-invoice-key: p_ik_6stcmkg4o" \
+  -d '{"amount": 77, "description": "nin"}'
+
+\
+curl -X GET http://localhost:3000/payments/transactions \
+  -H "x-provider-invoice-key: p_ik_6stcmkg4o"
