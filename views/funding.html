@@ -65,8 +65,10 @@
     
     <!-- OpenNode Fields -->
     <div id="opennode-fields" style="display: none;">
-      <label for="opennodeApiKey">OpenNode API Key:</label>
+      <label for="opennodeApiKey">OpenNode Invoie API Key:</label>
       <input type="text" id="opennodeApiKey"><br>
+      <label for="opennodeReadApiKey">OpenNode Read API Key:</label>
+      <input type="text" id="opennodeReadApiKey"><br>
     </div>
 
     <button onclick="connectProvider()">Connect</button>
@@ -107,6 +109,7 @@
         data.adminKey = document.getElementById('lnbitsAdminKey').value;
       } else if (provider === 'opennode') {
         data.apiKey = document.getElementById('opennodeApiKey').value;
+        data.readApiKey = document.getElementById('opennodeReadApiKey').value;
       }
 
       // // Debug: Log data being sent

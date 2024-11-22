@@ -118,7 +118,7 @@ router.post('/addFundingProvider', authMiddleware, async (req, res) => {
       fundingProviderData.providerInvoiceKey = generateProviderInvoiceKey();
       fundingProviderData.providerAdminKey = generateProviderAdminKey();
     } else if (provider === 'opennode') {
-      const { apiKey } = req.body;
+      const { apiKey, readApiKey } = req.body;
 
       console.log('Received apiKey:', apiKey);
 
@@ -126,6 +126,7 @@ router.post('/addFundingProvider', authMiddleware, async (req, res) => {
         return res.status(400).send('API Key is required for OpenNode.');
       }
       fundingProviderData.apiKey = apiKey; // Store in plaintext but consider encrypting
+      fundingProviderData.readApiKey = readApiKey;
 
       // Generate provider-specific keys for our system
       fundingProviderData.providerInvoiceKey = generateProviderInvoiceKey();

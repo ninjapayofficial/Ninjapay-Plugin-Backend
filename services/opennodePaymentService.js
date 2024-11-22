@@ -136,7 +136,7 @@ async function getBalance(provider) {
     const url = 'https://api.opennode.com/v1/account/balance';
     const headers = {
       'Content-Type': 'application/json',
-      'Authorization': provider.apiKey,
+      'Authorization': provider.readApiKey,
     };
     const response = await axios.get(url, { headers });
 
