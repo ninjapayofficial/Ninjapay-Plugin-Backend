@@ -98,6 +98,12 @@ app.get('/funding', authMiddleware, (req, res) => {
   res.sendFile(path.join(__dirname, './views/funding.html'));
 });
 
+
+// Serve funding.html (ensure the user is authenticated)
+app.get('/home', authMiddleware, (req, res) => {
+  res.sendFile(path.join(__dirname, './views/home.html'));
+});
+
 // to serve routes from paymentRoutes.js
 // app.use('/payments', paymentRoutes);
 // Mount payment routes, passing the models

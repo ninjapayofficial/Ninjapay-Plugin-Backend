@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            padding: 0;
+            margin: 0;
+        }
+        .sidebar {
+            height: 100vh;
+            width: 240px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #fff;
+            padding: 20px;
+            border-right: 1px solid #ddd;
+        }
+        .sidebar .nav-item {
+            margin: 15px 0;
+        }
+        .content {
+            margin-left: 260px;
+            padding: 20px;
+        }
+        .balance-section {
+            background-color: #e8f5e9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .balance-section h2 {
+            color: #2e7d32;
+            margin: 0;
+        }
+        .transaction-table {
+            width: 100%;
+            margin-top: 20px;
+        }
+        .transaction-table th, .transaction-table td {
+            padding: 15px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        .tabs {
+            margin-bottom: 20px;
+        }
+        .tabs .tab-item {
+            display: inline-block;
+            margin-right: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .tabs .tab-item.active {
+            background-color: #ffeb3b;
+        }
+        .btn-primary {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h4>Home</h4>
+        <nav class="nav flex-column">
+            <a class="nav-item nav-link active" href="#">Plugins <i class="fas fa-caret-down"></i></a>
+            <a class="nav-item nav-link" href="#">POS</a>
+            <a class="nav-item nav-link" href="#">Paywalls</a>
+            <a class="nav-item nav-link" href="#">Payment Button</a>
+            <a class="nav-item nav-link" href="#">Split Payments</a>
+        </nav>
+    </div>
+
+    <div class="content">
+        <div class="tabs">
+            <div class="tab-item active" onclick="switchTab('opennode')">Opennode ⚡</div>
+            <div class="tab-item" onclick="switchTab('lnbits')">LNbits ⚡</div>
+            <div class="tab-item" onclick="switchTab('cashfree')">Cashfree</div>
+            <div class="tab-item" onclick="switchTab('paytm')">Paytm 🐯</div>
+            <div class="tab-item" onclick="addNewProvider()">ADD +</div>
+        </div>
+
+        <div class="balance-section">
+            <h2 id="balanceAmount">Loading balance...</h2>
+            <p id="withdrawableAmount">Available to withdraw: Loading...</p>
+            <button class="btn btn-primary" onclick="openModal('create')">Create</button>
+            <button class="btn btn-secondary" onclick="openModal('withdraw')">Withdraw</button>
+        </div>
+
+        <div class="transaction-table">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Timestamp</th>
+                        <th>Transaction ID</th>
+                        <th>Amount</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody id="transactionsTableBody">
+                    <!-- Transactions will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Create/Withdraw Modal -->
+    <div class="modal" tabindex="-1" id="actionModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Action</h5>
+                    <button type="button" class="btn-close" onclick="closeModal()"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="modalForm">
+                        <div class="mb-3">
+                            <label for="amount" class="form-label">Amount (INR)</label>
+                            <input type="number" class="form-control" id="amount" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <input type="text" class="form-control" id="description">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="submitAction()">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadBalance();
+            loadTransactions();
+        });
+
+        function switchTab(tabName) {
+            // Set active tab
+            const tabs = document.querySelectorAll('.tab-item');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            const selectedTab = document.querySelector(`.tab-item[onclick*="${tabName}"]`);
+            if (selectedTab) {
+                selectedTab.classList.add('active');
+            }
+            console.log('Switched to', tabName);
+            // Optionally reload data based on tab
+        }
+
+        function openModal(action) {
+            const modal = new bootstrap.Modal(document.getElementById('actionModal'));
+            document.getElementById('modalTitle').innerText = action.charAt(0).toUpperCase() + action.slice(1);
+            modal.show();
+        }
+
+        function closeModal() {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('actionModal'));
+            modal.hide();
+        }
+
+        function submitAction() {
+            const form = document.getElementById('modalForm');
+            if (form.checkValidity()) {
+                const action = document.getElementById('modalTitle').innerText.toLowerCase();
+                const amount = document.getElementById('amount').value;
+                const description = document.getElementById('description').value;
+
+                if (action === 'create') {
+                    createPaymentLink(amount, description);
+                } else if (action === 'withdraw') {
+                    withdrawPayment(amount);
+                }
+
+                closeModal();
+            }
+        }
+
+        async function loadBalance() {
+            try {
+                const response = await fetch('/payments/balance', {
+                    credentials: 'include'
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to load balance');
+                }
+                const data = await response.json();
+                document.getElementById('balanceAmount').textContent = `${data.balance} INR`;
+                document.getElementById('withdrawableAmount').textContent = `Available to withdraw: ₹${data.withdrawable}`;
+            } catch (error) {
+                console.error('Error loading balance:', error);
+                document.getElementById('balanceAmount').textContent = 'Error loading balance';
+            }
+        }
+
+        async function loadTransactions() {
+            try {
+                const response = await fetch('/payments/transactions', {
+                    credentials: 'include'
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to load transactions');
+                }
+                const transactions = await response.json();
+                const tbody = document.getElementById('transactionsTableBody');
+                tbody.innerHTML = '';
+                transactions.forEach((transaction, index) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${new Date(transaction.timestamp).toLocaleString()}</td>
+                        <td>${transaction.transactionId}</td>
+                        <td>${transaction.amount > 0 ? '+' : ''} ₹${transaction.amount}</td>
+                        <td>${transaction.description}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Error loading transactions:', error);
+                document.getElementById('transactionsTableBody').innerHTML = `<tr><td colspan="5">Error loading transactions</td></tr>`;
+            }
+        }
+
+        async function createPaymentLink(amount, description) {
+            try {
+                const response = await fetch('/payments/createPayLink', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ amount, description }),
+                    credentials: 'include'
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to create payment link');
+                }
+                console.log('Payment link created successfully');
+                loadTransactions();
+            } catch (error) {
+                console.error('Error creating payment link:', error);
+            }
+        }
+
+        async function withdrawPayment(amount) {
+            try {
+                const response = await fetch('/payments/payInvoice', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ amount }),
+                    credentials: 'include'
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to withdraw payment');
+                }
+                console.log('Payment withdrawn successfully');
+                loadBalance();
+                loadTransactions();
+            } catch (error) {
+                console.error('Error withdrawing payment:', error);
+            }
+        }
+
+        function addNewProvider() {
+            console.log('Add new provider clicked');
+            // Add logic to add new provider
+        }
+    </script>
+</body>
+</html>
