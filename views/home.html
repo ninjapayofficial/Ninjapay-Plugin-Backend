@@ -110,8 +110,8 @@
         }
 
         .btn-primary:hover {
-            background-color: #0056b3;
-            border-color: #0056b3;
+            background-color: #3da0c1;
+            border-color: #3da0c1;
         }
 
         .btn-secondary {
@@ -165,9 +165,9 @@
                     <tr>
                         <th>#</th>
                         <th>Date</th>
-                        <th>Transaction ID</th>
                         <th>Amount</th>
                         <th>Description</th>
+                        <th>Transaction ID</th>
                     </tr>
                 </thead>
                 <tbody id="transactionsTableBody">
@@ -288,9 +288,9 @@
                     tr.innerHTML = `
                         <td>${index + 1}</td>
                         <td>${tx.createdAt ? new Date(tx.createdAt).toLocaleString() : 'N/A'}</td>
-                        <td>${tx.txid || 'N/A'}</td>
                         <td>${tx.amount !== null ? tx.amount + ' sats' : 'N/A'}</td>
                         <td>${tx.description || 'N/A'}</td>
+                        <td>${tx.txid || 'N/A'}</td>
                     `;
                     tbody.appendChild(tr);
                 });

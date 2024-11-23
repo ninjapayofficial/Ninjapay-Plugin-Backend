@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Select Funding Provider</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      padding: 20px;
+    }
+    h1 {
+      color: #333;
+    }
+    .provider-selection {
+      margin: 20px 0;
+    }
+    .plugin-container {
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Select a Funding Provider</h1>
+  <div class="provider-selection">
+    <label for="provider">Select Provider:</label>
+    <select id="provider" onchange="loadPlugin()">
+      <option value="">-- Select Provider --</option>
+      <option value="lightning-btc-plugin">LNbits</option>
+      <option value="opennode-plugin">OpenNode</option>
+    </select>
+  </div>
+
+  <div class="plugin-container" id="pluginContainer">
+    <!-- The plugin content will be loaded here dynamically -->
+  </div>
+
+  <script>
+    function loadPlugin() {
+      const provider = document.getElementById('provider').value;
+      const pluginContainer = document.getElementById('pluginContainer');
+      pluginContainer.innerHTML = ''; // Clear the existing content
+
+      if (provider) {
+        // Load the plugin HTML from the correct route
+        loadPluginHTML(`/plugins/${provider}`);
+      }
+    }
+
+    function loadPluginHTML(url) {
+      fetch(url)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to load plugin');
+          }
+          return response.text();
+        })
+        .then(html => {
+          document.getElementById('pluginContainer').innerHTML = html;
+        })
+        .catch(error => {
+          document.getElementById('pluginContainer').innerHTML = '<p style="color: red;">Error loading plugin: ' + error.message + '</p>';
+        });
+    }
+  </script>
+</body>
+</html>

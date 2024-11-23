@@ -143,7 +143,7 @@ async function getBalance(provider) {
     if (response.status === 200) {
       // OpenNode returns balance in BTC
       const balanceBTC = response.data.data.balance.BTC;
-      const balanceSats = Math.floor(parseFloat(balanceBTC) * 100000000); // Convert to sats
+      const balanceSats = Math.floor(parseFloat(balanceBTC) * 1); // Convert to sats
       return balanceSats;
     } else {
       console.error('Failed to fetch OpenNode balance:', response.statusText);
