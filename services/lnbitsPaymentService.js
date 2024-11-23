@@ -157,7 +157,7 @@ async function getBalance(provider) {
       const response = await axios.get(url, { headers });
 
       if (response.status === 200) {
-        return response.data.balance * 0.001;
+        return  Math.floor(parseFloat(response.data.balance) * 0.001);
       } else {
         console.error('Failed to fetch LNbits balance:', response.statusText);
         return null;
