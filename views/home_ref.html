@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Funding Providers</title>
+    <title>Home</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f9f9f9;
+            background-color: #F6F9FD;
             padding: 0;
             margin: 0;
         }
+
         .sidebar {
             height: 100vh;
             width: 240px;
@@ -23,51 +25,111 @@
             padding: 20px;
             border-right: 1px solid #ddd;
         }
+
         .sidebar .nav-item {
             margin: 15px 0;
+            color: #88a1ac;
         }
+
         .content {
             margin-left: 260px;
             padding: 20px;
         }
+
         .balance-section {
             background-color: #e8f5e9;
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
+
         .balance-section h2 {
             color: #2e7d32;
             margin: 0;
+            font-weight: bold;
         }
+
+        .tabs {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            /* background-color: #fff; */
+        }
+
+        .tabs .tab-item {
+            padding: 10px 20px;
+            border-radius: 40px;
+            border: none;
+            cursor: pointer;
+            background-color: #F6F9FD;
+            color: black;
+            font-weight: 500;
+        }
+
+        .tabs .tab-item.active {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            color: black;
+        }
+
         .transaction-table {
             width: 100%;
             margin-top: 20px;
         }
-        .transaction-table th, .transaction-table td {
+
+        .transaction-table table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            border-radius: 1px;
+            overflow: hidden;
+            box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+        }
+
+        .transaction-table th,
+        .transaction-table td {
             padding: 15px;
-            border: 1px solid #ddd;
+            border: 1px solid rgba(0, 0, 0, 0.1);
             text-align: left;
         }
-        .tabs {
-            margin-bottom: 20px;
+
+        .transaction-table th {
+            background-color: #f9f9f9;
+            color: #333;
         }
-        .tabs .tab-item {
-            display: inline-block;
-            margin-right: 15px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            cursor: pointer;
+
+        .transaction-table tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
         }
-        .tabs .tab-item.active {
-            background-color: #ffeb3b;
-        }
+
         .btn-primary {
             margin-right: 10px;
+            background-color: #21728D;
+            border-color: #21728D;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            border-color: #5a6268;
+        }
+
+        .error {
+            color: red;
         }
     </style>
 </head>
+
 <body>
     <div class="sidebar">
         <h4>Home</h4>
@@ -82,18 +144,19 @@
 
     <div class="content">
         <div class="tabs">
-            <div class="tab-item active" onclick="switchTab('opennode')">Opennode ⚡</div>
-            <div class="tab-item" onclick="switchTab('lnbits')">LNbits ⚡</div>
-            <div class="tab-item" onclick="switchTab('cashfree')">Cashfree</div>
-            <div class="tab-item" onclick="switchTab('paytm')">Paytm 🐯</div>
-            <div class="tab-item" onclick="addNewProvider()">ADD +</div>
+            <button class="tab-item active" onclick="switchTab('opennode')">Opennode ⚡</button>
+            <button class="tab-item" onclick="switchTab('lnbits')">LNbits ⚡</button>
+            <button class="tab-item" onclick="switchTab('cashfree')">Cashfree</button>
+            <button class="tab-item" onclick="switchTab('paytm')">Paytm 🐯</button>
+            <button class="tab-item" onclick="addNewProvider()">ADD +</button>
         </div>
 
         <div class="balance-section">
-            <h2>108780 INR</h2>
-            <p>Available to withdraw: ₹1,20,282.19</p>
+            <h2 id="balanceAmount">Loading balance...</h2>
+            <p id="withdrawableAmount">Available to withdraw: Loading...</p>
             <button class="btn btn-primary" onclick="openModal('create')">Create</button>
             <button class="btn btn-secondary" onclick="openModal('withdraw')">Withdraw</button>
+            <div id="balanceError" class="error"></div>
         </div>
 
         <div class="transaction-table">
@@ -101,30 +164,17 @@
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>Timestamp</th>
+                        <th>Date</th>
                         <th>Transaction ID</th>
                         <th>Amount</th>
                         <th>Description</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td><input type="radio"></td>
-                        <td>10 Mar, 9:15 am</td>
-                        <td>5d001dcd-b175-4d8b-8979-6cef2771cacd</td>
-                        <td>+ ₹47</td>
-                        <td>Raw materials</td>
-                    </tr>
-                    <tr>
-                        <td><input type="checkbox"></td>
-                        <td>9 Mar, 9:15 am</td>
-                        <td>5d001dcd-b175-4d8b-8979-6cef2771cacd</td>
-                        <td>+ ₹642286</td>
-                        <td>Cement</td>
-                    </tr>
-                    <!-- Additional rows here -->
+                <tbody id="transactionsTableBody">
+                    <!-- Transactions will be loaded here -->
                 </tbody>
             </table>
+            <div id="transactionsError" class="error"></div>
         </div>
     </div>
 
@@ -139,7 +189,7 @@
                 <div class="modal-body">
                     <form id="modalForm">
                         <div class="mb-3">
-                            <label for="amount" class="form-label">Amount (INR)</label>
+                            <label for="amount" class="form-label">Amount (SAT)</label>
                             <input type="number" class="form-control" id="amount" required>
                         </div>
                         <div class="mb-3">
@@ -158,6 +208,10 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
     <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            getDefaultProvider(); // Get the default provider when the page loads
+        });
+
         function switchTab(tabName) {
             // Set active tab
             const tabs = document.querySelectorAll('.tab-item');
@@ -166,8 +220,7 @@
             if (selectedTab) {
                 selectedTab.classList.add('active');
             }
-            // Handle tab switch logic
-            console.log('Switched to', tabName);
+            setDefaultProvider(tabName); // Set the default provider when switching tabs
         }
 
         function openModal(action) {
@@ -184,11 +237,168 @@
         function submitAction() {
             const form = document.getElementById('modalForm');
             if (form.checkValidity()) {
-                console.log('Submitting form with data:', {
-                    amount: form.amount.value,
-                    description: form.description.value,
-                });
+                const action = document.getElementById('modalTitle').innerText.toLowerCase();
+                const amount = document.getElementById('amount').value;
+                const description = document.getElementById('description').value;
+
+                if (action === 'create') {
+                    createPaymentLink(amount, description);
+                } else if (action === 'withdraw') {
+                    withdrawPayment(amount);
+                }
+
                 closeModal();
+            }
+        }
+
+        async function loadBalance(provider) {
+            try {
+                const response = await fetch(`/payments/balance?provider=${provider}`, {
+                    credentials: 'include'
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Failed to load balance');
+                }
+                const data = await response.json();
+                document.getElementById('balanceAmount').textContent = `${data.balance || 0} SAT`;
+                document.getElementById('withdrawableAmount').textContent = `Available to withdraw: ₹${data.withdrawable || 0}`;
+                document.getElementById('balanceError').textContent = '';
+            } catch (error) {
+                console.error('Error loading balance:', error);
+                document.getElementById('balanceError').textContent = error.message;
+                document.getElementById('balanceAmount').textContent = 'Error loading balance';
+            }
+        }
+
+        async function loadTransactions(provider) {
+            try {
+                const response = await fetch(`/payments/transactions?provider=${provider}`, {
+                    credentials: 'include'
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Failed to load transactions');
+                }
+                const transactions = await response.json();
+                const tbody = document.getElementById('transactionsTableBody');
+                tbody.innerHTML = '';
+                transactions.forEach((tx, index) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${tx.createdAt ? new Date(tx.createdAt).toLocaleString() : 'N/A'}</td>
+                        <td>${tx.txid || 'N/A'}</td>
+                        <td>${tx.amount !== null ? tx.amount + ' sats' : 'N/A'}</td>
+                        <td>${tx.description || 'N/A'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                document.getElementById('transactionsError').textContent = '';
+            } catch (error) {
+                console.error('Error loading transactions:', error);
+                document.getElementById('transactionsError').textContent = error.message;
+                document.getElementById('transactionsTableBody').innerHTML = `<tr><td colspan="5">Error loading transactions</td></tr>`;
+            }
+        }
+
+        async function createPaymentLink(amount, description) {
+            try {
+                const response = await fetch('/payments/createPayLink', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ amount, description }),
+                    credentials: 'include'
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Failed to create payment link');
+                }
+                const data = await response.json();
+                console.log('Payment link created successfully:', data);
+                loadTransactions(); // Reload transactions to show the new payment link
+            } catch (error) {
+                console.error('Error creating payment link:', error);
+                document.getElementById('balanceError').textContent = error.message;
+            }
+        }
+
+        async function withdrawPayment(amount) {
+            try {
+                const response = await fetch('/payments/payInvoice', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ amount }),
+                    credentials: 'include'
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Failed to withdraw payment');
+                }
+                const data = await response.json();
+                console.log('Payment withdrawn successfully:', data);
+                loadBalance(); // Reload balance to reflect the withdrawal
+                loadTransactions(); // Reload transactions to reflect the withdrawal
+            } catch (error) {
+                console.error('Error withdrawing payment:', error);
+                document.getElementById('balanceError').textContent = error.message;
+            }
+        }
+
+        async function setDefaultProvider(provider) {
+            try {
+                const response = await fetch('/auth/setDefaultProvider', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ provider }),
+                    credentials: 'include'
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Failed to set default provider');
+                }
+                console.log('Default provider set successfully.');
+                loadBalance(provider);
+                loadTransactions(provider);
+            } catch (error) {
+                console.error('Error setting default provider:', error);
+                document.getElementById('balanceError').textContent = error.message;
+            }
+        }
+
+        async function getDefaultProvider() {
+            try {
+                const response = await fetch('/auth/getDefaultProvider', {
+                    credentials: 'include'
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Failed to get default provider');
+                }
+                const data = await response.json();
+                const defaultProvider = data.defaultProvider;
+
+                // Highlight the default provider tab
+                const tabs = document.querySelectorAll('.tab-item');
+                tabs.forEach(tab => {
+                    if (tab.textContent.toLowerCase().includes(defaultProvider)) {
+                        tab.classList.add('active');
+                    } else {
+                        tab.classList.remove('active');
+                    }
+                });
+
+                // Load data for the default provider
+                loadBalance(defaultProvider);
+                loadTransactions(defaultProvider);
+            } catch (error) {
+                console.error('Error fetching default provider:', error);
             }
         }
 
@@ -198,4 +408,5 @@
         }
     </script>
 </body>
+
 </html>
