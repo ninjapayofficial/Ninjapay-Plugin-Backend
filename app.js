@@ -99,7 +99,7 @@ app.get('/funding', authMiddleware, (req, res) => {
 });
 
 
-// Serve funding.html (ensure the user is authenticated)
+// Serve home.html (ensure the user is authenticated)
 app.get('/home', authMiddleware, (req, res) => {
   res.sendFile(path.join(__dirname, './views/home.html'));
 });

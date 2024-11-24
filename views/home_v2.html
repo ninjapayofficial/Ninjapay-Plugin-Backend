@@ -280,24 +280,48 @@
         }
 
         // Function to load plugin interfaces
+        // function loadPlugin(pluginName) {
+        //     // Highlight the selected plugin in the sidebar
+        //     highlightSidebarItem(pluginName.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()));
+
+        //     // Clear the main content area
+        //     document.getElementById('mainContent').innerHTML = '';
+
+        //     // Load the plugin interface into the main content area
+        //     fetch(`/plugins/${pluginName}/`)
+        //         .then(response => response.text())
+        //         .then(html => {
+        //             document.getElementById('mainContent').innerHTML = html;
+        //         })
+        //         .catch(error => {
+        //             console.error('Error loading plugin:', error);
+        //             document.getElementById('mainContent').innerHTML = '<p>Error loading plugin.</p>';
+        //         });
+        // }
+
         function loadPlugin(pluginName) {
             // Highlight the selected plugin in the sidebar
             highlightSidebarItem(pluginName.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()));
 
             // Clear the main content area
-            document.getElementById('mainContent').innerHTML = '';
+            const mainContent = document.getElementById('mainContent');
+            mainContent.innerHTML = '';
+
+            // Set window.pluginBaseUrl
+            window.pluginBaseUrl = `/plugins/${pluginName}`;
 
             // Load the plugin interface into the main content area
             fetch(`/plugins/${pluginName}/`)
                 .then(response => response.text())
                 .then(html => {
-                    document.getElementById('mainContent').innerHTML = html;
+                    mainContent.innerHTML = html;
                 })
                 .catch(error => {
                     console.error('Error loading plugin:', error);
-                    document.getElementById('mainContent').innerHTML = '<p>Error loading plugin.</p>';
+                    mainContent.innerHTML = '<p>Error loading plugin.</p>';
                 });
         }
+
 
         // Function to check if we're on the home screen
         function isHomeScreen() {
@@ -308,6 +332,8 @@
 
         // Function to load the home content into the main content area
         function loadHomeContent() {
+            // // Clear window.pluginBaseUrl
+            // delete window.pluginBaseUrl;
             // Clear the main content area
             document.getElementById('mainContent').innerHTML = `
                 <div class="balance-section">

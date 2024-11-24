@@ -4,9 +4,12 @@
 
 <head>
     <meta charset="UTF-8">
+    <!-- Meta tags for responsiveness -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Include Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-k6RqeWeci5ZR/Lv4MR0sA0FJGek5y6iw6S1Q0iQca2VYzZdLFYQxjNIRNZd7Uq0N" crossorigin="anonymous">
+    <!-- Include Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
     <style>
         body {
@@ -27,9 +30,24 @@
             border-right: 1px solid #ddd;
         }
 
+        .sidebar h4 {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
         .sidebar .nav-item {
-            margin: 15px 0;
+            margin: 10px 0;
             color: #88a1ac;
+        }
+
+        .sidebar .nav-link {
+            color: #88a1ac;
+            cursor: pointer;
+        }
+
+        .sidebar .nav-link.active {
+            color: #21728D;
+            font-weight: bold;
         }
 
         .content {
@@ -139,9 +157,16 @@
 
 <body>
     <div class="sidebar">
-        <h4>Home</h4>
+        <h4>Menu</h4>
         <nav class="nav flex-column">
-            <a class="nav-item nav-link active" href="#">Plugins <i class="fas fa-caret-down"></i></a>
+            <a class="nav-item nav-link active" href="#" onclick="loadHome()">Home</a>
+            <a class="nav-item nav-link" href="#" onclick="togglePluginsMenu()">Plugins <i class="fas fa-caret-down"></i></a>
+            <div id="pluginsMenu" style="display: none; margin-left: 15px;">
+                <a class="nav-item nav-link" href="#" onclick="loadPlugin('lightning-btc-plugin')">Lightning BTC Plugin</a>
+                <a class="nav-item nav-link" href="#" onclick="loadPlugin('opennode-plugin')">OpenNode Plugin</a>
+                <!-- Add more plugins here -->
+            </div>
+            <!-- Other menu items -->
             <a class="nav-item nav-link" href="#">POS</a>
             <a class="nav-item nav-link" href="#">Paywalls</a>
             <a class="nav-item nav-link" href="#">Payment Button</a>
@@ -150,6 +175,7 @@
     </div>
 
     <div class="content">
+        <!-- Provider Tabs -->
         <div class="tabs">
             <button class="tab-item active" onclick="switchTab('opennode')">Opennode ⚡</button>
             <button class="tab-item" onclick="switchTab('lnbits')">LNbits ⚡</button>
@@ -158,38 +184,18 @@
             <button class="tab-item" onclick="addNewProvider()">ADD +</button>
         </div>
 
-        <div class="balance-section">
-            <h2 id="balanceAmount">Loading balance...</h2>
-            <p id="withdrawableAmount">Available to withdraw: Loading...</p>
-            <button class="btn btn-primary" onclick="openModal('create')">Create</button>
-            <button class="btn btn-secondary" onclick="openModal('withdraw')">Withdraw</button>
-            <div id="balanceError" class="error"></div>
-        </div>
-
-        <div class="transaction-table">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Date</th>
-                        <th>Amount</th>
-                        <th>Description</th>
-                        <th>Transaction ID</th>
-                    </tr>
-                </thead>
-                <tbody id="transactionsTableBody">
-                    <!-- Transactions will be loaded here -->
-                </tbody>
-            </table>
-            <div id="transactionsError" class="error"></div>
+        <!-- Main Content Area -->
+        <div id="mainContent">
+            <!-- This area will be dynamically updated -->
         </div>
     </div>
 
     <!-- Create/Withdraw Modal -->
-    <div class="modal" tabindex="-1" id="actionModal">
+    <div class="modal fade" tabindex="-1" id="actionModal">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
+                    <!-- The modal title will be set dynamically -->
                     <h5 class="modal-title" id="modalTitle">Action</h5>
                     <button type="button" class="btn-close" onclick="closeModal()"></button>
                 </div>
@@ -218,7 +224,7 @@
     </div>
 
     <!-- Invoice Modal -->
-    <div class="modal" tabindex="-1" id="invoiceModal">
+    <div class="modal fade" tabindex="-1" id="invoiceModal">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -238,23 +244,151 @@
         </div>
     </div>
 
+    <!-- Include Bootstrap JS and dependencies -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <!-- Your custom JavaScript -->
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            getDefaultProvider(); // Get the default provider when the page loads
-        });
-
-        function switchTab(tabName) {
-            // Set active tab
-            const tabs = document.querySelectorAll('.tab-item');
-            tabs.forEach(tab => tab.classList.remove('active'));
-            const selectedTab = document.querySelector(`.tab-item[onclick*="${tabName}"]`);
-            if (selectedTab) {
-                selectedTab.classList.add('active');
+        // Function to toggle the plugins menu
+        function togglePluginsMenu() {
+            const pluginsMenu = document.getElementById('pluginsMenu');
+            if (pluginsMenu.style.display === 'none' || pluginsMenu.style.display === '') {
+                pluginsMenu.style.display = 'block';
+            } else {
+                pluginsMenu.style.display = 'none';
             }
-            setDefaultProvider(tabName); // Set the default provider when switching tabs
         }
 
+        // Function to highlight the active sidebar item
+        function highlightSidebarItem(itemName) {
+            const navItems = document.querySelectorAll('.sidebar .nav-link');
+            navItems.forEach(item => {
+                if (item.textContent.trim() === itemName) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        }
+
+        // Function to load the home content
+        function loadHome() {
+            // Highlight "Home" in the sidebar
+            highlightSidebarItem('Home');
+
+            // Reset the main content area to the home screen
+            loadHomeContent();
+        }
+
+        // Function to load plugin interfaces
+        // function loadPlugin(pluginName) {
+        //     // Highlight the selected plugin in the sidebar
+        //     highlightSidebarItem(pluginName.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()));
+
+        //     // Clear the main content area
+        //     const mainContent = document.getElementById('mainContent');
+        //     mainContent.innerHTML = '';
+
+        //     // Set window.pluginBaseUrl
+        //     window.pluginBaseUrl = `/plugins/${pluginName}`;
+
+        //     // Load the plugin interface into the main content area
+        //     fetch(`/plugins/${pluginName}/`)
+        //         .then(response => response.text())
+        //         .then(html => {
+        //             mainContent.innerHTML = html;
+        //         })
+        //         .catch(error => {
+        //             console.error('Error loading plugin:', error);
+        //             mainContent.innerHTML = '<p>Error loading plugin.</p>';
+        //         });
+        // }
+
+        function loadPlugin(pluginName) {
+            console.log(`Loading plugin: ${pluginName}`);
+            // Highlight the selected plugin in the sidebar
+            highlightSidebarItem(pluginName.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()));
+
+            // Clear the main content area
+            const mainContent = document.getElementById('mainContent');
+            mainContent.innerHTML = '';
+
+            // Create an iframe
+            const iframe = document.createElement('iframe');
+            iframe.src = `/plugins/${pluginName}/`;
+            iframe.style.width = '100%';
+            iframe.style.height = '100vh';
+            iframe.style.border = 'none';
+
+            // Append the iframe to the mainContent
+            mainContent.appendChild(iframe);
+        }
+
+
+
+        // Function to check if we're on the home screen
+        function isHomeScreen() {
+            // Determine if the main content area is displaying the home content
+            // For simplicity, check if the balance section exists
+            return document.getElementById('balanceAmount') !== null;
+        }
+
+        // Function to load the home content into the main content area
+        function loadHomeContent() {
+            // // Clear window.pluginBaseUrl
+            // delete window.pluginBaseUrl;
+            // Clear the main content area
+            document.getElementById('mainContent').innerHTML = `
+                <div class="balance-section">
+                    <h2 id="balanceAmount">Loading balance...</h2>
+                    <p id="withdrawableAmount">Available to withdraw: Loading...</p>
+                    <button class="btn btn-primary" onclick="openModal('create')">Create</button>
+                    <button class="btn btn-secondary" onclick="openModal('withdraw')">Withdraw</button>
+                    <div id="balanceError" class="error"></div>
+                </div>
+                <div class="transaction-table">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Description</th>
+                                <th>Transaction ID</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionsTableBody">
+                            <!-- Transactions will be loaded here -->
+                        </tbody>
+                    </table>
+                    <div id="transactionsError" class="error"></div>
+                </div>
+            `;
+
+            // Load balance and transactions for the current default provider
+            getDefaultProvider();
+        }
+
+        // Function to switch between providers
+        async function switchTab(tabName) {
+            // Set active tab after provider is set
+            await setDefaultProvider(tabName); // Wait for the default provider to be set
+
+            // Reload the home content
+            loadHomeContent();
+
+            // Highlight the default provider tab
+            const tabs = document.querySelectorAll('.tab-item');
+            tabs.forEach(tab => {
+                if (tab.textContent.toLowerCase().includes(tabName)) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+        }
+
+
+        // Function to open the action modal
         function openModal(action) {
             const modal = new bootstrap.Modal(document.getElementById('actionModal'));
             document.getElementById('modalTitle').innerText = action.charAt(0).toUpperCase() + action.slice(1);
@@ -278,6 +412,7 @@
             modal.hide();
         }
 
+        // Function to submit the action (create or withdraw)
         function submitAction() {
             const action = document.getElementById('modalTitle').innerText.toLowerCase();
             if (action === 'create') {
@@ -292,6 +427,7 @@
             closeModal();
         }
 
+        // Function to load the balance for the default provider
         async function loadBalance(provider) {
             try {
                 const response = await fetch(`/payments/balance?provider=${provider}`, {
@@ -312,6 +448,7 @@
             }
         }
 
+        // Function to load transactions for the default provider
         async function loadTransactions(provider) {
             try {
                 const response = await fetch(`/payments/transactions?provider=${provider}`, {
@@ -343,6 +480,7 @@
             }
         }
 
+        // Function to create a payment link
         async function createPaymentLink(amount, description) {
             try {
                 const response = await fetch('/payments/createPayLink', {
@@ -371,6 +509,7 @@
             }
         }
 
+        // Function to withdraw payment
         async function withdrawPayment(invoice) {
             try {
                 const response = await fetch('/payments/payInvoice', {
@@ -395,6 +534,7 @@
             }
         }
 
+        // Function to set the default provider
         async function setDefaultProvider(provider) {
             try {
                 const response = await fetch('/auth/setDefaultProvider', {
@@ -410,14 +550,16 @@
                     throw new Error(errorText || 'Failed to set default provider');
                 }
                 console.log('Default provider set successfully.');
-                loadBalance(provider);
-                loadTransactions(provider);
             } catch (error) {
                 console.error('Error setting default provider:', error);
-                document.getElementById('balanceError').textContent = error.message;
+                if (document.getElementById('balanceError')) {
+                    document.getElementById('balanceError').textContent = error.message;
+                }
             }
         }
 
+
+        // Function to get the default provider
         async function getDefaultProvider() {
             try {
                 const response = await fetch('/auth/getDefaultProvider', {
@@ -440,19 +582,24 @@
                     }
                 });
 
-                // Load data for the default provider
-                loadBalance(defaultProvider);
-                loadTransactions(defaultProvider);
+                // If we're on the home screen, load balance and transactions
+                if (isHomeScreen()) {
+                    // Load data for the default provider
+                    loadBalance(defaultProvider);
+                    loadTransactions(defaultProvider);
+                }
             } catch (error) {
                 console.error('Error fetching default provider:', error);
             }
         }
 
+        // Function to add a new provider
         function addNewProvider() {
             window.location.href = '/funding';
             // Add logic to add new provider
         }
 
+        // Function to copy the invoice to clipboard
         function copyInvoice() {
             const invoiceLink = document.getElementById('invoiceLink');
             invoiceLink.select();
@@ -460,10 +607,21 @@
             alert('Invoice copied to clipboard');
         }
 
+        // Function to close the invoice modal
         function closeInvoiceModal() {
             const invoiceModal = bootstrap.Modal.getInstance(document.getElementById('invoiceModal'));
             invoiceModal.hide();
         }
+
+        // Start by loading the home content and default provider
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load the home content
+            loadHomeContent();
+
+            // Get the default provider
+            getDefaultProvider();
+        });
     </script>
 </body>
+
 </html>
