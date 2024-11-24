@@ -58,9 +58,10 @@
         .balance-section {
             background-color: #e8f5e9;
             padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+            /* box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); */
+            max-width: 320px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
         }
 
         .balance-section h2 {
@@ -69,8 +70,20 @@
             font-weight: bold;
         }
 
+        .tabs-bg {
+            background-color: #F9FBFC;
+            margin-left: -40px;
+            margin-top: -20px;
+            margin-right: -20px;
+            margin-bottom: 20px;
+            display: flex;
+            border-bottom: 1px solid #ddd;
+        }
+
         .tabs {
             margin-bottom: 20px;
+            margin-top: 20px;
+            margin-left: 40px;
             display: flex;
             gap: 10px;
         }
@@ -80,20 +93,44 @@
             border-radius: 40px;
             border: none;
             cursor: pointer;
-            background-color: #F6F9FD;
+            background-color: #F9FBFC;
             color: black;
             font-weight: 500;
         }
+/* 
+        .tabs .tab-item.active {
+            /* background-color: #fff; */
+            /* background-color: #F6F9FD; */
+            /* border: 1px solid #ddd; */
+            /* color: black; */
+        /* } */ 
+
+        /* .tabs .tab-item.active {
+            background-color: #ffffff;
+            border-radius: 50px;
+            box-shadow: inset 4px 4px 10px #bcbcbc, inset -4px -4px 10px #F6F9FD;
+            color: black;
+            cursor: pointer;
+            padding: 10px 20px;
+            transition: all 0.2s ease-in-out;
+            border: 2px solid rgb(224, 223, 223);
+        } */
+
 
         .tabs .tab-item.active {
-            background-color: #fff;
-            border: 1px solid #ddd;
-            color: black;
+            background-color: #F6F9FD;
+            box-shadow: inset 4px 4px 6px -1px rgba(0,0,0,0.2),
+                inset -4px -4px 6px -1px rgba(255,255,255,0.7),
+                -0.5px -0.5px 0px rgba(255,255,255,1),
+                0.5px 0.5px 0px rgba(0,0,0,0.15),
+                0px 12px 10px -10px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.1);
+            /* transform: translateY(0.5em); */
         }
 
         .transaction-table {
             width: 100%;
-            margin-top: 20px;
+            margin-top: 10px;
         }
 
         .transaction-table table {
@@ -102,7 +139,7 @@
             background-color: #fff;
             border-radius: 1px;
             overflow: hidden;
-            box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+            /* box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1); */
         }
 
         .transaction-table th,
@@ -133,13 +170,13 @@
         }
 
         .btn-secondary {
-            background-color: #6c757d;
-            border-color: #6c757d;
+            background-color: #88a1ac;
+            border-color: #88a1ac70;
         }
 
         .btn-secondary:hover {
-            background-color: #5a6268;
-            border-color: #5a6268;
+            background-color: #88a1acc0;
+            border-color: #88a1acc0;
         }
 
         .error {
@@ -152,6 +189,7 @@
             gap: 10px;
             margin-top: 10px;
         }
+
     </style>
 </head>
 
@@ -176,12 +214,14 @@
 
     <div class="content">
         <!-- Provider Tabs -->
-        <div class="tabs">
-            <button class="tab-item active" onclick="switchTab('opennode')">Opennode ⚡</button>
-            <button class="tab-item" onclick="switchTab('lnbits')">LNbits ⚡</button>
-            <button class="tab-item" onclick="switchTab('cashfree')">Cashfree</button>
-            <button class="tab-item" onclick="switchTab('paytm')">Paytm 🐯</button>
-            <button class="tab-item" onclick="addNewProvider()">ADD +</button>
+        <div class= "tabs-bg">
+            <div class="tabs">
+                <button class="tab-item active" onclick="switchTab('opennode')">Opennode ⚡</button>
+                <button class="tab-item" onclick="switchTab('lnbits')">LNbits ⚡</button>
+                <button class="tab-item" onclick="switchTab('cashfree')">Cashfree</button>
+                <button class="tab-item" onclick="switchTab('paytm')">Paytm 🐯</button>
+                <button class="tab-item" onclick="addNewProvider()">ADD +</button>
+            </div>
         </div>
 
         <!-- Main Content Area -->
@@ -280,29 +320,6 @@
         }
 
         // Function to load plugin interfaces
-        // function loadPlugin(pluginName) {
-        //     // Highlight the selected plugin in the sidebar
-        //     highlightSidebarItem(pluginName.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()));
-
-        //     // Clear the main content area
-        //     const mainContent = document.getElementById('mainContent');
-        //     mainContent.innerHTML = '';
-
-        //     // Set window.pluginBaseUrl
-        //     window.pluginBaseUrl = `/plugins/${pluginName}`;
-
-        //     // Load the plugin interface into the main content area
-        //     fetch(`/plugins/${pluginName}/`)
-        //         .then(response => response.text())
-        //         .then(html => {
-        //             mainContent.innerHTML = html;
-        //         })
-        //         .catch(error => {
-        //             console.error('Error loading plugin:', error);
-        //             mainContent.innerHTML = '<p>Error loading plugin.</p>';
-        //         });
-        // }
-
         function loadPlugin(pluginName) {
             console.log(`Loading plugin: ${pluginName}`);
             // Highlight the selected plugin in the sidebar
