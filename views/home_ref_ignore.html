@@ -1,3 +1,4 @@
+<!-- home.html -->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -54,7 +55,6 @@
             margin-bottom: 20px;
             display: flex;
             gap: 10px;
-            /* background-color: #fff; */
         }
 
         .tabs .tab-item {
@@ -127,6 +127,13 @@
         .error {
             color: red;
         }
+
+        .copy-invoice {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
     </style>
 </head>
 
@@ -188,19 +195,44 @@
                 </div>
                 <div class="modal-body">
                     <form id="modalForm">
-                        <div class="mb-3">
+                        <div class="mb-3" id="amountField">
                             <label for="amount" class="form-label">Amount (SAT)</label>
                             <input type="number" class="form-control" id="amount" required>
                         </div>
-                        <div class="mb-3">
+                        <div class="mb-3" id="descriptionField">
                             <label for="description" class="form-label">Description</label>
                             <input type="text" class="form-control" id="description">
+                        </div>
+                        <div class="mb-3" id="invoiceField" style="display: none;">
+                            <label for="invoice" class="form-label">Lightning Invoice</label>
+                            <input type="text" class="form-control" id="invoice" required>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="closeModal()">Close</button>
                     <button type="button" class="btn btn-primary" onclick="submitAction()">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoice Modal -->
+    <div class="modal" tabindex="-1" id="invoiceModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Invoice Created</h5>
+                    <button type="button" class="btn-close" onclick="closeInvoiceModal()"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="copy-invoice">
+                        <input type="text" id="invoiceLink" class="form-control" readonly>
+                        <button class="btn btn-primary" onclick="copyInvoice()">Copy</button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeInvoiceModal()">Close</button>
                 </div>
             </div>
         </div>
@@ -226,6 +258,18 @@
         function openModal(action) {
             const modal = new bootstrap.Modal(document.getElementById('actionModal'));
             document.getElementById('modalTitle').innerText = action.charAt(0).toUpperCase() + action.slice(1);
+
+            // Toggle form fields based on action type
+            if (action === 'create') {
+                document.getElementById('amountField').style.display = 'block';
+                document.getElementById('descriptionField').style.display = 'block';
+                document.getElementById('invoiceField').style.display = 'none';
+            } else if (action === 'withdraw') {
+                document.getElementById('amountField').style.display = 'none';
+                document.getElementById('descriptionField').style.display = 'none';
+                document.getElementById('invoiceField').style.display = 'block';
+            }
+
             modal.show();
         }
 
@@ -235,20 +279,17 @@
         }
 
         function submitAction() {
-            const form = document.getElementById('modalForm');
-            if (form.checkValidity()) {
-                const action = document.getElementById('modalTitle').innerText.toLowerCase();
+            const action = document.getElementById('modalTitle').innerText.toLowerCase();
+            if (action === 'create') {
                 const amount = document.getElementById('amount').value;
                 const description = document.getElementById('description').value;
-
-                if (action === 'create') {
-                    createPaymentLink(amount, description);
-                } else if (action === 'withdraw') {
-                    withdrawPayment(amount);
-                }
-
-                closeModal();
+                createPaymentLink(amount, description);
+            } else if (action === 'withdraw') {
+                const invoice = document.getElementById('invoice').value;
+                withdrawPayment(invoice);
             }
+
+            closeModal();
         }
 
         async function loadBalance(provider) {
@@ -319,20 +360,25 @@
                 const data = await response.json();
                 console.log('Payment link created successfully:', data);
                 loadTransactions(); // Reload transactions to show the new payment link
+
+                // Display the invoice in a modal
+                const invoiceModal = new bootstrap.Modal(document.getElementById('invoiceModal'));
+                document.getElementById('invoiceLink').value = data.payment_request;
+                invoiceModal.show();
             } catch (error) {
                 console.error('Error creating payment link:', error);
                 document.getElementById('balanceError').textContent = error.message;
             }
         }
 
-        async function withdrawPayment(amount) {
+        async function withdrawPayment(invoice) {
             try {
                 const response = await fetch('/payments/payInvoice', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ amount }),
+                    body: JSON.stringify({ bolt11: invoice }),
                     credentials: 'include'
                 });
                 if (!response.ok) {
@@ -403,8 +449,20 @@
         }
 
         function addNewProvider() {
-            console.log('Add new provider clicked');
+            window.location.href = '/funding';
             // Add logic to add new provider
+        }
+
+        function copyInvoice() {
+            const invoiceLink = document.getElementById('invoiceLink');
+            invoiceLink.select();
+            document.execCommand('copy');
+            alert('Invoice copied to clipboard');
+        }
+
+        function closeInvoiceModal() {
+            const invoiceModal = bootstrap.Modal.getInstance(document.getElementById('invoiceModal'));
+            invoiceModal.hide();
         }
     </script>
 </body>
