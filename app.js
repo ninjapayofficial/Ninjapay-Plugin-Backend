@@ -69,13 +69,13 @@ app.use(express.static(path.join(__dirname, 'views')));
 
 // Serve login.html and signup.html routes
 app.get('/login', (req, res) => {
-  res.sendFile(path.join(__dirname, './login.html'));
+  res.sendFile(path.join(__dirname, './views/login.html'));
 });
 
 // Route to serve 'signup.html'
 app.get('/signup', (req, res) => {
 //   console.log('GET /signup called');
-  res.sendFile(path.join(__dirname, './signup.html'));
+  res.sendFile(path.join(__dirname, './views/signup.html'));
 });
 
 
