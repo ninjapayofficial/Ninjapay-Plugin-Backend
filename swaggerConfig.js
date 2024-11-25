@@ -9,8 +9,8 @@ const swaggerOptions = {
       version: '1.0.0',
       description: 'API documentation for Ninjapay platform',
       contact: {
-        name: 'Your Name',
-        email: 'your.email@example.com',
+        name: 'Ninjapay Team',
+        email: 'dev@ninjapay.me',
       },
     },
     servers: [
