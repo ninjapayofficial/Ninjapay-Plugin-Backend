@@ -78,6 +78,9 @@ curl http://localhost:3000/plugins
 
 curl -X POST -H "Content-Type: application/json" -d '{"pluginName":"lightning-btc-plugin"}' http://localhost:3000/remove-plugin
 
+\
+curl -X POST -H "Content-Type: application/json" -d '{"pluginName":"khata-plugin"}' http://localhost:3000/remove-plugin
+
 Plugin 'sample-plugin' uninstalled successfully.
 
 curl http://localhost:3000/plugins
@@ -108,7 +111,11 @@ curl -X POST -H "Content-Type: application/json" -d '{"bolt11":"lnbc10u1p..."}' 
 curl -X 'POST'   'http://localhost:3000/install-plugin'   -H 'accept: */*'   -H 'Content-Type: application/json'   -d '{
   "repoUrl": "https://github.com/ninjapayofficial/lightning-btc-plugin"
 }'
-
+\
+curl -X 'POST'   'http://localhost:3000/install-plugin'   -H 'accept: */*'   -H 'Content-Type: application/json'   -d '{
+  "repoUrl": "https://github.com/ninjapayofficial/khata-plugin"
+}'
+\
 
 curl -X 'POST' \
   'http://localhost:3000/install-plugin' \
@@ -207,3 +214,12 @@ curl -X POST http://localhost:3000/payments/createPayLink \
 \
 curl -X GET http://localhost:3000/payments/transactions \
   -H "x-provider-invoice-key: p_ik_6stcmkg4o"
+
+
+  \\\ \
+  DROP TABLE IF EXISTS "SequelizeMeta_khata-plugin" CASCADE; \
+  DELETE FROM "SequelizeMeta_khata-plugin";  \
+  \dT  \
+  DROP TYPE IF EXISTS "enum_KhataParties_type" CASCADE;
+
+
