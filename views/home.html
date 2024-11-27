@@ -461,7 +461,7 @@
                     throw new Error(errorText || 'Failed to load balance');
                 }
                 const data = await response.json();
-                document.getElementById('balanceAmount').textContent = `${data.balance || 0} SAT`;
+                document.getElementById('balanceAmount').textContent = `${data.balance || 0} ${data.currency}`;
                 document.getElementById('withdrawableAmount').textContent = `Available to withdraw: ₹${data.withdrawable || 0}`;
                 document.getElementById('balanceError').textContent = '';
             } catch (error) {
@@ -489,7 +489,7 @@
                     tr.innerHTML = `
                         <td>${index + 1}</td>
                         <td>${tx.createdAt ? new Date(tx.createdAt).toLocaleString() : 'N/A'}</td>
-                        <td>${tx.amount !== null ? tx.amount + ' sats' : 'N/A'}</td>
+                        <td>${tx.amount !== null ? tx.amount + ' ' + tx.currency : 'N/A'}</td>
                         <td>${tx.description || 'N/A'}</td>
                         <td>${tx.txid || 'N/A'}</td>
                     `;

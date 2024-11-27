@@ -170,7 +170,7 @@ module.exports = (models) => {
       }
 
       if (balance !== null) {
-        res.status(200).json({ balance });
+        res.status(200).json( balance );
       } else {
         res.status(500).send('Failed to retrieve balance.');
       }

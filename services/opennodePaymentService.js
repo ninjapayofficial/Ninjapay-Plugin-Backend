@@ -126,10 +126,11 @@ async function checkPaymentStatus(user, provider, paymentId) {
   }
 }
 
+
 /**
  * Retrieves the wallet balance using OpenNode.
  * @param {Object} provider - Provider details.
- * @returns {number|null} - Balance in sats or null on failure.
+ * @returns {Object|null} - Object containing balance and currency or null on failure.
  */
 async function getBalance(provider) {
   try {
@@ -142,9 +143,14 @@ async function getBalance(provider) {
 
     if (response.status === 200) {
       // OpenNode returns balance in BTC
-      const balanceBTC = response.data.data.balance.BTC;
-      const balanceSats = Math.floor(parseFloat(balanceBTC) * 1); // Convert to sats
-      return balanceSats;
+      const balance = parseFloat(response.data.data.balance.BTC);
+      const balanceBTC = Math.round(balance) / 1e8;
+      // If you prefer to send balance in Satoshis, uncomment the next line
+      // const balanceSats = Math.floor(balanceBTC * 100000000);
+      // return { balance: balanceSats, currency: 'SAT' };
+      
+      // Sending balance in BTC
+      return { balance: balanceBTC, currency: 'BTC' };
     } else {
       console.error('Failed to fetch OpenNode balance:', response.statusText);
       return null;
@@ -160,7 +166,7 @@ async function getBalance(provider) {
  * @param {Object} user - User details.
  * @param {Object} provider - Provider details.
  * @param {Object} OpennodeTransaction - Sequelize Transaction model.
- * @returns {Array|null} - Array of transactions or null on failure.
+ * @returns {Array|null} - Array of transactions with currency or null on failure.
  */
 async function getTransactions(user, provider, OpennodeTransaction) {
   try {
@@ -168,7 +174,12 @@ async function getTransactions(user, provider, OpennodeTransaction) {
       where: { userId: user.uid },
       order: [['createdAt', 'DESC']],
     });
-    return transactions;
+
+    // Append currency to each transaction
+    return transactions.map(tx => ({
+      ...tx.get({ plain: true }), // Convert Sequelize instance to plain object
+      currency: 'SAT',
+    }));
   } catch (error) {
     console.error('Error fetching OpenNode transactions:', error);
     return null;
