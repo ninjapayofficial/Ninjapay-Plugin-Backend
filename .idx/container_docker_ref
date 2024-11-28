@@ -1,0 +1,95 @@
+// # To learn more about how to use Nix to configure your environment
+// # see: https://developers.google.com/idx/guides/customize-idx-env
+// { pkgs, ... }: {
+//   # Which nixpkgs channel to use.
+//   channel = "stable-24.05"; # or "unstable"
+
+//   # Use https://search.nixos.org/packages to find packages
+//   packages = [
+//     pkgs.nodejs_20
+//     pkgs.postgresql_15    # Add PostgreSQL (version 15)
+//     pkgs.sudo             # Include sudo if needed
+//     pkgs.tmux             # Optional: any other tools you might need
+//     pkgs.docker           # Ensure Docker is included
+//   ];
+
+//   # Sets environment variables in the workspace
+//   env = {};
+
+//   # Enable Docker service
+//   services.docker.enable = true;
+
+//   # # Docker configuration (optional: adjust according to your needs)
+//   # services.docker = {
+//   #   # Example: Enable Docker Compose if needed
+//   #   enable = true;
+//   #   # docker-compose can be added here if required
+//   # };
+
+//   # Define a systemd service to run your Docker container
+//   systemd.services."ninjapay-plugin-backend" = {
+//     description = "Your Node.js Express App Container";
+//     after = [ "network.target" "docker.service" ];
+//     wants = [ "network.target" "docker.service" ];
+//     serviceConfig = {
+//       # Pull the latest image (optional)
+//       ExecStartPre = "${pkgs.docker}/bin/docker pull ninjapayofficial/ninjapay-plugin-backend:latest";
+
+//       # Run the Docker container
+//       ExecStart = "${pkgs.docker}/bin/docker run --rm --name your-app-name -p 3000:3000 ninjapayofficial/ninjapay-plugin-backend:latest";
+
+//       # Restart policy
+//       Restart = "always";
+//       RestartSec = "10";
+//     };
+//     wantedBy = [ "multi-user.target" ];
+//   };
+
+//   # Optionally, define Docker image build using Nix
+//   # This uses dockerTools to build the image
+//   # Uncomment and adjust if you prefer building the image with Nix
+//   /*
+//   dockerImage = pkgs.dockerTools.buildImage {
+//     name = "ninjapay-plugin-backend";
+//     tag = "latest";
+//     config = {
+//       Cmd = [ "npm" "start" ];
+//       ExposedPorts = { "3000/tcp" = {}; };
+//       WorkingDir = "/app";
+//     };
+//     contents = pkgs.nodejs_20;
+//     copyToRoot = {
+//       "/app" = ./.;
+//     };
+//     # Optionally, add build steps
+//   };
+//   */
+  
+//   idx = {
+//     # Search for the extensions you want on https://open-vsx.org/ and use "publisher.id"
+//     extensions = [
+//       # "vscodevim.vim"
+//     ];
+//     workspace = {
+//       # Runs when a workspace is first created with this `dev.nix` file
+//       onCreate = {
+//         npm-install = "npm ci --no-audit --prefer-offline --no-progress --timing";
+//       };
+//       # To run something each time the workspace is (re)started, use the `onStart` hook
+//       onStart = {
+//         # You can add commands here if needed
+//       };
+//     };
+//     # Enable previews and customize configuration
+//     previews = {
+//       enable = true;
+//       previews = {
+//         web = {
+//           # Update the command to use Docker if needed
+//           command = ["npm" "run" "dev" "--" "--port" "$PORT"];
+//           manager = "web";
+//         };
+//       };
+//     };
+//   };
+// }

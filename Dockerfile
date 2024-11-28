@@ -7,8 +7,11 @@ WORKDIR /app
 # Copy package.json and package-lock.json to the working directory
 COPY package*.json ./
 
-# Install dependencies
+# # Install dependencies
 RUN npm install
+
+# # Install dependencies (docker)
+# RUN npm ci --no-audit --prefer-offline --no-progress --timing
 
 # Copy the rest of the application code to the working directory
 COPY . .
