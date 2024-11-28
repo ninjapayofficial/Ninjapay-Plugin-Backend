@@ -226,7 +226,8 @@ curl -X GET http://localhost:3000/payments/transactions \
 \
 docker build -t ninjapay-plugin-backend .  
 \
-docker run -p 3000:3000 ninjapay-plugin-backend 
+docker run -p 3000:3000 ninjapay-plugin-backend \
+docker run -d -p 3000:3000 ninjapay-plugin-backend \
 \
 docker ps \
 docker stop <containerId> \
