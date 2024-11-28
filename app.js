@@ -80,8 +80,6 @@ app.get('/signup', (req, res) => {
 
 
 
-
-
 // to serve routes from appRoutes.js
 app.use('/auth', authRoutes);
 
