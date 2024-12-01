@@ -5,6 +5,7 @@ const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
 const lnbitsPaymentService = require('../services/lnbitsPaymentService');
 const opennodePaymentService = require('../services/opennodePaymentService');
+// eslint-disable-next-line no-unused-vars
 const paymentService = require('../services/paymentService');
 
 module.exports = (models) => {
@@ -113,6 +114,7 @@ module.exports = (models) => {
   router.get('/checkPaymentStatus/:paymentId', authMiddleware, async (req, res) => {
     const { paymentId } = req.params;
     const provider = req.provider;
+    // eslint-disable-next-line no-unused-vars
     const user = req.user;
 
     if (!provider) {

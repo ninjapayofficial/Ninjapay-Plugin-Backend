@@ -4,6 +4,7 @@ const express = require('express');
 const router = express.Router();
 const admin = require('../firebase'); // Import Firebase Admin
 const authMiddleware = require('../middleware/authMiddleware');
+// eslint-disable-next-line no-unused-vars
 const crypto = require('crypto'); // For generating random keys
 
 const SESSION_COOKIE_NAME = 'session';
