@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 // app.js
 const express = require('express');
 const { Sequelize } = require('sequelize');
@@ -17,13 +18,11 @@ const cors = require('cors');
 const authMiddleware = require('./middleware/authMiddleware');
 const admin = require('./firebase');
 const paymentRoutes = require('./routes/paymentRoutes');
-const LbtcTransactionModel = require('./models/LbtcTransaction'); 
 
 
 
 
 
-const SESSION_COOKIE_NAME = 'session';
 
 
 // Database Connection
@@ -52,7 +51,6 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, proces
 // });
 
 // Initialize models
-const LbtcTransaction = LbtcTransactionModel(sequelize);
 const models = require('./models')(sequelize); 
 
 // Allow all origins (or specify allowed origins)
@@ -232,6 +230,7 @@ app.post('/webhook/:provider/:userId', async (req, res) => {
     return res.status(404).send('User not found');
   }
 
+  // eslint-disable-next-line no-unused-vars
   const userData = userDoc.data();
 
   // Process the webhook data according to the provider
