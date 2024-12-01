@@ -127,7 +127,7 @@ async function loadPlugin(app, sequelize, pluginName) {
 
 
 
-// // Use the vm2 library to safely execute plugin code in a sandboxed environment:
+// //  Use the vm2 library to safely execute plugin code in a sandboxed environment:
 // async function loadPlugin(app, sequelize, pluginName) {
 //   try {
 //     // eslint-disable-next-line no-undef
@@ -140,19 +140,25 @@ async function loadPlugin(app, sequelize, pluginName) {
 //       // Run plugin migrations
 //       await runPluginMigrations(sequelize, pluginName);
   
-//       // Configure VM2 sandbox
+//       // Configure VM2 sandbox with DEBUG_COLORS set to '0'
 //       const vm = new NodeVM({
 //         console: 'inherit',
 //         sandbox: {
-//           app, // You can expose specific objects
+//           app, // Expose necessary objects
 //           sequelize,
+//           process: {
+//             env: {
+//               // eslint-disable-next-line no-undef
+//               ...process.env, // Inherit existing environment variables
+//               DEBUG_COLORS: '0', // Disable colors in debug
+//             },
+//           },
 //         },
 //         require: {
 //           external: true,
 //           root: pluginPath,
 //           context: 'sandbox',
-//           // Optionally, you can whitelist specific modules
-//           builtin: ['*'], // Or specify allowed built-in modules
+//           builtin: ['*'], // Adjust as needed for security
 //         },
 //       });
 
@@ -184,6 +190,7 @@ async function loadPlugin(app, sequelize, pluginName) {
 //     console.error(`Error loading plugin ${pluginName}:`, error);
 //   }
 // }
+
 
 
 async function loadPlugins(app, sequelize, invoiceKey) {
