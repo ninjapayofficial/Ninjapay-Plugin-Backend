@@ -3,7 +3,10 @@ const simpleGit = require('simple-git');
 const path = require('path');
 const fs = require('fs');
 const { exec } = require('child_process');
+// eslint-disable-next-line no-unused-vars
+const { NodeVM } = require('vm2');
 
+// eslint-disable-next-line no-undef
 const pluginsDir = path.join(__dirname, 'plugins');
 const { ESLint } = require('eslint');
 const { runPluginMigrations } = require('./migrationManager');
@@ -121,6 +124,67 @@ async function loadPlugin(app, sequelize, pluginName) {
     console.error(`Error loading plugin ${pluginName}:`, error);
   }
 }
+
+
+
+// // Use the vm2 library to safely execute plugin code in a sandboxed environment:
+// async function loadPlugin(app, sequelize, pluginName) {
+//   try {
+//     // eslint-disable-next-line no-undef
+//     const pluginPath = path.join(__dirname, 'plugins', pluginName);
+//     const pluginMainFile = path.join(pluginPath, 'index.js');
+
+//     if (fs.existsSync(pluginMainFile)) {
+//       delete require.cache[require.resolve(pluginMainFile)];
+
+//       // Run plugin migrations
+//       await runPluginMigrations(sequelize, pluginName);
+  
+//       // Configure VM2 sandbox
+//       const vm = new NodeVM({
+//         console: 'inherit',
+//         sandbox: {
+//           app, // You can expose specific objects
+//           sequelize,
+//         },
+//         require: {
+//           external: true,
+//           root: pluginPath,
+//           context: 'sandbox',
+//           // Optionally, you can whitelist specific modules
+//           builtin: ['*'], // Or specify allowed built-in modules
+//         },
+//       });
+
+//       // Load and execute the plugin code within the sandbox
+//       const pluginCode = fs.readFileSync(pluginMainFile, 'utf8');
+//       const plugin = vm.run(pluginCode, pluginMainFile);
+
+//       if (typeof plugin.init === 'function') {
+//         const express = require('express');
+//         const router = express.Router();
+
+//         // Apply middleware as needed
+//         router.use(authMiddleware);
+
+//         // Initialize the plugin
+//         await plugin.init(router, sequelize);
+
+//         // Mount the router
+//         app.use(`/plugins/${pluginName}`, router);
+
+//         console.log(`Loaded plugin: ${pluginName} in sandboxed environment`);
+//       } else {
+//         console.warn(`Plugin ${pluginName} does not export an init function.`);
+//       }
+//     } else {
+//       console.warn(`No index.js found in ${pluginName}.`);
+//     }
+//   } catch (error) {
+//     console.error(`Error loading plugin ${pluginName}:`, error);
+//   }
+// }
+
 
 async function loadPlugins(app, sequelize, invoiceKey) {
   const pluginFolders = fs.readdirSync(pluginsDir);
