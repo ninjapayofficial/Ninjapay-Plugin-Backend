@@ -35,6 +35,15 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING,
         allowNull: true,
       },
+      invoiceRequest: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      status: {
+        type: DataTypes.ENUM('pending', 'failed', 'success', 'cancelled'),
+        allowNull: false,
+        defaultValue: 'pending',
+      },
       createdAt: {
         type: DataTypes.DATE,
         allowNull: false,
@@ -47,7 +56,7 @@ module.exports = (sequelize) => {
       },
     },
     {
-      freezeTableName: true, // Prevents Sequelize from pluralizing table name
+      freezeTableName: true,
     }
   );
 
