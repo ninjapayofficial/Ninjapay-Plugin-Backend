@@ -462,7 +462,7 @@
                 }
                 const data = await response.json();
                 document.getElementById('balanceAmount').textContent = `${data.balance || 0} ${data.currency}`;
-                document.getElementById('withdrawableAmount').textContent = `Available to withdraw: ₹${data.withdrawable || 0}`;
+                document.getElementById('withdrawableAmount').textContent = `Available to withdraw: ${data.withdrawable || 0}`;
                 document.getElementById('balanceError').textContent = '';
             } catch (error) {
                 console.error('Error loading balance:', error);

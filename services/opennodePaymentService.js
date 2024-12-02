@@ -11,7 +11,7 @@ const axios = require('axios');
  * @param {Object} OpennodeTransaction - Sequelize Transaction model.
  * @returns {Object|null} - Payment link data or null on failure.
  */
-async function createPayLink(user, provider, amount, description, OpennodeTransaction) {
+async function createPayLink(user, provider, amount, description, notifyUrl, OpennodeTransaction) {
   try {
     const url = 'https://api.opennode.com/v1/charges';
     const data = {
@@ -145,12 +145,13 @@ async function getBalance(provider) {
       // OpenNode returns balance in BTC
       const balance = parseFloat(response.data.data.balance.BTC);
       const balanceBTC = Math.round(balance) / 1e8;
+      const withdrawable = Math.round(balance * 0.98) / 1e8; // Assuming 2% needed for routing fee
       // If you prefer to send balance in Satoshis, uncomment the next line
       // const balanceSats = Math.floor(balanceBTC * 100000000);
       // return { balance: balanceSats, currency: 'SAT' };
       
       // Sending balance in BTC
-      return { balance: balanceBTC, currency: 'BTC' };
+      return { balance: balanceBTC, currency: 'BTC', withdrawable };
     } else {
       console.error('Failed to fetch OpenNode balance:', response.statusText);
       return null;

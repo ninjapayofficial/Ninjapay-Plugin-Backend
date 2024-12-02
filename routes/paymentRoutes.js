@@ -16,7 +16,7 @@ module.exports = (models) => {
    * POST /payments/createPayLink
    */
   router.post('/createPayLink', authMiddleware, async (req, res) => {
-    const { amount, description } = req.body;
+    const { amount, description, notifyUrl } = req.body;
     const provider = req.provider;
     const user = req.user;
 
@@ -33,6 +33,7 @@ module.exports = (models) => {
           provider,
           amount,
           description,
+          notifyUrl,
           LbtcTransaction
         );
       } else if (provider.provider === 'opennode') {
@@ -41,6 +42,7 @@ module.exports = (models) => {
           provider,
           amount,
           description,
+          notifyUrl,
           OpennodeTransaction
         );
       } else {

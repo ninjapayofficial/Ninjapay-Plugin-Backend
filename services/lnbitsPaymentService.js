@@ -10,7 +10,7 @@ const axios = require('axios');
  * @param {Object} LbtcTransaction - Sequelize Transaction model.
  * @returns {Object|null} - Payment link data or null on failure.
  */
-async function createPayLink(user, provider, amount, description, LbtcTransaction) {
+async function createPayLink(user, provider, amount, description, notifyUrl, LbtcTransaction) {
 
   try {
     if (provider.provider === 'lnbits') {
@@ -180,7 +180,8 @@ async function getBalance(provider) {
 
       if (response.status === 200) {
         const balance = Math.floor(parseFloat(response.data.balance) * 0.001); // Assuming balance is in millisatoshis
-        return { balance, currency: 'SAT' };
+        const withdrawable = Math.floor(parseFloat(balance) * 0.98); // Assuming 2% needed for routing fee
+        return { balance, currency: 'SAT', withdrawable };
       } else {
         console.error('Failed to fetch LNbits balance:', response.statusText);
         return null;
