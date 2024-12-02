@@ -117,7 +117,7 @@ async function payInvoice(user, provider, bolt11, LbtcTransaction) {
  * @param {string} paymentId - Payment hash or ID.
  * @returns {Object|null} - Payment status data or null on failure.
  */
-async function checkPaymentStatus(provider, paymentId) {
+async function checkPaymentStatus(provider, paymentId, LbtcTransaction) {
   try {
     if (provider.provider === 'lnbits') {
       const url = `${provider.instanceUrl}/api/v1/payments/${paymentId}`;
@@ -126,9 +126,27 @@ async function checkPaymentStatus(provider, paymentId) {
         'Content-Type': 'application/json',
       };
       const response = await axios.get(url, { headers });
+      // const txid = paymentId;
 
       if (response.status === 200) {
-        return response.data;
+        const paymentStatus = response.data;
+        const txid = paymentId;
+        // Update transaction status based on paymentStatus
+        const transaction = await LbtcTransaction.findOne({ where: { txid } });
+        if (!transaction) {
+          throw new Error('Transaction not found');
+        }
+        if (paymentStatus.paid) {
+          transaction.status = 'success';
+        } else {
+          transaction.status = 'pending'; // Or 'failed' based on your logic
+        }
+      
+        await transaction.save();
+        // return response.data;
+        const status = transaction.status;
+        return { paymentStatus, status };
+        
       } else {
         console.error('Failed to check LNbits payment status:', response.statusText);
         return null;

@@ -127,7 +127,8 @@ module.exports = (models) => {
       if (provider.provider === 'lnbits') {
         paymentStatus = await lnbitsPaymentService.checkPaymentStatus(
           provider,
-          paymentId
+          paymentId,
+          LbtcTransaction
         );
       } else if (provider.provider === 'opennode') {
         paymentStatus = await opennodePaymentService.checkPaymentStatus(
