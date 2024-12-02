@@ -36,7 +36,7 @@ module.exports = (sequelize) => {
         allowNull: true,
       },
       invoiceRequest: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
         allowNull: true,
       },
       status: {

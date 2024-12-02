@@ -51,7 +51,8 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, proces
 // });
 
 // Initialize models
-const models = require('./models')(sequelize); 
+const models = require('./models')(sequelize); // Initialize models
+const LbtcTransaction = models.LbtcTransaction;
 
 // Allow all origins (or specify allowed origins)
 app.use(cors());
@@ -218,29 +219,102 @@ app.post('/remove-plugin', async (req, res) => {
 
 
 
+// // Webhook endpoint to receive payment status updates
+// app.post('/webhook/:provider/:userId', async (req, res) => {
+//   const { provider, userId } = req.params;
+
+//   // Get user data from Firestore
+//   const db = admin.firestore();
+//   const userDoc = await db.collection('users').doc(userId).get();
+
+//   if (!userDoc.exists) {
+//     return res.status(404).send('User not found');
+//   }
+
+//   // eslint-disable-next-line no-unused-vars
+//   const userData = userDoc.data();
+
+//   // Process the webhook data according to the provider
+//   if (provider === 'lnbits') {
+//     // Handle LNbits webhook
+//     console.log('Received LNbits webhook:', req.body);
+//     // TODO: Process the webhook data as needed
+//   }
+//   // Handle other providers
+
+//   res.status(200).send('Webhook received');
+// });
+
+
 // Webhook endpoint to receive payment status updates
-app.post('/webhook/:provider/:userId', async (req, res) => {
-  const { provider, userId } = req.params;
+app.post('/webhook/:provider/:webhookSecret', async (req, res) => {
+  const { provider, webhookSecret } = req.params;
 
-  // Get user data from Firestore
-  const db = admin.firestore();
-  const userDoc = await db.collection('users').doc(userId).get();
+  try {
+    // Find the provider data using the webhookSecret
+    const db = admin.firestore();
+    const providerKeysRef = db.collection('providerKeys');
+    const providerKeySnapshot = await providerKeysRef
+      .where('providerData.webhookSecret', '==', webhookSecret)
+      .get();
 
-  if (!userDoc.exists) {
-    return res.status(404).send('User not found');
+    if (providerKeySnapshot.empty) {
+      console.error('Invalid webhook secret.');
+      return res.status(401).send('Unauthorized');
+    }
+
+    // Assuming webhookSecret is unique, we can get the user data
+    const providerKeyDoc = providerKeySnapshot.docs[0];
+    // eslint-disable-next-line no-unused-vars
+    const providerData = providerKeyDoc.data().providerData;
+    const userId = providerKeyDoc.data().userId;
+
+    // Process the webhook data according to the provider
+    if (provider === 'lnbits') {
+      // Handle LNbits webhook
+      console.log('Received LNbits webhook:', req.body);
+
+      // Extract the payment hash or identifier from the webhook payload
+      const { payment_hash } = req.body;
+
+      if (!payment_hash) {
+        return res.status(400).send('Missing payment hash.');
+      }
+
+      // Find the transaction in the database
+      const transaction = await LbtcTransaction.findOne({
+        where: {
+          txid: payment_hash,
+          userId,
+        },
+      });
+
+      if (!transaction) {
+        console.error('Transaction not found.');
+        return res.status(404).send('Transaction not found.');
+      }
+
+      // Update the transaction status based on the webhook data
+      const { paid } = req.body; // Adjust based on LNbits webhook payload
+
+      if (paid) {
+        transaction.status = 'success';
+      } else {
+        transaction.status = 'failed';
+      }
+
+      await transaction.save();
+
+      res.status(200).send('Webhook received');
+    } else {
+      // Handle other providers
+      res.status(400).send('Unsupported provider.');
+    }
+  } catch (error) {
+    console.error('Error handling webhook:', error);
+    res.status(500).send('Internal Server Error');
   }
-
-  // eslint-disable-next-line no-unused-vars
-  const userData = userDoc.data();
-
-  // Process the webhook data according to the provider
-  if (provider === 'lnbits') {
-    // Handle LNbits webhook
-    console.log('Received LNbits webhook:', req.body);
-    // TODO: Process the webhook data as needed
-  }
-  // Handle other providers
-
-  res.status(200).send('Webhook received');
 });
+
+
 

@@ -4,7 +4,6 @@ const express = require('express');
 const router = express.Router();
 const admin = require('../firebase'); // Import Firebase Admin
 const authMiddleware = require('../middleware/authMiddleware');
-// eslint-disable-next-line no-unused-vars
 const crypto = require('crypto'); // For generating random keys
 
 const SESSION_COOKIE_NAME = 'session';
@@ -17,6 +16,12 @@ function generateProviderInvoiceKey() {
 function generateProviderAdminKey() {
   return 'p_ak_' + Math.random().toString(36).substr(2, 9);
 }
+
+// Function to generate a unique webhook secret
+function generateWebhookSecret() {
+  return 'wh_sec_' + crypto.randomBytes(16).toString('hex');
+}
+
 
 // Endpoint to create session login
 router.post('/sessionLogin', (req, res) => {
@@ -118,6 +123,13 @@ router.post('/addFundingProvider', authMiddleware, async (req, res) => {
       // Generate provider-specific keys for our system
       fundingProviderData.providerInvoiceKey = generateProviderInvoiceKey();
       fundingProviderData.providerAdminKey = generateProviderAdminKey();
+      // Generate a unique webhook secret and URL
+      const webhookSecret = generateWebhookSecret();
+      // eslint-disable-next-line no-undef
+      const webhookUrl = `${process.env.BASE_URL}/webhook/${provider}/${webhookSecret}`;
+      fundingProviderData.webhookSecret = webhookSecret;
+      fundingProviderData.webhookUrl = webhookUrl;
+
     } else if (provider === 'opennode') {
       const { apiKey, readApiKey } = req.body;
 
@@ -132,6 +144,13 @@ router.post('/addFundingProvider', authMiddleware, async (req, res) => {
       // Generate provider-specific keys for our system
       fundingProviderData.providerInvoiceKey = generateProviderInvoiceKey();
       fundingProviderData.providerAdminKey = generateProviderAdminKey();
+      // Generate a unique webhook secret and URL
+      const webhookSecret = generateWebhookSecret();
+      // eslint-disable-next-line no-undef
+      const webhookUrl = `${process.env.BASE_URL}/webhook/${provider}/${webhookSecret}`;
+      fundingProviderData.webhookSecret = webhookSecret;
+      fundingProviderData.webhookUrl = webhookUrl;
+      
     } else {
       return res.status(400).send('Unsupported provider.');
     }

@@ -11,6 +11,7 @@ const axios = require('axios');
  * @returns {Object|null} - Payment link data or null on failure.
  */
 async function createPayLink(user, provider, amount, description, LbtcTransaction) {
+
   try {
     if (provider.provider === 'lnbits') {
       const url = `${provider.instanceUrl}/api/v1/payments`;
@@ -18,6 +19,7 @@ async function createPayLink(user, provider, amount, description, LbtcTransactio
         out: false,
         amount,
         memo: description,
+        webhook: provider.webhookUrl, // Include the webhook URL
       };
       const headers = {
         'X-Api-Key': provider.invoiceKey, // Use provider-specific invoice key
@@ -36,6 +38,8 @@ async function createPayLink(user, provider, amount, description, LbtcTransactio
           description,
           invoiceKeyUsed: provider.providerInvoiceKey,
           walletId: provider.walletId || null,
+          invoiceRequest: payment_request,
+          status: 'pending',
         });
 
         return { payment_request, payment_hash };
