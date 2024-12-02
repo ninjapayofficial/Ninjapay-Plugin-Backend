@@ -1,32 +1,38 @@
 // middleware/authMiddleware.js
 
-const admin = require('../firebase');
+const admin = require("../firebase");
 const db = admin.firestore();
 
-const SESSION_COOKIE_NAME = 'session';
+const SESSION_COOKIE_NAME = "session";
 
 async function authMiddleware(req, res, next) {
   let uid;
   let userData;
 
   try {
-    const sessionCookie = req.cookies[SESSION_COOKIE_NAME] || '';
+    const sessionCookie = req.cookies[SESSION_COOKIE_NAME] || "";
     // Check for provider keys in headers
-    const providerInvoiceKey = req.headers['x-provider-invoice-key'];
-    const providerAdminKey = req.headers['x-provider-admin-key'];
+    const providerInvoiceKey = req.headers["x-provider-invoice-key"];
+    const providerAdminKey = req.headers["x-provider-admin-key"];
 
-    console.log('authMiddleware: Processing request', req.method, req.originalUrl);
+    console.log(
+      "authMiddleware: Processing request",
+      req.method,
+      req.originalUrl,
+    );
 
     if (sessionCookie) {
-      console.log('authMiddleware: Authenticating with session cookie');
+      console.log("authMiddleware: Authenticating with session cookie");
       // Authenticate using the session cookie
-      const decodedClaims = await admin.auth().verifySessionCookie(sessionCookie, true);
+      const decodedClaims = await admin
+        .auth()
+        .verifySessionCookie(sessionCookie, true);
       uid = decodedClaims.uid;
 
       // Fetch user data from Firestore
-      const userDoc = await db.collection('users').doc(uid).get();
+      const userDoc = await db.collection("users").doc(uid).get();
       if (!userDoc.exists) {
-        return res.status(401).send('User data not found.');
+        return res.status(401).send("User data not found.");
       }
 
       userData = userDoc.data();
@@ -43,7 +49,9 @@ async function authMiddleware(req, res, next) {
 
       if (userData.defaultProvider) {
         // Find the default provider
-        provider = fundingProviders.find(fp => fp.provider === userData.defaultProvider);
+        provider = fundingProviders.find(
+          (fp) => fp.provider === userData.defaultProvider,
+        );
       }
 
       if (!provider) {
@@ -62,17 +70,17 @@ async function authMiddleware(req, res, next) {
 
       next();
     } else if (providerInvoiceKey || providerAdminKey) {
-      console.log('authMiddleware: Authenticating with provider keys');
+      console.log("authMiddleware: Authenticating with provider keys");
       // Authenticate using provider keys
 
       let providerKey = providerInvoiceKey || providerAdminKey;
 
       // Query the providerKeys collection to find the user
-      const providerKeysRef = db.collection('providerKeys');
+      const providerKeysRef = db.collection("providerKeys");
       const providerKeyDoc = await providerKeysRef.doc(providerKey).get();
 
       if (!providerKeyDoc.exists) {
-        return res.status(401).send('Invalid provider keys.');
+        return res.status(401).send("Invalid provider keys.");
       }
 
       const providerKeyData = providerKeyDoc.data();
@@ -80,9 +88,9 @@ async function authMiddleware(req, res, next) {
       const fundingProvider = providerKeyData.providerData; // Should include provider details
 
       // Fetch user data from Firestore
-      const userDoc = await db.collection('users').doc(uid).get();
+      const userDoc = await db.collection("users").doc(uid).get();
       if (!userDoc.exists) {
-        return res.status(401).send('User data not found.');
+        return res.status(401).send("User data not found.");
       }
 
       userData = userDoc.data();
@@ -99,12 +107,12 @@ async function authMiddleware(req, res, next) {
       next();
     } else {
       // No authentication provided
-      console.log('authMiddleware: No authentication provided');
-      return res.status(401).send('Unauthorized');
+      console.log("authMiddleware: No authentication provided");
+      return res.status(401).send("Unauthorized");
     }
   } catch (error) {
-    console.error('Error in authMiddleware:', error);
-    res.status(401).send('Unauthorized');
+    console.error("Error in authMiddleware:", error);
+    res.status(401).send("Unauthorized");
   }
 }
 

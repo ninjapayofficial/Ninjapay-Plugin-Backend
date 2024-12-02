@@ -1,6 +1,6 @@
 // services/lnbitsPaymentService.js
 
-const axios = require('axios');
+const axios = require("axios");
 
 /**
  * Creates a payment link using the specified provider.
@@ -10,10 +10,16 @@ const axios = require('axios');
  * @param {Object} LbtcTransaction - Sequelize Transaction model.
  * @returns {Object|null} - Payment link data or null on failure.
  */
-async function createPayLink(user, provider, amount, description, notifyUrl, LbtcTransaction) {
-
+async function createPayLink(
+  user,
+  provider,
+  amount,
+  description,
+  notifyUrl,
+  LbtcTransaction,
+) {
   try {
-    if (provider.provider === 'lnbits') {
+    if (provider.provider === "lnbits") {
       const url = `${provider.instanceUrl}/api/v1/payments`;
       const data = {
         out: false,
@@ -22,8 +28,8 @@ async function createPayLink(user, provider, amount, description, notifyUrl, Lbt
         webhook: provider.webhookUrl, // Include the webhook URL
       };
       const headers = {
-        'X-Api-Key': provider.invoiceKey, // Use provider-specific invoice key
-        'Content-Type': 'application/json',
+        "X-Api-Key": provider.invoiceKey, // Use provider-specific invoice key
+        "Content-Type": "application/json",
       };
       const response = await axios.post(url, data, { headers });
 
@@ -39,22 +45,25 @@ async function createPayLink(user, provider, amount, description, notifyUrl, Lbt
           invoiceKeyUsed: provider.providerInvoiceKey,
           walletId: provider.walletId || null,
           invoiceRequest: payment_request,
-          status: 'pending',
+          status: "pending",
         });
 
         return { payment_request, payment_hash };
       } else {
-        console.error('Failed to create LNbits pay link:', response.statusText);
+        console.error("Failed to create LNbits pay link:", response.statusText);
         return null;
       }
     }
 
     // Handle other providers here
 
-    console.error('Unsupported provider:', provider.provider);
+    console.error("Unsupported provider:", provider.provider);
     return null;
   } catch (error) {
-    console.error('Error creating pay link:', error.response ? error.response.data : error.message);
+    console.error(
+      "Error creating pay link:",
+      error.response ? error.response.data : error.message,
+    );
     return null;
   }
 }
@@ -68,15 +77,15 @@ async function createPayLink(user, provider, amount, description, notifyUrl, Lbt
  */
 async function payInvoice(user, provider, bolt11, LbtcTransaction) {
   try {
-    if (provider.provider === 'lnbits') {
+    if (provider.provider === "lnbits") {
       const url = `${provider.instanceUrl}/api/v1/payments`;
       const data = {
         out: true,
         bolt11,
       };
       const headers = {
-        'X-Api-Key': provider.adminKey, // Use provider-specific admin key
-        'Content-Type': 'application/json',
+        "X-Api-Key": provider.adminKey, // Use provider-specific admin key
+        "Content-Type": "application/json",
       };
       const response = await axios.post(url, data, { headers });
 
@@ -88,25 +97,28 @@ async function payInvoice(user, provider, bolt11, LbtcTransaction) {
           userId: user.uid, // Assuming provider includes userId
           txid: payment_hash,
           amount: null, // Optionally, fetch from invoice details
-          description: 'Payment made',
+          description: "Payment made",
           invoiceKeyUsed: provider.providerAdminKey,
           walletId: provider.walletId || null,
         });
 
         return { payment_hash };
       } else {
-        console.error('Failed to pay LNbits invoice:', response.statusText);
+        console.error("Failed to pay LNbits invoice:", response.statusText);
         return null;
       }
     }
 
     // Handle other providers here
 
-    console.error('Unsupported provider:', provider.provider, user.userId);
+    console.error("Unsupported provider:", provider.provider, user.userId);
     console.log(provider.provider);
     return null;
   } catch (error) {
-    console.error('Error paying invoice:', error.response ? error.response.data : error.message);
+    console.error(
+      "Error paying invoice:",
+      error.response ? error.response.data : error.message,
+    );
     return null;
   }
 }
@@ -119,11 +131,11 @@ async function payInvoice(user, provider, bolt11, LbtcTransaction) {
  */
 async function checkPaymentStatus(provider, paymentId, LbtcTransaction) {
   try {
-    if (provider.provider === 'lnbits') {
+    if (provider.provider === "lnbits") {
       const url = `${provider.instanceUrl}/api/v1/payments/${paymentId}`;
       const headers = {
-        'X-Api-Key': provider.invoiceKey, // Use provider-specific invoice key
-        'Content-Type': 'application/json',
+        "X-Api-Key": provider.invoiceKey, // Use provider-specific invoice key
+        "Content-Type": "application/json",
       };
       const response = await axios.get(url, { headers });
       // const txid = paymentId;
@@ -134,31 +146,36 @@ async function checkPaymentStatus(provider, paymentId, LbtcTransaction) {
         // Update transaction status based on paymentStatus
         const transaction = await LbtcTransaction.findOne({ where: { txid } });
         if (!transaction) {
-          throw new Error('Transaction not found');
+          throw new Error("Transaction not found");
         }
         if (paymentStatus.paid) {
-          transaction.status = 'success';
+          transaction.status = "success";
         } else {
-          transaction.status = 'pending'; // Or 'failed' based on your logic
+          transaction.status = "pending"; // Or 'failed' based on your logic
         }
-      
+
         await transaction.save();
         // return response.data;
         const status = transaction.status;
         return { paymentStatus, status };
-        
       } else {
-        console.error('Failed to check LNbits payment status:', response.statusText);
+        console.error(
+          "Failed to check LNbits payment status:",
+          response.statusText,
+        );
         return null;
       }
     }
 
     // Handle other providers here
 
-    console.error('Unsupported provider:', provider.provider);
+    console.error("Unsupported provider:", provider.provider);
     return null;
   } catch (error) {
-    console.error('Error checking payment status:', error.response ? error.response.data : error.message);
+    console.error(
+      "Error checking payment status:",
+      error.response ? error.response.data : error.message,
+    );
     return null;
   }
 }
@@ -170,34 +187,36 @@ async function checkPaymentStatus(provider, paymentId, LbtcTransaction) {
  */
 async function getBalance(provider) {
   try {
-    if (provider.provider === 'lnbits') {
+    if (provider.provider === "lnbits") {
       const url = `${provider.instanceUrl}/api/v1/wallet`;
       const headers = {
-        'X-Api-Key': provider.invoiceKey, // Use provider-specific invoice key
-        'Content-Type': 'application/json',
+        "X-Api-Key": provider.invoiceKey, // Use provider-specific invoice key
+        "Content-Type": "application/json",
       };
       const response = await axios.get(url, { headers });
 
       if (response.status === 200) {
         const balance = Math.floor(parseFloat(response.data.balance) * 0.001); // Assuming balance is in millisatoshis
         const withdrawable = Math.floor(parseFloat(balance) * 0.98); // Assuming 2% needed for routing fee
-        return { balance, currency: 'SAT', withdrawable };
+        return { balance, currency: "SAT", withdrawable };
       } else {
-        console.error('Failed to fetch LNbits balance:', response.statusText);
+        console.error("Failed to fetch LNbits balance:", response.statusText);
         return null;
       }
     }
 
     // Handle other providers here
 
-    console.error('Unsupported provider:', provider.provider);
+    console.error("Unsupported provider:", provider.provider);
     return null;
   } catch (error) {
-    console.error('Error fetching balance:', error.response ? error.response.data : error.message);
+    console.error(
+      "Error fetching balance:",
+      error.response ? error.response.data : error.message,
+    );
     return null;
   }
 }
-
 
 /**
  * Retrieves transaction history using LNbits.
@@ -210,16 +229,16 @@ async function getTransactions(user, provider, LbtcTransaction) {
   try {
     const transactions = await LbtcTransaction.findAll({
       where: { userId: user.uid },
-      order: [['createdAt', 'DESC']],
+      order: [["createdAt", "DESC"]],
     });
 
     // Append currency to each transaction
-    return transactions.map(tx => ({
+    return transactions.map((tx) => ({
       ...tx.get({ plain: true }), // Convert Sequelize instance to plain object
-      currency: 'SAT',
+      currency: "SAT",
     }));
   } catch (error) {
-    console.error('Error fetching transactions:', error);
+    console.error("Error fetching transactions:", error);
     return null;
   }
 }

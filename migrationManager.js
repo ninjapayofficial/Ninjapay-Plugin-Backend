@@ -1,10 +1,8 @@
 // migrationManager.js
 
-const { Umzug, SequelizeStorage } = require('umzug');
-const path = require('path');
-const fs = require('fs');
-
-
+const { Umzug, SequelizeStorage } = require("umzug");
+const path = require("path");
+const fs = require("fs");
 
 module.exports = {
   runCoreMigrations,
@@ -12,12 +10,11 @@ module.exports = {
   rollbackPluginMigrations,
 };
 
-
 async function runCoreMigrations(sequelize) {
   const umzug = new Umzug({
     migrations: {
       // eslint-disable-next-line no-undef
-      glob: path.join(__dirname, 'migrations/*.js'),
+      glob: path.join(__dirname, "migrations/*.js"),
     },
     context: sequelize, // Pass the Sequelize instance
     storage: new SequelizeStorage({ sequelize }),
@@ -25,17 +22,22 @@ async function runCoreMigrations(sequelize) {
   });
 
   await umzug.up();
-  console.log('Core migrations have been run.');
+  console.log("Core migrations have been run.");
 }
 
 async function runPluginMigrations(sequelize, pluginName) {
   // eslint-disable-next-line no-undef
-  const pluginMigrationsPath = path.join(__dirname, 'plugins', pluginName, 'migrations');
+  const pluginMigrationsPath = path.join(
+    __dirname,
+    "plugins",
+    pluginName,
+    "migrations",
+  );
 
   if (fs.existsSync(pluginMigrationsPath)) {
     const umzug = new Umzug({
       migrations: {
-        glob: path.join(pluginMigrationsPath, '*.js'),
+        glob: path.join(pluginMigrationsPath, "*.js"),
       },
       context: sequelize, // Pass the Sequelize instance
       storage: new SequelizeStorage({
@@ -52,36 +54,32 @@ async function runPluginMigrations(sequelize, pluginName) {
   }
 }
 
-
-
-  
-
 async function rollbackPluginMigrations(sequelize, pluginName) {
-    // eslint-disable-next-line no-undef
-    const pluginMigrationsPath = path.join(__dirname, 'plugins', pluginName, 'migrations');
-  
-    if (fs.existsSync(pluginMigrationsPath)) {
-      const umzug = new Umzug({
-        migrations: {
-          glob: path.join(pluginMigrationsPath, '*.js'),
-        },
-        context: sequelize, // Pass the Sequelize instance
-        storage: new SequelizeStorage({
-          sequelize,
-          modelName: `SequelizeMeta_${pluginName}`,
-        }),
-        logger: console,
-      });
-  
-      // Run down migrations
-      await umzug.down({ to: 0 });
-      console.log(`Rolled back migrations for plugin '${pluginName}'.`);
-    } else {
-      console.log(`No migrations found for plugin '${pluginName}'.`);
-    }
+  // eslint-disable-next-line no-undef
+  const pluginMigrationsPath = path.join(
+    __dirname,
+    "plugins",
+    pluginName,
+    "migrations",
+  );
+
+  if (fs.existsSync(pluginMigrationsPath)) {
+    const umzug = new Umzug({
+      migrations: {
+        glob: path.join(pluginMigrationsPath, "*.js"),
+      },
+      context: sequelize, // Pass the Sequelize instance
+      storage: new SequelizeStorage({
+        sequelize,
+        modelName: `SequelizeMeta_${pluginName}`,
+      }),
+      logger: console,
+    });
+
+    // Run down migrations
+    await umzug.down({ to: 0 });
+    console.log(`Rolled back migrations for plugin '${pluginName}'.`);
+  } else {
+    console.log(`No migrations found for plugin '${pluginName}'.`);
   }
-  
-
-  
-
-
+}

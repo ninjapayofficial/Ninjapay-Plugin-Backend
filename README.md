@@ -1,5 +1,3 @@
-
-
 ---
 
 ## **1. Ninjapay Plugin Backend - README.md**
@@ -268,5 +266,3 @@ Contributions are welcome! Please open issues and pull requests for any features
 If you have any questions or need assistance, please open an issue on GitHub.
 
 ---
-
-

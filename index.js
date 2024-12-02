@@ -1,5 +1,5 @@
-const express = require('express');
-const path = require('path')
+const express = require("express");
+const path = require("path");
 
 const app = express();
 
@@ -10,22 +10,21 @@ const port = parseInt(process.env.PORT) || process.argv[3] || 8080;
 //   .set('view engine', 'ejs');
 
 // Serve static files from the 'views' directory
-app.use(express.static(path.join(__dirname, 'views')));
-
+app.use(express.static(path.join(__dirname, "views")));
 
 // Update the root route to serve index.html
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'index.html'));
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "views", "index.html"));
 });
 
 // app.get('/', (req, res) => {
 //   res.render('index');
 // });
 
-app.get('/api', (req, res) => {
-  res.json({"msg": "Hello world"});
+app.get("/api", (req, res) => {
+  res.json({ msg: "Hello world" });
 });
 
 app.listen(port, () => {
   console.log(`Listening on http://localhost:${port}`);
-})
+});

@@ -1,10 +1,10 @@
 // models/LbtcTransaction.js
 
-const { DataTypes } = require('sequelize');
+const { DataTypes } = require("sequelize");
 
 module.exports = (sequelize) => {
   const LbtcTransaction = sequelize.define(
-    'LbtcTransaction',
+    "LbtcTransaction",
     {
       id: {
         type: DataTypes.INTEGER,
@@ -40,9 +40,9 @@ module.exports = (sequelize) => {
         allowNull: true,
       },
       status: {
-        type: DataTypes.ENUM('pending', 'failed', 'success', 'cancelled'),
+        type: DataTypes.ENUM("pending", "failed", "success", "cancelled"),
         allowNull: false,
-        defaultValue: 'pending',
+        defaultValue: "pending",
       },
       createdAt: {
         type: DataTypes.DATE,
@@ -57,7 +57,7 @@ module.exports = (sequelize) => {
     },
     {
       freezeTableName: true,
-    }
+    },
   );
 
   return LbtcTransaction;

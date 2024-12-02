@@ -1,12 +1,12 @@
 // migrations/20241119-create-opennode-transaction.js
 
-'use strict';
+"use strict";
 
 module.exports = {
   up: async ({ context: sequelize }) => {
     const queryInterface = sequelize.getQueryInterface();
-    const { DataTypes } = require('sequelize');
-    await queryInterface.createTable('OpennodeTransaction', {
+    const { DataTypes } = require("sequelize");
+    await queryInterface.createTable("OpennodeTransaction", {
       id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -50,6 +50,6 @@ module.exports = {
   },
 
   down: async (queryInterface) => {
-    await queryInterface.dropTable('OpennodeTransaction');
+    await queryInterface.dropTable("OpennodeTransaction");
   },
 };

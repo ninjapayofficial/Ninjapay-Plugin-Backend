@@ -1,7 +1,7 @@
 // models/index.js
 
-const LbtcTransactionModel = require('./LbtcTransaction');
-const OpennodeTransactionModel = require('./OpennodeTransaction');
+const LbtcTransactionModel = require("./LbtcTransaction");
+const OpennodeTransactionModel = require("./OpennodeTransaction");
 // Import other models here as needed
 
 module.exports = (sequelize) => {
@@ -19,8 +19,6 @@ module.exports = (sequelize) => {
     // e.g., User,
   };
 };
-
-
 
 // // models/index.js
 

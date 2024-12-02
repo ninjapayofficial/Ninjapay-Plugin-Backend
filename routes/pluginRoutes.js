@@ -9,19 +9,15 @@
 
 // module.exports = router;
 
-
-
 /////////
 // // in app.js
 // const pluginRoutes = require('./routes/pluginRoutes');
 // app.use('/api', pluginRoutes);
 
-
 // routes/pluginRoutes.js
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const pluginManager = require('../pluginManager');
-
+const pluginManager = require("../pluginManager");
 
 /**
  * @swagger
@@ -44,17 +40,22 @@ const pluginManager = require('../pluginManager');
  *       500:
  *         description: Failed to install plugin
  */
-router.post('/install-plugin', async (req, res) => {
+router.post("/install-plugin", async (req, res) => {
   let { repoUrl } = req.body;
-  if (!validator.isURL(repoUrl, { protocols: ['http', 'https'], require_tld: true })) {
-    return res.status(400).send('Invalid repository URL.');
+  if (
+    !validator.isURL(repoUrl, {
+      protocols: ["http", "https"],
+      require_tld: true,
+    })
+  ) {
+    return res.status(400).send("Invalid repository URL.");
   }
   try {
     await pluginManager.installPlugin(repoUrl, app, sequelize, invoiceKey);
-    res.send('Plugin installed and loaded successfully!');
+    res.send("Plugin installed and loaded successfully!");
   } catch (error) {
     console.error(error);
-    res.status(500).send('Failed to install plugin.');
+    res.status(500).send("Failed to install plugin.");
   }
   // ... existing code ...
 });
@@ -74,16 +75,16 @@ router.post('/install-plugin', async (req, res) => {
  *               items:
  *                 type: string
  */
-router.get('/plugins', (req, res) => {
-    const pluginsDir = path.join(__dirname, 'plugins');
-    fs.readdir(pluginsDir, (err, files) => {
-      if (err) {
-        console.error('Error reading plugins directory:', err);
-        res.status(500).send('Error reading plugins directory.');
-      } else {
-        res.json(files);
-      }
-    });
+router.get("/plugins", (req, res) => {
+  const pluginsDir = path.join(__dirname, "plugins");
+  fs.readdir(pluginsDir, (err, files) => {
+    if (err) {
+      console.error("Error reading plugins directory:", err);
+      res.status(500).send("Error reading plugins directory.");
+    } else {
+      res.json(files);
+    }
+  });
   // ... existing code ...
 });
 
@@ -108,7 +109,7 @@ router.get('/plugins', (req, res) => {
  *       500:
  *         description: Failed to remove plugin
  */
-router.post('/remove-plugin', (req, res) => {
+router.post("/remove-plugin", (req, res) => {
   // ... existing code ...
 });
 

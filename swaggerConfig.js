@@ -1,25 +1,25 @@
 // swaggerConfig.js
-const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerJsdoc = require("swagger-jsdoc");
 
 const swaggerOptions = {
   swaggerDefinition: {
-    openapi: '3.0.0',
+    openapi: "3.0.0",
     info: {
-      title: 'NinjaPay API',
-      version: '1.0.0',
-      description: 'API documentation for Ninjapay platform',
+      title: "NinjaPay API",
+      version: "1.0.0",
+      description: "API documentation for Ninjapay platform",
       contact: {
-        name: 'Ninjapay Team',
-        email: 'dev@ninjapay.me',
+        name: "Ninjapay Team",
+        email: "dev@ninjapay.me",
       },
     },
     servers: [
       {
-        url: 'http://localhost:3000', // Replace with your server URL
+        url: "http://localhost:3000", // Replace with your server URL
       },
     ],
   },
-  apis: ['./routes/*.js'], // Path to the API docs
+  apis: ["./routes/*.js"], // Path to the API docs
 };
 
 const swaggerSpecs = swaggerJsdoc(swaggerOptions);

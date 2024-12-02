@@ -1,31 +1,30 @@
 // pluginManager.js
-const simpleGit = require('simple-git');
-const path = require('path');
-const fs = require('fs');
-const { exec } = require('child_process');
+const simpleGit = require("simple-git");
+const path = require("path");
+const fs = require("fs");
+const { exec } = require("child_process");
 // eslint-disable-next-line no-unused-vars
-const { NodeVM } = require('vm2');
+const { NodeVM } = require("vm2");
 
 // eslint-disable-next-line no-undef
-const pluginsDir = path.join(__dirname, 'plugins');
-const { ESLint } = require('eslint');
-const { runPluginMigrations } = require('./migrationManager');
-const { rollbackPluginMigrations } = require('./migrationManager');
-const authMiddleware = require('./middleware/authMiddleware');
-const rateLimit = require('express-rate-limit');
-const express = require('express');
+const pluginsDir = path.join(__dirname, "plugins");
+const { ESLint } = require("eslint");
+const { runPluginMigrations } = require("./migrationManager");
+const { rollbackPluginMigrations } = require("./migrationManager");
+const authMiddleware = require("./middleware/authMiddleware");
+const rateLimit = require("express-rate-limit");
+const express = require("express");
 const router = express.Router();
 
 // Define rate limiting rule
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.',
+  message: "Too many requests from this IP, please try again later.",
 });
 
 // Apply the rate limiting middleware to the plugin router
 router.use(apiLimiter);
-
 
 // Ensure the plugins directory exists
 if (!fs.existsSync(pluginsDir)) {
@@ -41,12 +40,12 @@ module.exports = {
 
 async function installPlugin(repoUrl, app, sequelize, invoiceKey) {
   try {
-    const pluginName = repoUrl.split('/').pop().replace('.git', '');
+    const pluginName = repoUrl.split("/").pop().replace(".git", "");
     const pluginPath = path.join(pluginsDir, pluginName);
     const branchName = "funding-sources";
 
     // Clone the plugin repository
-    await simpleGit().clone(repoUrl,  pluginPath, ['-b', branchName]);
+    await simpleGit().clone(repoUrl, pluginPath, ["-b", branchName]);
     console.log(`Cloned ${pluginName} into plugins directory.`);
 
     // Perform static code analysis
@@ -63,15 +62,14 @@ async function installPlugin(repoUrl, app, sequelize, invoiceKey) {
     // Load the plugin into the application
     await loadPlugin(app, sequelize, pluginName, invoiceKey);
   } catch (err) {
-    console.error('Error installing plugin:', err);
+    console.error("Error installing plugin:", err);
     throw err;
   }
 }
 
-
 function installDependencies(pluginPath) {
   return new Promise((resolve, reject) => {
-    exec('npm install', { cwd: pluginPath }, (error, stdout, stderr) => {
+    exec("npm install", { cwd: pluginPath }, (error, stdout, stderr) => {
       if (error) {
         console.error(`Error installing dependencies: ${stderr}`);
         reject(error);
@@ -86,7 +84,7 @@ function installDependencies(pluginPath) {
 async function loadPlugin(app, sequelize, pluginName) {
   try {
     const pluginPath = path.join(pluginsDir, pluginName);
-    const pluginMainFile = path.join(pluginPath, 'index.js');
+    const pluginMainFile = path.join(pluginPath, "index.js");
 
     if (fs.existsSync(pluginMainFile)) {
       delete require.cache[require.resolve(pluginMainFile)];
@@ -95,19 +93,18 @@ async function loadPlugin(app, sequelize, pluginName) {
       await runPluginMigrations(sequelize, pluginName);
 
       const plugin = require(pluginMainFile);
-      if (typeof plugin.init === 'function') {
-        const express = require('express');
+      if (typeof plugin.init === "function") {
+        const express = require("express");
         const router = express.Router();
 
         // Apply authentication middleware to the router
         router.use(authMiddleware);
 
-       // Initialize the plugin with the router
+        // Initialize the plugin with the router
         await plugin.init(router, sequelize);
 
-       // Mount the router
+        // Mount the router
         app.use(`/plugins/${pluginName}`, router);
-
 
         // Pass 'app' if not using routers per plugin
         // Pass 'pluginName' if using routers per plugin
@@ -125,8 +122,6 @@ async function loadPlugin(app, sequelize, pluginName) {
   }
 }
 
-
-
 // //  Use the vm2 library to safely execute plugin code in a sandboxed environment:
 // async function loadPlugin(app, sequelize, pluginName) {
 //   try {
@@ -139,7 +134,7 @@ async function loadPlugin(app, sequelize, pluginName) {
 
 //       // Run plugin migrations
 //       await runPluginMigrations(sequelize, pluginName);
-  
+
 //       // Configure VM2 sandbox with DEBUG_COLORS set to '0'
 //       const vm = new NodeVM({
 //         console: 'inherit',
@@ -191,16 +186,12 @@ async function loadPlugin(app, sequelize, pluginName) {
 //   }
 // }
 
-
-
 async function loadPlugins(app, sequelize, invoiceKey) {
   const pluginFolders = fs.readdirSync(pluginsDir);
   for (const folder of pluginFolders) {
     await loadPlugin(app, sequelize, folder, invoiceKey);
   }
 }
-
-
 
 // async function uninstallPlugin(pluginName) {
 //   const pluginPath = path.join(pluginsDir, pluginName);
@@ -222,14 +213,12 @@ async function loadPlugins(app, sequelize, invoiceKey) {
 //   }
 // }
 
-
 // pluginManager.js
 
 async function uninstallPlugin(pluginName, sequelize) {
   const pluginPath = path.join(pluginsDir, pluginName);
 
   if (fs.existsSync(pluginPath)) {
-    
     // Run down migrations
     await rollbackPluginMigrations(sequelize, pluginName);
 
@@ -237,20 +226,14 @@ async function uninstallPlugin(pluginName, sequelize) {
     fs.rmSync(pluginPath, { recursive: true, force: true });
     console.log(`Uninstalled plugin: ${pluginName}`);
 
-//     // Remove plugin routes (optional)
-//     // Note: Express does not provide a straightforward way to remove routes.
-//     // You may need to implement a solution to reload the app without the plugin.
-
+    //     // Remove plugin routes (optional)
+    //     // Note: Express does not provide a straightforward way to remove routes.
+    //     // You may need to implement a solution to reload the app without the plugin.
   } else {
     console.error(`Plugin ${pluginName} is not installed.`);
     throw new Error(`Plugin ${pluginName} is not installed.`);
   }
 }
-
-
-
-
-
 
 function reloadPlugins(app, sequelize) {
   // Clear all existing routes (not trivial in Express)
@@ -262,7 +245,6 @@ function reloadPlugins(app, sequelize) {
 
 module.exports.reloadPlugins = reloadPlugins;
 
-
 // Security
 async function performStaticAnalysis(pluginPath) {
   const eslint = new ESLint({});
@@ -270,17 +252,16 @@ async function performStaticAnalysis(pluginPath) {
   // Analyze all .js files in the plugin directory
   const results = await eslint.lintFiles([`${pluginPath}/**/*.js`]);
 
-  const formatter = await eslint.loadFormatter('stylish');
+  const formatter = await eslint.loadFormatter("stylish");
   const resultText = formatter.format(results);
 
   // Check if there are any errors with severity 2
-  const hasErrors = results.some(result => result.errorCount > 0);
+  const hasErrors = results.some((result) => result.errorCount > 0);
 
   if (hasErrors) {
     console.error(`Static analysis failed:\n${resultText}`);
-    throw new Error('Static analysis failed.');
+    throw new Error("Static analysis failed.");
   } else {
-    console.log('Static analysis passed.');
+    console.log("Static analysis passed.");
   }
 }
-

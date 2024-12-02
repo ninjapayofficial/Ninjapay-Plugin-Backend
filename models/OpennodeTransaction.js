@@ -1,10 +1,10 @@
 // models/OpennodeTransaction.js
 
-const { DataTypes } = require('sequelize');
+const { DataTypes } = require("sequelize");
 
 module.exports = (sequelize) => {
   const OpennodeTransaction = sequelize.define(
-    'OpennodeTransaction',
+    "OpennodeTransaction",
     {
       id: {
         type: DataTypes.INTEGER,
@@ -48,7 +48,7 @@ module.exports = (sequelize) => {
     },
     {
       freezeTableName: true, // Prevents Sequelize from pluralizing table name
-    }
+    },
   );
 
   return OpennodeTransaction;

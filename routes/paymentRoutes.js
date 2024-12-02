@@ -1,12 +1,12 @@
 // routes/paymentRoutes.js
 
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const authMiddleware = require('../middleware/authMiddleware');
-const lnbitsPaymentService = require('../services/lnbitsPaymentService');
-const opennodePaymentService = require('../services/opennodePaymentService');
+const authMiddleware = require("../middleware/authMiddleware");
+const lnbitsPaymentService = require("../services/lnbitsPaymentService");
+const opennodePaymentService = require("../services/opennodePaymentService");
 // eslint-disable-next-line no-unused-vars
-const paymentService = require('../services/paymentService');
+const paymentService = require("../services/paymentService");
 
 module.exports = (models) => {
   const { LbtcTransaction, OpennodeTransaction } = models;
@@ -15,48 +15,48 @@ module.exports = (models) => {
    * Create Pay Link
    * POST /payments/createPayLink
    */
-  router.post('/createPayLink', authMiddleware, async (req, res) => {
+  router.post("/createPayLink", authMiddleware, async (req, res) => {
     const { amount, description, notifyUrl } = req.body;
     const provider = req.provider;
     const user = req.user;
 
     if (!provider) {
-      return res.status(400).send('No funding provider connected.');
+      return res.status(400).send("No funding provider connected.");
     }
 
     try {
       let payLinkData;
 
-      if (provider.provider === 'lnbits') {
+      if (provider.provider === "lnbits") {
         payLinkData = await lnbitsPaymentService.createPayLink(
           user,
           provider,
           amount,
           description,
           notifyUrl,
-          LbtcTransaction
+          LbtcTransaction,
         );
-      } else if (provider.provider === 'opennode') {
+      } else if (provider.provider === "opennode") {
         payLinkData = await opennodePaymentService.createPayLink(
           user,
           provider,
           amount,
           description,
           notifyUrl,
-          OpennodeTransaction
+          OpennodeTransaction,
         );
       } else {
-        return res.status(400).send('Unsupported provider.');
+        return res.status(400).send("Unsupported provider.");
       }
 
       if (payLinkData) {
         res.status(200).json(payLinkData);
       } else {
-        res.status(500).send('Failed to create pay link.');
+        res.status(500).send("Failed to create pay link.");
       }
     } catch (error) {
-      console.error('Error creating pay link:', error);
-      res.status(500).send('Error creating pay link.');
+      console.error("Error creating pay link:", error);
+      res.status(500).send("Error creating pay link.");
     }
   });
 
@@ -64,48 +64,48 @@ module.exports = (models) => {
    * Pay Invoice
    * POST /payments/payInvoice
    */
-  router.post('/payInvoice', authMiddleware, async (req, res) => {
+  router.post("/payInvoice", authMiddleware, async (req, res) => {
     const { bolt11 } = req.body;
     const provider = req.provider;
     const user = req.user;
 
     if (!provider) {
-      return res.status(400).send('No funding provider connected.');
+      return res.status(400).send("No funding provider connected.");
     }
 
     if (!bolt11) {
-      return res.status(400).send('BOLT11 invoice is required.');
+      return res.status(400).send("BOLT11 invoice is required.");
     }
 
     try {
       let paymentData;
 
-      if (provider.provider === 'lnbits') {
+      if (provider.provider === "lnbits") {
         paymentData = await lnbitsPaymentService.payInvoice(
           user,
           provider,
           bolt11,
-          LbtcTransaction
+          LbtcTransaction,
         );
-      } else if (provider.provider === 'opennode') {
+      } else if (provider.provider === "opennode") {
         paymentData = await opennodePaymentService.payInvoice(
           user,
           provider,
           bolt11,
-          OpennodeTransaction
+          OpennodeTransaction,
         );
       } else {
-        return res.status(400).send('Unsupported provider.');
+        return res.status(400).send("Unsupported provider.");
       }
 
       if (paymentData) {
         res.status(200).json(paymentData);
       } else {
-        res.status(500).send('Failed to pay invoice.');
+        res.status(500).send("Failed to pay invoice.");
       }
     } catch (error) {
-      console.error('Error paying invoice:', error);
-      res.status(500).send('Error paying invoice.');
+      console.error("Error paying invoice:", error);
+      res.status(500).send("Error paying invoice.");
     }
   });
 
@@ -113,75 +113,79 @@ module.exports = (models) => {
    * Check Payment Status
    * GET /payments/checkPaymentStatus/:paymentId
    */
-  router.get('/checkPaymentStatus/:paymentId', authMiddleware, async (req, res) => {
-    const { paymentId } = req.params;
-    const provider = req.provider;
-    // eslint-disable-next-line no-unused-vars
-    const user = req.user;
+  router.get(
+    "/checkPaymentStatus/:paymentId",
+    authMiddleware,
+    async (req, res) => {
+      const { paymentId } = req.params;
+      const provider = req.provider;
+      // eslint-disable-next-line no-unused-vars
+      const user = req.user;
 
-    if (!provider) {
-      return res.status(400).send('No funding provider connected.');
-    }
-
-    try {
-      let paymentStatus;
-
-      if (provider.provider === 'lnbits') {
-        paymentStatus = await lnbitsPaymentService.checkPaymentStatus(
-          provider,
-          paymentId,
-          LbtcTransaction
-        );
-      } else if (provider.provider === 'opennode') {
-        paymentStatus = await opennodePaymentService.checkPaymentStatus(
-          provider,
-          paymentId
-        );
-      } else {
-        return res.status(400).send('Unsupported provider.');
+      if (!provider) {
+        return res.status(400).send("No funding provider connected.");
       }
 
-      if (paymentStatus) {
-        res.status(200).json(paymentStatus);
-      } else {
-        res.status(500).send('Failed to check payment status.');
+      try {
+        let paymentStatus;
+
+        if (provider.provider === "lnbits") {
+          paymentStatus = await lnbitsPaymentService.checkPaymentStatus(
+            provider,
+            paymentId,
+            LbtcTransaction,
+          );
+        } else if (provider.provider === "opennode") {
+          paymentStatus = await opennodePaymentService.checkPaymentStatus(
+            provider,
+            paymentId,
+          );
+        } else {
+          return res.status(400).send("Unsupported provider.");
+        }
+
+        if (paymentStatus) {
+          res.status(200).json(paymentStatus);
+        } else {
+          res.status(500).send("Failed to check payment status.");
+        }
+      } catch (error) {
+        console.error("Error checking payment status:", error);
+        res.status(500).send("Error checking payment status.");
       }
-    } catch (error) {
-      console.error('Error checking payment status:', error);
-      res.status(500).send('Error checking payment status.');
-    }
-  });
+    },
+  );
 
   /**
    * Get Balance
    * GET /payments/balance
    */
-  router.get('/balance', authMiddleware, async (req, res) => {
+  router.get("/balance", authMiddleware, async (req, res) => {
     const provider = req.provider;
 
     if (!provider) {
-      return res.status(400).send('No funding provider connected.');
+      return res.status(400).send("No funding provider connected.");
     }
 
     try {
       let balance;
 
-      if (provider.provider === 'lnbits') {
+      if (provider.provider === "lnbits") {
         balance = await lnbitsPaymentService.getBalance(provider);
-      } else if (provider.provider === 'opennode') {
+      } else if (provider.provider === "opennode") {
         balance = await opennodePaymentService.getBalance(provider);
       } else {
-        return res.status(400).send('Unsupported provider.');
+        return res.status(400).send("Unsupported provider.");
       }
 
       if (balance !== null) {
-        res.status(200).json( balance );
+        res.status(200).json(balance);
       } else {
-        res.status(500).send('Failed to retrieve balance.');
+        res.status(500).send("Failed to retrieve balance.");
       }
     } catch (error) {
-      console.error('Error fetching balance:', error);
-      res.status(500).send('Error fetching balance.');
+      console.error("Error fetching balance:", error);
+      res.status(500).send("Error fetching balance.");
     }
   });
 
@@ -189,41 +193,41 @@ module.exports = (models) => {
    * Get Transactions
    * GET /payments/transactions
    */
-  router.get('/transactions', authMiddleware, async (req, res) => {
+  router.get("/transactions", authMiddleware, async (req, res) => {
     const provider = req.provider;
     const user = req.user;
 
     if (!provider) {
-      return res.status(400).send('No funding provider connected.');
+      return res.status(400).send("No funding provider connected.");
     }
 
     try {
       let transactions;
 
-      if (provider.provider === 'lnbits') {
+      if (provider.provider === "lnbits") {
         transactions = await lnbitsPaymentService.getTransactions(
           user,
           provider,
-          LbtcTransaction
+          LbtcTransaction,
         );
-      } else if (provider.provider === 'opennode') {
+      } else if (provider.provider === "opennode") {
         transactions = await opennodePaymentService.getTransactions(
           user,
           provider,
-          OpennodeTransaction
+          OpennodeTransaction,
         );
       } else {
-        return res.status(400).send('Unsupported provider.');
+        return res.status(400).send("Unsupported provider.");
       }
 
       if (transactions) {
         res.status(200).json(transactions);
       } else {
-        res.status(500).send('Failed to fetch transactions.');
+        res.status(500).send("Failed to fetch transactions.");
       }
     } catch (error) {
-      console.error('Error fetching transactions:', error);
-      res.status(500).send('Error fetching transactions.');
+      console.error("Error fetching transactions:", error);
+      res.status(500).send("Error fetching transactions.");
     }
   });
 

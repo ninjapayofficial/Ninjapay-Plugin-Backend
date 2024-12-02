@@ -1,6 +1,6 @@
 // services/opennodePaymentService.js
 
-const axios = require('axios');
+const axios = require("axios");
 
 /**
  * Creates a payment link using OpenNode.
@@ -11,19 +11,26 @@ const axios = require('axios');
  * @param {Object} OpennodeTransaction - Sequelize Transaction model.
  * @returns {Object|null} - Payment link data or null on failure.
  */
-async function createPayLink(user, provider, amount, description, notifyUrl, OpennodeTransaction) {
+async function createPayLink(
+  user,
+  provider,
+  amount,
+  description,
+  notifyUrl,
+  OpennodeTransaction,
+) {
   try {
-    const url = 'https://api.opennode.com/v1/charges';
+    const url = "https://api.opennode.com/v1/charges";
     const data = {
       amount: amount,
-      currency: 'BTC', // Specify currency as BTC 
+      currency: "BTC", // Specify currency as BTC
       description,
-      callback_url: 'https://yourdomain.com/webhook/opennode', // Update with your callback URL
-      success_url: 'https://yourdomain.com/success', // Update with your success URL
+      callback_url: "https://yourdomain.com/webhook/opennode", // Update with your callback URL
+      success_url: "https://yourdomain.com/success", // Update with your success URL
     };
     const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': provider.apiKey,
+      "Content-Type": "application/json",
+      Authorization: provider.apiKey,
     };
     const response = await axios.post(url, data, { headers });
 
@@ -45,11 +52,14 @@ async function createPayLink(user, provider, amount, description, notifyUrl, Ope
         payment_hash: id,
       };
     } else {
-      console.error('Failed to create OpenNode charge:', response.statusText);
+      console.error("Failed to create OpenNode charge:", response.statusText);
       return null;
     }
   } catch (error) {
-    console.error('Error creating OpenNode charge:', error.response ? error.response.data : error.message);
+    console.error(
+      "Error creating OpenNode charge:",
+      error.response ? error.response.data : error.message,
+    );
     return null;
   }
 }
@@ -64,14 +74,14 @@ async function createPayLink(user, provider, amount, description, notifyUrl, Ope
  */
 async function payInvoice(user, provider, bolt11, OpennodeTransaction) {
   try {
-    const url = 'https://api.opennode.com/v1/withdrawals';
+    const url = "https://api.opennode.com/v1/withdrawals";
     const data = {
-      type: 'ln',
+      type: "ln",
       address: bolt11,
     };
     const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': provider.apiKey,
+      "Content-Type": "application/json",
+      Authorization: provider.apiKey,
     };
     const response = await axios.post(url, data, { headers });
 
@@ -83,18 +93,21 @@ async function payInvoice(user, provider, bolt11, OpennodeTransaction) {
         userId: user.uid,
         txid: id,
         amount: null, // Optionally, fetch from invoice details
-        description: 'Payment made',
+        description: "Payment made",
         invoiceKeyUsed: provider.providerAdminKey,
         walletId: provider.walletId || null,
       });
 
       return { payment_hash: id };
     } else {
-      console.error('Failed to pay OpenNode invoice:', response.statusText);
+      console.error("Failed to pay OpenNode invoice:", response.statusText);
       return null;
     }
   } catch (error) {
-    console.error('Error paying OpenNode invoice:', error.response ? error.response.data : error.message);
+    console.error(
+      "Error paying OpenNode invoice:",
+      error.response ? error.response.data : error.message,
+    );
     return null;
   }
 }
@@ -109,23 +122,28 @@ async function checkPaymentStatus(user, provider, paymentId) {
   try {
     const url = `https://api.opennode.com/v1/charge/${paymentId}`;
     const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': provider.apiKey,
+      "Content-Type": "application/json",
+      Authorization: provider.apiKey,
     };
     const response = await axios.get(url, { headers });
 
     if (response.status === 200) {
       return response.data.data;
     } else {
-      console.error('Failed to check OpenNode payment status:', response.statusText);
+      console.error(
+        "Failed to check OpenNode payment status:",
+        response.statusText,
+      );
       return null;
     }
   } catch (error) {
-    console.error('Error checking OpenNode payment status:', error.response ? error.response.data : error.message);
+    console.error(
+      "Error checking OpenNode payment status:",
+      error.response ? error.response.data : error.message,
+    );
     return null;
   }
 }
-
 
 /**
  * Retrieves the wallet balance using OpenNode.
@@ -134,10 +152,10 @@ async function checkPaymentStatus(user, provider, paymentId) {
  */
 async function getBalance(provider) {
   try {
-    const url = 'https://api.opennode.com/v1/account/balance';
+    const url = "https://api.opennode.com/v1/account/balance";
     const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': provider.readApiKey,
+      "Content-Type": "application/json",
+      Authorization: provider.readApiKey,
     };
     const response = await axios.get(url, { headers });
 
@@ -149,15 +167,18 @@ async function getBalance(provider) {
       // If you prefer to send balance in Satoshis, uncomment the next line
       // const balanceSats = Math.floor(balanceBTC * 100000000);
       // return { balance: balanceSats, currency: 'SAT' };
-      
+
       // Sending balance in BTC
-      return { balance: balanceBTC, currency: 'BTC', withdrawable };
+      return { balance: balanceBTC, currency: "BTC", withdrawable };
     } else {
-      console.error('Failed to fetch OpenNode balance:', response.statusText);
+      console.error("Failed to fetch OpenNode balance:", response.statusText);
       return null;
     }
   } catch (error) {
-    console.error('Error fetching OpenNode balance:', error.response ? error.response.data : error.message);
+    console.error(
+      "Error fetching OpenNode balance:",
+      error.response ? error.response.data : error.message,
+    );
     return null;
   }
 }
@@ -173,16 +194,16 @@ async function getTransactions(user, provider, OpennodeTransaction) {
   try {
     const transactions = await OpennodeTransaction.findAll({
       where: { userId: user.uid },
-      order: [['createdAt', 'DESC']],
+      order: [["createdAt", "DESC"]],
     });
 
     // Append currency to each transaction
-    return transactions.map(tx => ({
+    return transactions.map((tx) => ({
       ...tx.get({ plain: true }), // Convert Sequelize instance to plain object
-      currency: 'SAT',
+      currency: "SAT",
     }));
   } catch (error) {
-    console.error('Error fetching OpenNode transactions:', error);
+    console.error("Error fetching OpenNode transactions:", error);
     return null;
   }
 }

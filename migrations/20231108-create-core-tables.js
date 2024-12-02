@@ -1,13 +1,13 @@
 // migrations/20231108-create-core-tables.js
 
-'use strict';
+"use strict";
 
 module.exports = {
   up: async ({ context: sequelize }) => {
     const queryInterface = sequelize.getQueryInterface();
-    const { DataTypes } = require('sequelize');
+    const { DataTypes } = require("sequelize");
 
-    await queryInterface.createTable('Users', {
+    await queryInterface.createTable("Users", {
       id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -32,6 +32,6 @@ module.exports = {
   },
   down: async ({ context: sequelize }) => {
     const queryInterface = sequelize.getQueryInterface();
-    await queryInterface.dropTable('Users');
+    await queryInterface.dropTable("Users");
   },
 };
