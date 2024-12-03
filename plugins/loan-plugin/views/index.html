@@ -1,0 +1,730 @@
+<!-- plugins/loan-plugin/views/index.html -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Loan Plugin</title>
+    <style>
+      /* Basic styles */
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      h1,
+      h2,
+      h3 {
+        color: #333;
+      }
+      .section {
+        margin-bottom: 40px;
+      }
+      .error {
+        color: red;
+      }
+      .message {
+        color: green;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+      .form-group {
+        margin-bottom: 10px;
+      }
+      .hidden {
+        display: none;
+      }
+      .filter-group {
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Loan Plugin</h1>
+
+    <!-- Company Section -->
+    <div class="section" id="companySection">
+      <h2>Add Company</h2>
+      <div class="form-group">
+        <label for="companyName">Company Name:</label>
+        <input type="text" id="companyName" placeholder="Enter company name" />
+      </div>
+      <button id="addCompanyBtn">Add Company</button>
+      <div id="companyMessage" class="message"></div>
+      <div id="companyError" class="error"></div>
+    </div>
+
+    <!-- Companies List Section -->
+    <div class="section hidden" id="companiesSection">
+      <h2>Select Company</h2>
+      <ul id="companiesList">
+        <!-- Companies will be listed here -->
+      </ul>
+      <div id="companiesError" class="error"></div>
+    </div>
+
+    <!-- Clients Section -->
+    <div class="section hidden" id="clientsSection">
+      <h2>Company: <span id="selectedCompanyName"></span></h2>
+      <h3>Clients</h3>
+      <button id="addClientBtn">Add Client</button>
+      <ul id="clientsList">
+        <!-- Clients will be listed here -->
+      </ul>
+      <div id="clientsError" class="error"></div>
+    </div>
+
+    <!-- Transactions Section -->
+    <div class="section hidden" id="transactionsSection">
+      <h2>Client: <span id="selectedClientName"></span></h2>
+      <div class="filter-group">
+        <label for="filterYear">Year:</label>
+        <select id="filterYear">
+          <!-- Years will be populated here -->
+        </select>
+        <label for="filterMonth">Month:</label>
+        <select id="filterMonth">
+          <!-- Months will be populated here -->
+        </select>
+        <button id="filterBtn">Filter</button>
+      </div>
+
+      <h3>Transactions</h3>
+      <button id="addTransactionBtn">Add Transaction</button>
+      <table id="transactionsTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Transaction Type</th>
+            <th>Amount</th>
+            <th>Description</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Transactions will be populated here -->
+        </tbody>
+      </table>
+      <div id="transactionsError" class="error"></div>
+
+      <h3>Interest Summary</h3>
+      <p>Total Interest Due: <span id="totalInterestDue">0</span></p>
+      <p>Total Interest Received: <span id="totalInterestReceived">0</span></p>
+      <p>Net Interest Due: <span id="netInterestDue">0</span></p>
+      <label for="interestStatus">Status:</label>
+      <select id="interestStatus">
+        <option value="pending">Pending</option>
+        <option value="added_to_next_month">Added to Next Month</option>
+        <option value="paid">Paid</option>
+      </select>
+      <button id="updateStatusBtn">Update Status</button>
+      <div id="interestStatusMessage" class="message"></div>
+      <div id="interestStatusError" class="error"></div>
+    </div>
+
+    <!-- Modals and Forms -->
+    <!-- Add Client Form -->
+    <div id="addClientForm" class="hidden">
+      <h3>Add Client</h3>
+      <div class="form-group">
+        <label for="clientName">Name:</label>
+        <input type="text" id="clientName" placeholder="Enter client name" />
+      </div>
+      <div class="form-group">
+        <label for="clientPhoneNumber">Phone Number:</label>
+        <input
+          type="text"
+          id="clientPhoneNumber"
+          placeholder="Enter phone number"
+        />
+      </div>
+      <div class="form-group">
+        <label for="clientEmail">Email:</label>
+        <input type="email" id="clientEmail" placeholder="Enter email" />
+      </div>
+      <div class="form-group">
+        <label for="clientAddress">Address:</label>
+        <textarea id="clientAddress" placeholder="Enter address"></textarea>
+      </div>
+      <button id="saveClientBtn">Save</button>
+      <button id="cancelAddClientBtn">Cancel</button>
+      <div id="addClientError" class="error"></div>
+    </div>
+
+    <!-- Add Transaction Form -->
+    <div id="addTransactionForm" class="hidden">
+      <h3>Add Transaction for <span id="transactionClientName"></span></h3>
+      <div class="form-group">
+        <label for="transactionType">Transaction Type:</label>
+        <select id="transactionType">
+          <option value="amount_given">Amount Given</option>
+          <option value="amount_received">Amount Received</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="transactionAmount">Amount:</label>
+        <input
+          type="number"
+          id="transactionAmount"
+          placeholder="Enter amount"
+        />
+      </div>
+      <div class="form-group">
+        <label for="transactionGivenDate">Given Date:</label>
+        <input type="date" id="transactionGivenDate" />
+      </div>
+      <div class="form-group" id="interestFields">
+        <label for="transactionInterestPercent">Interest Percent:</label>
+        <input
+          type="number"
+          id="transactionInterestPercent"
+          placeholder="Enter interest percent"
+          step="0.01"
+        />
+        <label for="transactionInterestDueDate">Interest Due Date:</label>
+        <input type="date" id="transactionInterestDueDate" />
+      </div>
+      <div class="form-group">
+        <label for="transactionDescription">Description:</label>
+        <input
+          type="text"
+          id="transactionDescription"
+          placeholder="Enter description"
+        />
+      </div>
+      <div class="form-group">
+        <label for="transactionTxid">Transaction ID:</label>
+        <input
+          type="text"
+          id="transactionTxid"
+          placeholder="Enter transaction ID"
+        />
+      </div>
+      <div class="form-group">
+        <label for="transactionStatus">Status:</label>
+        <input type="text" id="transactionStatus" placeholder="Enter status" />
+      </div>
+      <button id="saveTransactionBtn">Save</button>
+      <button id="cancelAddTransactionBtn">Cancel</button>
+      <div id="addTransactionError" class="error"></div>
+    </div>
+
+    <script>
+      let selectedCompanyId = null;
+      let selectedClientId = null;
+      let selectedYear = new Date().getFullYear();
+      let selectedMonth = new Date().getMonth() + 1; // Months are 0-based
+
+      // Function to add a company
+      document.getElementById("addCompanyBtn").addEventListener("click", () => {
+        const name = document.getElementById("companyName").value.trim();
+
+        if (!name) {
+          alert("Please enter a company name.");
+          return;
+        }
+
+        fetch("/plugins/loan-plugin/addCompany", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name }),
+          credentials: "include",
+        })
+          .then(async (response) => {
+            if (response.status === 401) {
+              throw new Error("Unauthorized. Please log in.");
+            }
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(errorText || "Error adding company.");
+            }
+            return response.json();
+          })
+          .then((company) => {
+            document.getElementById("companySection").classList.add("hidden");
+            loadCompanies();
+          })
+          .catch((error) => {
+            console.error("Error adding company:", error);
+            document.getElementById("companyError").textContent = error.message;
+            if (error.message.includes("Unauthorized")) {
+              alert("Session expired or unauthorized. Please log in again.");
+              window.location.href = "/login"; // Redirect to login page
+            }
+          });
+      });
+
+      // Function to load companies
+      function loadCompanies() {
+        fetch("/plugins/loan-plugin/getCompanies", {
+          credentials: "include",
+        })
+          .then(async (response) => {
+            if (response.status === 401) {
+              throw new Error("Unauthorized. Please log in.");
+            }
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(errorText || "Error fetching companies.");
+            }
+            return response.json();
+          })
+          .then((companies) => {
+            if (companies && companies.length > 0) {
+              document
+                .getElementById("companiesSection")
+                .classList.remove("hidden");
+              const companiesList = document.getElementById("companiesList");
+              companiesList.innerHTML = "";
+              companies.forEach((company) => {
+                const li = document.createElement("li");
+                const btn = document.createElement("button");
+                btn.textContent = company.name;
+                btn.addEventListener("click", () => {
+                  selectedCompanyId = company.id;
+                  document.getElementById("selectedCompanyName").textContent =
+                    company.name;
+                  document
+                    .getElementById("companiesSection")
+                    .classList.add("hidden");
+                  loadClients();
+                });
+                li.appendChild(btn);
+                companiesList.appendChild(li);
+              });
+            } else {
+              document
+                .getElementById("companySection")
+                .classList.remove("hidden");
+            }
+          })
+          .catch((error) => {
+            console.error("Error fetching companies:", error);
+            document.getElementById("companiesError").textContent =
+              error.message;
+            if (error.message.includes("Unauthorized")) {
+              alert("Session expired or unauthorized. Please log in again.");
+              window.location.href = "/login"; // Redirect to login page
+            }
+          });
+      }
+
+      // Function to load clients
+      function loadClients() {
+        fetch(`/plugins/loan-plugin/getClients/${selectedCompanyId}`, {
+          credentials: "include",
+        })
+          .then(async (response) => {
+            if (response.status === 401) {
+              throw new Error("Unauthorized. Please log in.");
+            }
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(errorText || "Error fetching clients.");
+            }
+            return response.json();
+          })
+          .then((clients) => {
+            document
+              .getElementById("clientsSection")
+              .classList.remove("hidden");
+            const clientsList = document.getElementById("clientsList");
+            clientsList.innerHTML = "";
+            clients.forEach((client) => {
+              const li = document.createElement("li");
+              const btn = document.createElement("button");
+              btn.textContent = client.name;
+              btn.addEventListener("click", () => {
+                selectedClientId = client.id;
+                document.getElementById("selectedClientName").textContent =
+                  client.name;
+                document
+                  .getElementById("clientsSection")
+                  .classList.add("hidden");
+                loadTransactions();
+              });
+              li.appendChild(btn);
+              clientsList.appendChild(li);
+            });
+          })
+          .catch((error) => {
+            console.error("Error fetching clients:", error);
+            document.getElementById("clientsError").textContent = error.message;
+            if (error.message.includes("Unauthorized")) {
+              alert("Session expired or unauthorized. Please log in again.");
+              window.location.href = "/login"; // Redirect to login page
+            }
+          });
+      }
+
+      // Function to load transactions
+      function loadTransactions() {
+        // Populate year and month selectors
+        populateYearSelector();
+        populateMonthSelector();
+
+        fetch(
+          `/plugins/loan-plugin/getTransactions/${selectedClientId}/${selectedYear}/${selectedMonth}`,
+          {
+            credentials: "include",
+          },
+        )
+          .then(async (response) => {
+            if (response.status === 401) {
+              throw new Error("Unauthorized. Please log in.");
+            }
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(errorText || "Error fetching transactions.");
+            }
+            return response.json();
+          })
+          .then((transactions) => {
+            document
+              .getElementById("transactionsSection")
+              .classList.remove("hidden");
+            const tbody = document.querySelector("#transactionsTable tbody");
+            tbody.innerHTML = "";
+            transactions.forEach((tx) => {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+                        <td>${new Date(tx.givenDate).toLocaleDateString()}</td>
+                        <td>${tx.transactionType}</td>
+                        <td>${tx.amount}</td>
+                        <td>${tx.description || "N/A"}</td>
+                        <td>${tx.status || "N/A"}</td>
+                    `;
+              tbody.appendChild(tr);
+            });
+            // Load interest summary
+            loadInterestSummary();
+          })
+          .catch((error) => {
+            console.error("Error fetching transactions:", error);
+            document.getElementById("transactionsError").textContent =
+              error.message;
+            if (error.message.includes("Unauthorized")) {
+              alert("Session expired or unauthorized. Please log in again.");
+              window.location.href = "/login"; // Redirect to login page
+            }
+          });
+      }
+
+      // Function to load interest summary
+      function loadInterestSummary() {
+        fetch(
+          `/plugins/loan-plugin/getInterestSummary/${selectedClientId}/${selectedYear}/${selectedMonth}`,
+          {
+            credentials: "include",
+          },
+        )
+          .then(async (response) => {
+            if (response.status === 401) {
+              throw new Error("Unauthorized. Please log in.");
+            }
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(errorText || "Error fetching interest summary.");
+            }
+            return response.json();
+          })
+          .then((summary) => {
+            document.getElementById("totalInterestDue").textContent =
+              summary.totalInterestDue.toFixed(2);
+            document.getElementById("totalInterestReceived").textContent =
+              summary.totalInterestReceived.toFixed(2);
+            document.getElementById("netInterestDue").textContent =
+              summary.netInterestDue.toFixed(2);
+            document.getElementById("interestStatus").value =
+              summary.status || "pending";
+          })
+          .catch((error) => {
+            console.error("Error fetching interest summary:", error);
+            document.getElementById("interestStatusError").textContent =
+              error.message;
+            if (error.message.includes("Unauthorized")) {
+              alert("Session expired or unauthorized. Please log in again.");
+              window.location.href = "/login"; // Redirect to login page
+            }
+          });
+      }
+
+      // Function to populate year selector
+      function populateYearSelector() {
+        const yearSelect = document.getElementById("filterYear");
+        yearSelect.innerHTML = "";
+        const currentYear = new Date().getFullYear();
+        for (let i = currentYear - 5; i <= currentYear + 5; i++) {
+          const option = document.createElement("option");
+          option.value = i;
+          option.textContent = i;
+          if (i === selectedYear) {
+            option.selected = true;
+          }
+          yearSelect.appendChild(option);
+        }
+      }
+
+      // Function to populate month selector
+      function populateMonthSelector() {
+        const monthSelect = document.getElementById("filterMonth");
+        monthSelect.innerHTML = "";
+        for (let i = 1; i <= 12; i++) {
+          const option = document.createElement("option");
+          option.value = i;
+          option.textContent = i;
+          if (i === selectedMonth) {
+            option.selected = true;
+          }
+          monthSelect.appendChild(option);
+        }
+      }
+
+      // Filter button event listener
+      document.getElementById("filterBtn").addEventListener("click", () => {
+        selectedYear = parseInt(document.getElementById("filterYear").value);
+        selectedMonth = parseInt(document.getElementById("filterMonth").value);
+        loadTransactions();
+      });
+
+      // Add Client button event listener
+      document.getElementById("addClientBtn").addEventListener("click", () => {
+        document.getElementById("addClientForm").classList.remove("hidden");
+      });
+
+      // Cancel Add Client button event listener
+      document
+        .getElementById("cancelAddClientBtn")
+        .addEventListener("click", () => {
+          document.getElementById("addClientForm").classList.add("hidden");
+        });
+
+      // Save Client button event listener
+      document.getElementById("saveClientBtn").addEventListener("click", () => {
+        const name = document.getElementById("clientName").value.trim();
+        const phoneNumber = document
+          .getElementById("clientPhoneNumber")
+          .value.trim();
+        const email = document.getElementById("clientEmail").value.trim();
+        const address = document.getElementById("clientAddress").value.trim();
+
+        if (!name) {
+          alert("Please enter client name.");
+          return;
+        }
+
+        fetch("/plugins/loan-plugin/addClient", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            companyId: selectedCompanyId,
+            name,
+            phoneNumber,
+            email,
+            address,
+          }),
+          credentials: "include",
+        })
+          .then(async (response) => {
+            if (response.status === 401) {
+              throw new Error("Unauthorized. Please log in.");
+            }
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(errorText || "Error adding client.");
+            }
+            return response.json();
+          })
+          .then((client) => {
+            document.getElementById("addClientForm").classList.add("hidden");
+            loadClients();
+          })
+          .catch((error) => {
+            console.error("Error adding client:", error);
+            document.getElementById("addClientError").textContent =
+              error.message;
+            if (error.message.includes("Unauthorized")) {
+              alert("Session expired or unauthorized. Please log in again.");
+              window.location.href = "/login"; // Redirect to login page
+            }
+          });
+      });
+
+      // Add Transaction button event listener
+      document
+        .getElementById("addTransactionBtn")
+        .addEventListener("click", () => {
+          document
+            .getElementById("addTransactionForm")
+            .classList.remove("hidden");
+          document.getElementById("transactionClientName").textContent =
+            document.getElementById("selectedClientName").textContent;
+          // Show or hide interest fields based on transaction type
+          toggleInterestFields();
+        });
+
+      // Cancel Add Transaction button event listener
+      document
+        .getElementById("cancelAddTransactionBtn")
+        .addEventListener("click", () => {
+          document.getElementById("addTransactionForm").classList.add("hidden");
+        });
+
+      // Transaction Type change event listener
+      document
+        .getElementById("transactionType")
+        .addEventListener("change", () => {
+          toggleInterestFields();
+        });
+
+      function toggleInterestFields() {
+        const transactionType =
+          document.getElementById("transactionType").value;
+        if (transactionType === "amount_given") {
+          document.getElementById("interestFields").style.display = "block";
+        } else {
+          document.getElementById("interestFields").style.display = "none";
+        }
+      }
+
+      // Save Transaction button event listener
+      document
+        .getElementById("saveTransactionBtn")
+        .addEventListener("click", () => {
+          const transactionType =
+            document.getElementById("transactionType").value;
+          const amount = parseFloat(
+            document.getElementById("transactionAmount").value,
+          );
+          const givenDate = document.getElementById(
+            "transactionGivenDate",
+          ).value;
+          const interestPercent = parseFloat(
+            document.getElementById("transactionInterestPercent").value,
+          );
+          const interestDueDate = document.getElementById(
+            "transactionInterestDueDate",
+          ).value;
+          const description = document
+            .getElementById("transactionDescription")
+            .value.trim();
+          const txid = document.getElementById("transactionTxid").value.trim();
+          const status = document
+            .getElementById("transactionStatus")
+            .value.trim();
+
+          if (!amount || isNaN(amount)) {
+            alert("Please enter a valid amount.");
+            return;
+          }
+
+          const data = {
+            clientId: selectedClientId,
+            transactionType,
+            amount,
+            givenDate,
+            description,
+            txid,
+            status,
+          };
+
+          if (transactionType === "amount_given") {
+            data.interestPercent = interestPercent;
+            data.interestDueDate = interestDueDate;
+          }
+
+          fetch("/plugins/loan-plugin/addTransaction", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+            credentials: "include",
+          })
+            .then(async (response) => {
+              if (response.status === 401) {
+                throw new Error("Unauthorized. Please log in.");
+              }
+              if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || "Error adding transaction.");
+              }
+              return response.json();
+            })
+            .then((transaction) => {
+              document
+                .getElementById("addTransactionForm")
+                .classList.add("hidden");
+              loadTransactions();
+            })
+            .catch((error) => {
+              console.error("Error adding transaction:", error);
+              document.getElementById("addTransactionError").textContent =
+                error.message;
+              if (error.message.includes("Unauthorized")) {
+                alert("Session expired or unauthorized. Please log in again.");
+                window.location.href = "/login"; // Redirect to login page
+              }
+            });
+        });
+
+      // Update Status button event listener
+      document
+        .getElementById("updateStatusBtn")
+        .addEventListener("click", () => {
+          const status = document.getElementById("interestStatus").value;
+          const netInterestDue = parseFloat(
+            document.getElementById("netInterestDue").textContent,
+          );
+
+          fetch("/plugins/loan-plugin/updateInterestStatus", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              clientId: selectedClientId,
+              year: selectedYear,
+              month: selectedMonth,
+              status,
+            }),
+            credentials: "include",
+          })
+            .then(async (response) => {
+              if (response.status === 401) {
+                throw new Error("Unauthorized. Please log in.");
+              }
+              if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || "Error updating status.");
+              }
+              return response.json();
+            })
+            .then((result) => {
+              document.getElementById("interestStatusMessage").textContent =
+                result.message;
+              loadTransactions();
+            })
+            .catch((error) => {
+              console.error("Error updating status:", error);
+              document.getElementById("interestStatusError").textContent =
+                error.message;
+              if (error.message.includes("Unauthorized")) {
+                alert("Session expired or unauthorized. Please log in again.");
+                window.location.href = "/login"; // Redirect to login page
+              }
+            });
+        });
+
+      // On page load, load companies
+      window.onload = () => {
+        loadCompanies();
+      };
+    </script>
+  </body>
+</html>
