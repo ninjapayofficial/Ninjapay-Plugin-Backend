@@ -17,6 +17,7 @@ async function createPayLink(
   description,
   notifyUrl,
   LbtcTransaction,
+  customExpiry = null, // Optional parameter
 ) {
   try {
     if (provider.provider === "lnbits") {
@@ -36,8 +37,19 @@ async function createPayLink(
       if (response.status === 201 || response.status === 200) {
         const { payment_request, payment_hash } = response.data;
 
-        // Store the transaction
-        await LbtcTransaction.create({
+        // // Store the transaction
+        // await LbtcTransaction.create({
+        //   userId: user.uid, // Assuming user includes userId
+        //   txid: payment_hash,
+        //   amount,
+        //   description,
+        //   invoiceKeyUsed: provider.providerInvoiceKey,
+        //   walletId: provider.walletId || null,
+        //   invoiceRequest: payment_request,
+        //   status: "pending",
+        // });
+        // Prepare transaction data
+        const transactionData = {
           userId: user.uid, // Assuming user includes userId
           txid: payment_hash,
           amount,
@@ -46,7 +58,27 @@ async function createPayLink(
           walletId: provider.walletId || null,
           invoiceRequest: payment_request,
           status: "pending",
-        });
+          notifyUrl, // Assuming you want to store notifyUrl
+        };
+
+        // Determine expiry
+        if (customExpiry) {
+          // Validate customExpiry is a valid future date
+          if (!(customExpiry instanceof Date) || isNaN(customExpiry)) {
+            throw new Error("Invalid customExpiry provided.");
+          }
+          if (customExpiry < new Date()) {
+            throw new Error("Custom expiry cannot be in the past.");
+          }
+          transactionData.expiry = customExpiry;
+        } else {
+          // Set default expiry to current time + 20 minutes
+          const defaultExpiry = new Date(Date.now() + 20 * 60 * 1000); // 20 minutes from now
+          transactionData.expiry = defaultExpiry;
+        }
+
+        // Store the transaction
+        await LbtcTransaction.create(transactionData);
 
         return { payment_request, payment_hash };
       } else {

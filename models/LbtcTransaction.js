@@ -44,6 +44,17 @@ module.exports = (sequelize) => {
         allowNull: false,
         defaultValue: "pending",
       },
+      expiry: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        defaultValue: sequelize.literal(
+          // Example for PostgreSQL:
+          "CURRENT_TIMESTAMP + INTERVAL '10 minutes'"),
+      },
+      notifyUrl: { // Ensure this field is defined
+        type: DataTypes.STRING,
+        allowNull: true, // Set to false if notifyUrl is mandatory
+      },
       createdAt: {
         type: DataTypes.DATE,
         allowNull: false,
