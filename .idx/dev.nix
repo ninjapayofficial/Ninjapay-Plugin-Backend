@@ -15,7 +15,7 @@
   # Sets environment variables in the workspace
   env = {};
   # Enable Docker service
-  services.docker.enable = true;
+  services.docker.enable = true; 
 
   idx = {
     # Search for the extensions you want on https://open-vsx.org/ and use "publisher.id"

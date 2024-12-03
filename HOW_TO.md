@@ -235,3 +235,8 @@ docker run -d -p 3000:3000 ninjapay-plugin-backend \
 \
 docker ps \
 docker stop <containerId> \
+
+\ 
+docker system prune -a --volumes
+du -ah . | sort -rh | head -n 20
+df -h /home
