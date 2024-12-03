@@ -6,7 +6,7 @@
 
   # Use https://search.nixos.org/packages to find packages
   packages = [
-    pkgs.nodejs_20
+    pkgs.nodejs_20 
     pkgs.postgresql_15    # Add PostgreSQL (version 15)
     pkgs.sudo             # Include sudo if needed
     pkgs.tmux             # Optional: any other tools you might need
@@ -15,11 +15,12 @@
   # Sets environment variables in the workspace
   env = {};
   # Enable Docker service
-  # services.docker.enable = true;
+  services.docker.enable = true;
 
   idx = {
     # Search for the extensions you want on https://open-vsx.org/ and use "publisher.id"
     extensions = [
+      # "denoland.vscode-deno" 
       # "vscodevim.vim"
     ];
     workspace = {
