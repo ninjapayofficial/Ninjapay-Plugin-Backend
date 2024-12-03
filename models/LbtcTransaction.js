@@ -49,9 +49,11 @@ module.exports = (sequelize) => {
         allowNull: true,
         defaultValue: sequelize.literal(
           // Example for PostgreSQL:
-          "CURRENT_TIMESTAMP + INTERVAL '10 minutes'"),
+          "CURRENT_TIMESTAMP + INTERVAL '10 minutes'",
+        ),
       },
-      notifyUrl: { // Ensure this field is defined
+      notifyUrl: {
+        // Ensure this field is defined
         type: DataTypes.STRING,
         allowNull: true, // Set to false if notifyUrl is mandatory
       },

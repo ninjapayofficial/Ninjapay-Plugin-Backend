@@ -2,11 +2,14 @@
 
 const express = require("express");
 const router = express.Router();
-const { calculateInterest, calculateDaysRemaining } = require('../utils/calculateInterest');
+const { calculateInterest, calculateDaysRemaining } = require(
+  "../utils/calculateInterest",
+);
 const { Op } = require("sequelize");
 
 module.exports = (models) => {
-  const { LoanCompany, LoanClient, LoanTransaction, LoanInterestStatus } = models;
+  const { LoanCompany, LoanClient, LoanTransaction, LoanInterestStatus } =
+    models;
 
   // Middleware to check authentication
   const authMiddleware = require("../../../middleware/authMiddleware");
@@ -137,107 +140,106 @@ module.exports = (models) => {
   // Route to get transactions for a client, filtered by month and year
   // Import the new function
 
-// ...
+  // ...
 
-// Update the getTransactions route
-router.get(
-  '/getTransactions/:clientId/:year/:month',
-  authMiddleware,
-  async (req, res) => {
-    const { clientId, year, month } = req.params;
-
-    try {
-      // eslint-disable-next-line no-unused-vars
-      const startDate = new Date(year, month - 1, 1);
-      const endDate = new Date(year, month, 0, 23, 59, 59);
-
-      const transactions = await LoanTransaction.findAll({
-        where: {
-          clientId,
-          givenDate: {
-            [Op.lte]: endDate, // Include all transactions up to endDate
-          },
-        },
-        order: [['givenDate', 'DESC']],
-      });
-
-      // For each transaction, calculate interest and days remaining
-      const transactionsWithDetails = transactions.map((transaction) => {
-        const interest = calculateInterest(transaction, endDate);
-        const daysRemaining = calculateDaysRemaining(transaction, endDate);
-        return {
-          ...transaction.toJSON(),
-          interest: interest.toFixed(2),
-          daysRemaining,
-        };
-      });
-
-      res.status(200).json(transactionsWithDetails);
-    } catch (error) {
-      console.error('Error fetching transactions:', error);
-      res.status(500).json({ error: 'Failed to fetch transactions' });
-    }
-  },
-);
-
-
-  // Route to get interest summary for a client for a specific month and year
+  // Update the getTransactions route
   router.get(
-    '/getInterestSummary/:clientId/:year/:month',
+    "/getTransactions/:clientId/:year/:month",
     authMiddleware,
     async (req, res) => {
       const { clientId, year, month } = req.params;
-  
+
+      try {
+        // eslint-disable-next-line no-unused-vars
+        const startDate = new Date(year, month - 1, 1);
+        const endDate = new Date(year, month, 0, 23, 59, 59);
+
+        const transactions = await LoanTransaction.findAll({
+          where: {
+            clientId,
+            givenDate: {
+              [Op.lte]: endDate, // Include all transactions up to endDate
+            },
+          },
+          order: [["givenDate", "DESC"]],
+        });
+
+        // For each transaction, calculate interest and days remaining
+        const transactionsWithDetails = transactions.map((transaction) => {
+          const interest = calculateInterest(transaction, endDate);
+          const daysRemaining = calculateDaysRemaining(transaction, endDate);
+          return {
+            ...transaction.toJSON(),
+            interest: interest.toFixed(2),
+            daysRemaining,
+          };
+        });
+
+        res.status(200).json(transactionsWithDetails);
+      } catch (error) {
+        console.error("Error fetching transactions:", error);
+        res.status(500).json({ error: "Failed to fetch transactions" });
+      }
+    },
+  );
+
+  // Route to get interest summary for a client for a specific month and year
+  router.get(
+    "/getInterestSummary/:clientId/:year/:month",
+    authMiddleware,
+    async (req, res) => {
+      const { clientId, year, month } = req.params;
+
       try {
         const startDate = new Date(year, month - 1, 1);
         const endDate = new Date(year, month, 0, 23, 59, 59);
-  
+
         // Get all 'amount_given' transactions before the end of the month
         const givenTransactions = await LoanTransaction.findAll({
           where: {
             clientId,
-            transactionType: 'amount_given',
+            transactionType: "amount_given",
             givenDate: {
               [Op.lte]: endDate,
             },
           },
         });
-  
+
         // Calculate total interest due
         let totalInterestDue = 0;
-  
+
         givenTransactions.forEach((transaction) => {
           const interest = calculateInterest(transaction, endDate);
           totalInterestDue += interest;
         });
-  
+
         // Get all 'amount_received' transactions within the month
         const receivedTransactions = await LoanTransaction.findAll({
           where: {
             clientId,
-            transactionType: 'amount_received',
+            transactionType: "amount_received",
             givenDate: {
               [Op.between]: [startDate, endDate],
             },
           },
         });
-  
+
         // Calculate total amount received
         let totalAmountReceived = 0;
         receivedTransactions.forEach((transaction) => {
           totalAmountReceived += parseFloat(transaction.amount);
         });
-  
+
         // Net interest due
         const netInterestDue = totalInterestDue - totalAmountReceived;
-  
+
         // Fetch or initialize status for the month
         let interestStatus = await LoanInterestStatus.findOne({
           where: { clientId, year, month },
         });
-  
-        let status = interestStatus ? interestStatus.status : 'pending';
-  
+
+        let status = interestStatus ? interestStatus.status : "pending";
+
         res.status(200).json({
           totalInterestDue: totalInterestDue.toFixed(2),
           totalAmountReceived: totalAmountReceived.toFixed(2),
@@ -245,12 +247,11 @@ router.get(
           status,
         });
       } catch (error) {
-        console.error('Error fetching interest summary:', error);
-        res.status(500).json({ error: 'Failed to fetch interest summary' });
+        console.error("Error fetching interest summary:", error);
+        res.status(500).json({ error: "Failed to fetch interest summary" });
       }
     },
   );
-  
 
   // Route to update interest status
   router.post("/updateInterestStatus", authMiddleware, async (req, res) => {

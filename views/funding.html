@@ -1,5 +1,5 @@
 <!-- funding.html -->
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -52,25 +52,32 @@
       <select id="provider" onchange="showProviderFields()">
         <option value="lnbits">LNbits</option>
         <option value="opennode">OpenNode</option>
-        <!-- Add other providers here --></select
-      ><br /><br />
+        <!-- Add other providers here -->
+      </select>
+      <br />
+      <br />
 
       <!-- LNbits Fields -->
       <div id="lnbits-fields" style="display: none">
         <label for="instanceUrl">LNbits Instance URL:</label>
-        <input type="text" id="instanceUrl" /><br />
+        <input type="text" id="instanceUrl" />
+        <br />
         <label for="lnbitsInvoiceKey">LNbits Invoice Key:</label>
-        <input type="text" id="lnbitsInvoiceKey" /><br />
+        <input type="text" id="lnbitsInvoiceKey" />
+        <br />
         <label for="lnbitsAdminKey">LNbits Admin Key:</label>
-        <input type="text" id="lnbitsAdminKey" /><br />
+        <input type="text" id="lnbitsAdminKey" />
+        <br />
       </div>
 
       <!-- OpenNode Fields -->
       <div id="opennode-fields" style="display: none">
         <label for="opennodeApiKey">OpenNode Invoie API Key:</label>
-        <input type="text" id="opennodeApiKey" /><br />
+        <input type="text" id="opennodeApiKey" />
+        <br />
         <label for="opennodeReadApiKey">OpenNode Read API Key:</label>
-        <input type="text" id="opennodeReadApiKey" /><br />
+        <input type="text" id="opennodeReadApiKey" />
+        <br />
       </div>
 
       <button onclick="connectProvider()">Connect</button>

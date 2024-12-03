@@ -1,5 +1,7 @@
 <!-- plugins/loan-plugin/views/index.html -->
-<!doctype html>
+
+<!-- plugins/loan-plugin/views/index.html -->
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -107,6 +109,8 @@
             <th>Transaction Type</th>
             <th>Amount</th>
             <th>Description</th>
+            <th>Days Remaining</th>
+            <th>Interest</th>
             <th>Status</th>
           </tr>
         </thead>
@@ -118,7 +122,7 @@
 
       <h3>Interest Summary</h3>
       <p>Total Interest Due: <span id="totalInterestDue">0</span></p>
-      <p>Total Interest Received: <span id="totalInterestReceived">0</span></p>
+      <p>Total Amount Received: <span id="totalAmountReceived">0</span></p>
       <p>Net Interest Due: <span id="netInterestDue">0</span></p>
       <label for="interestStatus">Status:</label>
       <select id="interestStatus">
@@ -309,8 +313,7 @@
           })
           .catch((error) => {
             console.error("Error fetching companies:", error);
-            document.getElementById("companiesError").textContent =
-              error.message;
+            document.getElementById("companiesError").textContent = error.message;
             if (error.message.includes("Unauthorized")) {
               alert("Session expired or unauthorized. Please log in again.");
               window.location.href = "/login"; // Redirect to login page
@@ -397,12 +400,14 @@
             transactions.forEach((tx) => {
               const tr = document.createElement("tr");
               tr.innerHTML = `
-                        <td>${new Date(tx.givenDate).toLocaleDateString()}</td>
-                        <td>${tx.transactionType}</td>
-                        <td>${tx.amount}</td>
-                        <td>${tx.description || "N/A"}</td>
-                        <td>${tx.status || "N/A"}</td>
-                    `;
+                  <td>${new Date(tx.givenDate).toLocaleDateString()}</td>
+                  <td>${tx.transactionType}</td>
+                  <td>${tx.amount}</td>
+                  <td>${tx.description || "N/A"}</td>
+                  <td>${tx.daysRemaining || "N/A"}</td>
+                  <td>${tx.interest || "0.00"}</td>
+                  <td>${tx.status || "N/A"}</td>
+              `;
               tbody.appendChild(tr);
             });
             // Load interest summary
@@ -438,14 +443,17 @@
             return response.json();
           })
           .then((summary) => {
-            document.getElementById("totalInterestDue").textContent =
-              summary.totalInterestDue.toFixed(2);
-            document.getElementById("totalInterestReceived").textContent =
-              summary.totalInterestReceived.toFixed(2);
-            document.getElementById("netInterestDue").textContent =
-              summary.netInterestDue.toFixed(2);
-            document.getElementById("interestStatus").value =
-              summary.status || "pending";
+            document.getElementById("totalInterestDue").textContent = parseFloat(
+              summary.totalInterestDue,
+            ).toFixed(2);
+            document.getElementById("totalAmountReceived").textContent = parseFloat(
+              summary.totalAmountReceived,
+            ).toFixed(2);
+            document.getElementById("netInterestDue").textContent = parseFloat(
+              summary.netInterestDue,
+            ).toFixed(2);
+            document.getElementById("interestStatus").value = summary.status ||
+              "pending";
           })
           .catch((error) => {
             console.error("Error fetching interest summary:", error);
@@ -550,8 +558,7 @@
           })
           .catch((error) => {
             console.error("Error adding client:", error);
-            document.getElementById("addClientError").textContent =
-              error.message;
+            document.getElementById("addClientError").textContent = error.message;
             if (error.message.includes("Unauthorized")) {
               alert("Session expired or unauthorized. Please log in again.");
               window.location.href = "/login"; // Redirect to login page
@@ -587,8 +594,7 @@
         });
 
       function toggleInterestFields() {
-        const transactionType =
-          document.getElementById("transactionType").value;
+        const transactionType = document.getElementById("transactionType").value;
         if (transactionType === "amount_given") {
           document.getElementById("interestFields").style.display = "block";
         } else {
@@ -600,8 +606,7 @@
       document
         .getElementById("saveTransactionBtn")
         .addEventListener("click", () => {
-          const transactionType =
-            document.getElementById("transactionType").value;
+          const transactionType = document.getElementById("transactionType").value;
           const amount = parseFloat(
             document.getElementById("transactionAmount").value,
           );
@@ -680,9 +685,6 @@
         .getElementById("updateStatusBtn")
         .addEventListener("click", () => {
           const status = document.getElementById("interestStatus").value;
-          const netInterestDue = parseFloat(
-            document.getElementById("netInterestDue").textContent,
-          );
 
           fetch("/plugins/loan-plugin/updateInterestStatus", {
             method: "POST",

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "This is a simple hello world express.js server.",
   "main": "app.js",
+  "type": "commonjs",
   "scripts": {
     "dev": "nodemon app.js",
     "start": "node app.js"

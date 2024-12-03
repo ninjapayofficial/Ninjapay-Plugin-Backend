@@ -2,10 +2,13 @@
 
 ## **1. Ninjapay Plugin Backend - README.md**
 
-```markdown
+````markdown
 # Ninjapay Plugin Backend
 
-Ninjapay is a modular plugin-based backend system that allows developers to extend its functionality by creating custom plugins. This repository serves as the main application, providing the core infrastructure for plugin management, authentication, and database interactions.
+Ninjapay is a modular plugin-based backend system that allows developers to
+extend its functionality by creating custom plugins. This repository serves as
+the main application, providing the core infrastructure for plugin management,
+authentication, and database interactions.
 
 ---
 
@@ -35,10 +38,14 @@ Ninjapay is a modular plugin-based backend system that allows developers to exte
 
 ## **Features**
 
-- **Plugin-Based Architecture**: Easily extend the application's functionality by adding or developing plugins.
-- **User Authentication**: Secure user authentication using Firebase Auth and session cookies.
-- **Database Integration**: Uses PostgreSQL with Sequelize ORM for database operations.
-- **Dynamic Plugin Loading**: Install, load, and unload plugins at runtime without restarting the server.
+- **Plugin-Based Architecture**: Easily extend the application's functionality
+  by adding or developing plugins.
+- **User Authentication**: Secure user authentication using Firebase Auth and
+  session cookies.
+- **Database Integration**: Uses PostgreSQL with Sequelize ORM for database
+  operations.
+- **Dynamic Plugin Loading**: Install, load, and unload plugins at runtime
+  without restarting the server.
 - **RESTful API**: Exposes APIs for plugin management and interactions.
 - **Swagger UI**: Provides API documentation via Swagger UI.
 
@@ -62,6 +69,7 @@ Ninjapay is a modular plugin-based backend system that allows developers to exte
    git clone https://github.com/yourusername/ninjapay-plugin-backend.git
    cd ninjapay-plugin-backend
    ```
+````
 
 2. **Install Dependencies**
 
@@ -97,7 +105,8 @@ Ninjapay is a modular plugin-based backend system that allows developers to exte
    FIREBASE_PRIVATE_KEY=your_firebase_private_key
    ```
 
-   Ensure you replace the placeholders with your actual database and Firebase credentials.
+   Ensure you replace the placeholders with your actual database and Firebase
+   credentials.
 
 2. **Firebase Setup**
 
@@ -109,7 +118,8 @@ Ninjapay is a modular plugin-based backend system that allows developers to exte
 3. **Firebase Service Account Key**
 
    - Generate a private key file for your service account.
-   - Set the `FIREBASE_PRIVATE_KEY` in your `.env` file (ensure newlines are properly formatted).
+   - Set the `FIREBASE_PRIVATE_KEY` in your `.env` file (ensure newlines are
+     properly formatted).
 
 ---
 
@@ -121,7 +131,8 @@ Start the server using:
 npm start
 ```
 
-The application will run on the port specified in your `.env` file (default is `3000`).
+The application will run on the port specified in your `.env` file (default is
+`3000`).
 
 ---
 
@@ -195,8 +206,10 @@ plugin-name/
 
 #### **Sequelize Version Compatibility**
 
-- **Important**: Your plugin must use the **same version of Sequelize** as the main application to avoid conflicts.
-- **Current Sequelize Version**: Check the `package.json` of the main application for the exact version.
+- **Important**: Your plugin must use the **same version of Sequelize** as the
+  main application to avoid conflicts.
+- **Current Sequelize Version**: Check the `package.json` of the main
+  application for the exact version.
 
 #### **Plugin Initialization**
 
@@ -216,7 +229,8 @@ module.exports = {
 
 #### **Security Considerations**
 
-- **Static Code Analysis**: Plugins undergo static code analysis using ESLint before installation.
+- **Static Code Analysis**: Plugins undergo static code analysis using ESLint
+  before installation.
 - **Dependencies**: Avoid using outdated or vulnerable dependencies.
 - **Authentication**: Use the provided `authMiddleware` for route protection.
 
@@ -238,7 +252,8 @@ module.exports = {
 
 - Uses **Umzug** for migration management.
 - **Core Migrations**: Located in `migrations/`.
-- **Plugin Migrations**: Each plugin can have its own migrations in `plugins/plugin-name/migrations/`.
+- **Plugin Migrations**: Each plugin can have its own migrations in
+  `plugins/plugin-name/migrations/`.
 
 ---
 
@@ -251,13 +266,15 @@ module.exports = {
 
 ## **License**
 
-This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE)
+file for details.
 
 ---
 
 ## **Contributing**
 
-Contributions are welcome! Please open issues and pull requests for any features or fixes.
+Contributions are welcome! Please open issues and pull requests for any features
+or fixes.
 
 ---
 

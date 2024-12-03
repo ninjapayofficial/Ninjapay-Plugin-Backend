@@ -29,13 +29,12 @@ const sequelize = new Sequelize(
     dialect: process.env.DB_DIALECT || "postgres",
     port: process.env.DB_PORT || 5432,
     dialectOptions: {
-      ssl:
-        process.env.DB_SSL === "true"
-          ? {
-              require: true,
-              rejectUnauthorized: false,
-            }
-          : false,
+      ssl: process.env.DB_SSL === "true"
+        ? {
+          require: true,
+          rejectUnauthorized: false,
+        }
+        : false,
     },
   },
 );

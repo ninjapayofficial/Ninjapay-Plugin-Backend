@@ -1,20 +1,28 @@
 <!-- signup.html -->
 
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <title>Sign Up</title>
     <!-- Include Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+    <script
+      src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"
+    ></script>
+    <script
+      src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"
+    ></script>
     <!-- Include Firebase Firestore if using it -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    <script
+      src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"
+    ></script>
   </head>
   <body>
     <h1>Sign Up</h1>
-    <input type="email" id="email" placeholder="Email" /><br />
-    <input type="password" id="password" placeholder="Password" /><br />
+    <input type="email" id="email" placeholder="Email" />
+    <br />
+    <input type="password" id="password" placeholder="Password" />
+    <br />
     <button onclick="signup()">Sign Up</button>
     <div id="signupMessage"></div>
 

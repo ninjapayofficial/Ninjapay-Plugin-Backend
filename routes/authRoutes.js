@@ -124,7 +124,8 @@ router.post("/addFundingProvider", authMiddleware, async (req, res) => {
       // Generate a unique webhook secret and URL
       const webhookSecret = generateWebhookSecret();
       // eslint-disable-next-line no-undef
-      const webhookUrl = `${process.env.BASE_URL}/webhook/${provider}/${webhookSecret}`;
+      const webhookUrl =
+        `${process.env.BASE_URL}/webhook/${provider}/${webhookSecret}`;
       fundingProviderData.webhookSecret = webhookSecret;
       fundingProviderData.webhookUrl = webhookUrl;
     } else if (provider === "opennode") {
@@ -144,7 +145,8 @@ router.post("/addFundingProvider", authMiddleware, async (req, res) => {
       // Generate a unique webhook secret and URL
       const webhookSecret = generateWebhookSecret();
       // eslint-disable-next-line no-undef
-      const webhookUrl = `${process.env.BASE_URL}/webhook/${provider}/${webhookSecret}`;
+      const webhookUrl =
+        `${process.env.BASE_URL}/webhook/${provider}/${webhookSecret}`;
       fundingProviderData.webhookSecret = webhookSecret;
       fundingProviderData.webhookUrl = webhookUrl;
     } else {
@@ -153,8 +155,9 @@ router.post("/addFundingProvider", authMiddleware, async (req, res) => {
 
     // Save funding provider data under user document
     await userRef.update({
-      fundingProviders:
-        admin.firestore.FieldValue.arrayUnion(fundingProviderData),
+      fundingProviders: admin.firestore.FieldValue.arrayUnion(
+        fundingProviderData,
+      ),
     });
 
     // Save providerInvoiceKey and providerAdminKey in 'providerKeys' collection

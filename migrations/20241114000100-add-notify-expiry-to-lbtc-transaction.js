@@ -18,15 +18,13 @@ module.exports = {
       defaultValue: literal(
         // Adjust the SQL syntax based on your database dialect
         // Example for PostgreSQL:
-        "CURRENT_TIMESTAMP + INTERVAL '10 minutes'"
-        
+        "CURRENT_TIMESTAMP + INTERVAL '10 minutes'",
         // Example for MySQL:
         // "NOW() + INTERVAL 10 MINUTE"
-        
+
         // Uncomment the appropriate line based on your DBMS
       ),
     });
-
   },
 
   down: async ({ context: sequelize }) => {
@@ -34,6 +32,5 @@ module.exports = {
 
     await queryInterface.removeColumn("LbtcTransaction", "notifyUrl");
     await queryInterface.removeColumn("LbtcTransaction", "expiry");
-
   },
 };
