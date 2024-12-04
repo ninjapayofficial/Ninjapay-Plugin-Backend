@@ -301,13 +301,14 @@ module.exports = (models) => {
         const startDate = new Date(year, month - 1, 1);
         const endDate = new Date(year, month, 0, 23, 59, 59);
 
-        // Get all 'amount_given' transactions up to the end of the month
+        // Get all 'amount_given' transactions within the month
         const givenTransactions = await LoanTransaction.findAll({
           where: {
             clientId,
             transactionType: "amount_given",
             givenDate: {
-              [Op.lte]: endDate,
+              // [Op.lte]: endDate,
+              [Op.between]: [startDate, endDate],
             },
           },
         });
@@ -489,7 +490,7 @@ module.exports = (models) => {
           givenDate: nextMonthStartDate,
           interestPercent: 0, // Assuming no interest on carryover
           interestDueDate: nextMonthEndDate,
-          description: "Net interest carried over to next month",
+          description: "Net interest carried over from previous month",
           txid: `carryover-interest-${Date.now()}`,
           status: "pending",
           balanceAfter: netInterestDue, // Adjust as per your balance logic
