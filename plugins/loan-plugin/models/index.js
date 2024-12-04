@@ -86,6 +86,6 @@ module.exports = (sequelize) => {
     LoanCompany,
     LoanClient,
     LoanTransaction,
-    LoanInterestStatus, // Add this line
+    LoanInterestStatus,
   };
 };

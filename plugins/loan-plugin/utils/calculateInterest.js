@@ -1,7 +1,7 @@
 // plugins/loan-plugin/utils/calculateInterest.js
 
 function calculateInterest(transaction, endDate) {
-  const { amount, interestPercent, givenDate, interestDueDate } = transaction;
+  const { amount, interestPercent, givenDate, interestDueDate, transactionType } = transaction;
 
   if (!interestPercent || !givenDate) {
     return 0;
@@ -30,8 +30,13 @@ function calculateInterest(transaction, endDate) {
   ).getDate();
 
   // Total interest = amount * (interestPercent / 100) * (daysDiff / totalDaysInMonth)
-  const totalInterest = amount * (interestPercent / 100) *
+  let totalInterest = amount * (interestPercent / 100) *
     (daysDiff / totalDaysInMonth);
+
+  // For amount_received, interest should be subtracted
+  if (transactionType === "amount_received") {
+    totalInterest = -totalInterest;
+  }
 
   return totalInterest;
 }

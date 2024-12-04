@@ -1,6 +1,5 @@
 <!-- plugins/loan-plugin/views/index.html -->
 
-<!-- plugins/loan-plugin/views/index.html -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -47,6 +46,44 @@
       }
       .filter-group {
         margin-bottom: 20px;
+      }
+      .action-btn {
+        margin-right: 5px;
+      }
+      /* Modal Styles */
+      .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 1; /* Sit on top */
+        padding-top: 100px; /* Location of the box */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0, 0, 0); /* Fallback color */
+        background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
+      }
+      /* Modal Content */
+      .modal-content {
+        background-color: #fefefe;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 50%;
+      }
+      /* Close Button */
+      .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+      }
+      .close:hover,
+      .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
       }
     </style>
   </head>
@@ -102,6 +139,7 @@
 
       <h3>Transactions</h3>
       <button id="addTransactionBtn">Add Transaction</button>
+      <button id="addToNextMonthBtn" class="hidden">Add to Next Month</button>
       <table id="transactionsTable">
         <thead>
           <tr>
@@ -112,6 +150,7 @@
             <th>Days Remaining</th>
             <th>Interest</th>
             <th>Status</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -121,9 +160,12 @@
       <div id="transactionsError" class="error"></div>
 
       <h3>Interest Summary</h3>
-      <p>Total Interest Due: <span id="totalInterestDue">0</span></p>
-      <p>Total Amount Received: <span id="totalAmountReceived">0</span></p>
-      <p>Net Interest Due: <span id="netInterestDue">0</span></p>
+      <p>Total Interest Given: <span id="totalInterestGiven">0.00</span></p>
+      <p>Total Interest Received: <span id="totalInterestReceived">0.00</span></p>
+      <p>Net Interest Due: <span id="netInterestDue">0.00</span></p>
+      <p>Total Amount Given: <span id="totalAmountGiven">0.00</span></p>
+      <p>Total Amount Received: <span id="totalAmountReceived">0.00</span></p>
+      <p>Net Loan: <span id="netLoan">0.00</span></p>
       <label for="interestStatus">Status:</label>
       <select id="interestStatus">
         <option value="pending">Pending</option>
@@ -136,90 +178,98 @@
     </div>
 
     <!-- Modals and Forms -->
+
     <!-- Add Client Form -->
-    <div id="addClientForm" class="hidden">
-      <h3>Add Client</h3>
-      <div class="form-group">
-        <label for="clientName">Name:</label>
-        <input type="text" id="clientName" placeholder="Enter client name" />
+    <div id="addClientForm" class="modal">
+      <div class="modal-content">
+        <span class="close" id="closeAddClientForm">&times;</span>
+        <h3>Add Client</h3>
+        <div class="form-group">
+          <label for="clientName">Name:</label>
+          <input type="text" id="clientName" placeholder="Enter client name" />
+        </div>
+        <div class="form-group">
+          <label for="clientPhoneNumber">Phone Number:</label>
+          <input
+            type="text"
+            id="clientPhoneNumber"
+            placeholder="Enter phone number"
+          />
+        </div>
+        <div class="form-group">
+          <label for="clientEmail">Email:</label>
+          <input type="email" id="clientEmail" placeholder="Enter email" />
+        </div>
+        <div class="form-group">
+          <label for="clientAddress">Address:</label>
+          <textarea id="clientAddress" placeholder="Enter address"></textarea>
+        </div>
+        <button id="saveClientBtn">Save</button>
+        <button id="cancelAddClientBtn">Cancel</button>
+        <div id="addClientError" class="error"></div>
       </div>
-      <div class="form-group">
-        <label for="clientPhoneNumber">Phone Number:</label>
-        <input
-          type="text"
-          id="clientPhoneNumber"
-          placeholder="Enter phone number"
-        />
-      </div>
-      <div class="form-group">
-        <label for="clientEmail">Email:</label>
-        <input type="email" id="clientEmail" placeholder="Enter email" />
-      </div>
-      <div class="form-group">
-        <label for="clientAddress">Address:</label>
-        <textarea id="clientAddress" placeholder="Enter address"></textarea>
-      </div>
-      <button id="saveClientBtn">Save</button>
-      <button id="cancelAddClientBtn">Cancel</button>
-      <div id="addClientError" class="error"></div>
     </div>
 
-    <!-- Add Transaction Form -->
-    <div id="addTransactionForm" class="hidden">
-      <h3>Add Transaction for <span id="transactionClientName"></span></h3>
-      <div class="form-group">
-        <label for="transactionType">Transaction Type:</label>
-        <select id="transactionType">
-          <option value="amount_given">Amount Given</option>
-          <option value="amount_received">Amount Received</option>
-        </select>
+    <!-- Add/Edit Transaction Form -->
+    <div id="transactionForm" class="modal">
+      <div class="modal-content">
+        <span class="close" id="closeTransactionForm">&times;</span>
+        <h3 id="transactionFormTitle">Add Transaction for <span id="transactionClientName"></span></h3>
+        <div class="form-group">
+          <label for="transactionType">Transaction Type:</label>
+          <select id="transactionType">
+            <option value="amount_given">Amount Given</option>
+            <option value="amount_received">Amount Received</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="transactionAmount">Amount:</label>
+          <input
+            type="number"
+            id="transactionAmount"
+            placeholder="Enter amount"
+            step="0.01"
+          />
+        </div>
+        <div class="form-group">
+          <label for="transactionGivenDate">Given Date:</label>
+          <input type="date" id="transactionGivenDate" />
+        </div>
+        <div class="form-group" id="interestFields">
+          <label for="transactionInterestPercent">Interest Percent:</label>
+          <input
+            type="number"
+            id="transactionInterestPercent"
+            placeholder="Enter interest percent"
+            step="0.01"
+          />
+          <label for="transactionInterestDueDate">Interest Due Date:</label>
+          <input type="date" id="transactionInterestDueDate" />
+        </div>
+        <div class="form-group">
+          <label for="transactionDescription">Description:</label>
+          <input
+            type="text"
+            id="transactionDescription"
+            placeholder="Enter description"
+          />
+        </div>
+        <div class="form-group">
+          <label for="transactionTxid">Transaction ID:</label>
+          <input
+            type="text"
+            id="transactionTxid"
+            placeholder="Enter transaction ID"
+          />
+        </div>
+        <div class="form-group">
+          <label for="transactionStatus">Status:</label>
+          <input type="text" id="transactionStatus" placeholder="Enter status" />
+        </div>
+        <button id="saveTransactionBtn">Save</button>
+        <button id="cancelAddTransactionBtn">Cancel</button>
+        <div id="addTransactionError" class="error"></div>
       </div>
-      <div class="form-group">
-        <label for="transactionAmount">Amount:</label>
-        <input
-          type="number"
-          id="transactionAmount"
-          placeholder="Enter amount"
-        />
-      </div>
-      <div class="form-group">
-        <label for="transactionGivenDate">Given Date:</label>
-        <input type="date" id="transactionGivenDate" />
-      </div>
-      <div class="form-group" id="interestFields">
-        <label for="transactionInterestPercent">Interest Percent:</label>
-        <input
-          type="number"
-          id="transactionInterestPercent"
-          placeholder="Enter interest percent"
-          step="0.01"
-        />
-        <label for="transactionInterestDueDate">Interest Due Date:</label>
-        <input type="date" id="transactionInterestDueDate" />
-      </div>
-      <div class="form-group">
-        <label for="transactionDescription">Description:</label>
-        <input
-          type="text"
-          id="transactionDescription"
-          placeholder="Enter description"
-        />
-      </div>
-      <div class="form-group">
-        <label for="transactionTxid">Transaction ID:</label>
-        <input
-          type="text"
-          id="transactionTxid"
-          placeholder="Enter transaction ID"
-        />
-      </div>
-      <div class="form-group">
-        <label for="transactionStatus">Status:</label>
-        <input type="text" id="transactionStatus" placeholder="Enter status" />
-      </div>
-      <button id="saveTransactionBtn">Save</button>
-      <button id="cancelAddTransactionBtn">Cancel</button>
-      <div id="addTransactionError" class="error"></div>
     </div>
 
     <script>
@@ -227,6 +277,42 @@
       let selectedClientId = null;
       let selectedYear = new Date().getFullYear();
       let selectedMonth = new Date().getMonth() + 1; // Months are 0-based
+      let editingTransactionId = null; // To track editing
+
+      // Modal Elements
+      const addClientForm = document.getElementById("addClientForm");
+      const closeAddClientForm = document.getElementById("closeAddClientForm");
+      const transactionForm = document.getElementById("transactionForm");
+      const closeTransactionForm = document.getElementById("closeTransactionForm");
+
+      // Function to open modal
+      function openModal(modal) {
+        modal.style.display = "block";
+      }
+
+      // Function to close modal
+      function closeModal(modal) {
+        modal.style.display = "none";
+      }
+
+      // Close modals when clicking on <span> (x)
+      closeAddClientForm.onclick = () => {
+        closeModal(addClientForm);
+      };
+
+      closeTransactionForm.onclick = () => {
+        closeModal(transactionForm);
+      };
+
+      // Close modals when clicking outside of the modal content
+      window.onclick = (event) => {
+        if (event.target === addClientForm) {
+          closeModal(addClientForm);
+        }
+        if (event.target === transactionForm) {
+          closeModal(transactionForm);
+        }
+      };
 
       // Function to add a company
       document.getElementById("addCompanyBtn").addEventListener("click", () => {
@@ -254,12 +340,16 @@
             return response.json();
           })
           .then((company) => {
-            document.getElementById("companySection").classList.add("hidden");
+            document.getElementById("companyMessage").textContent =
+              "Company added successfully!";
+            document.getElementById("companyError").textContent = "";
+            document.getElementById("companyName").value = "";
             loadCompanies();
           })
           .catch((error) => {
             console.error("Error adding company:", error);
             document.getElementById("companyError").textContent = error.message;
+            document.getElementById("companyMessage").textContent = "";
             if (error.message.includes("Unauthorized")) {
               alert("Session expired or unauthorized. Please log in again.");
               window.location.href = "/login"; // Redirect to login page
@@ -309,6 +399,9 @@
               document
                 .getElementById("companySection")
                 .classList.remove("hidden");
+              document
+                .getElementById("companiesSection")
+                .classList.add("hidden");
             }
           })
           .catch((error) => {
@@ -337,27 +430,31 @@
             return response.json();
           })
           .then((clients) => {
-            document
-              .getElementById("clientsSection")
-              .classList.remove("hidden");
-            const clientsList = document.getElementById("clientsList");
-            clientsList.innerHTML = "";
-            clients.forEach((client) => {
-              const li = document.createElement("li");
-              const btn = document.createElement("button");
-              btn.textContent = client.name;
-              btn.addEventListener("click", () => {
-                selectedClientId = client.id;
-                document.getElementById("selectedClientName").textContent =
-                  client.name;
-                document
-                  .getElementById("clientsSection")
-                  .classList.add("hidden");
-                loadTransactions();
+            if (clients && clients.length > 0) {
+              document
+                .getElementById("clientsSection")
+                .classList.remove("hidden");
+              const clientsList = document.getElementById("clientsList");
+              clientsList.innerHTML = "";
+              clients.forEach((client) => {
+                const li = document.createElement("li");
+                const btn = document.createElement("button");
+                btn.textContent = client.name;
+                btn.addEventListener("click", () => {
+                  selectedClientId = client.id;
+                  document.getElementById("selectedClientName").textContent =
+                    client.name;
+                  document
+                    .getElementById("clientsSection")
+                    .classList.add("hidden");
+                  loadTransactions();
+                });
+                li.appendChild(btn);
+                clientsList.appendChild(li);
               });
-              li.appendChild(btn);
-              clientsList.appendChild(li);
-            });
+            } else {
+              alert("No clients found for this company.");
+            }
           })
           .catch((error) => {
             console.error("Error fetching clients:", error);
@@ -402,14 +499,22 @@
               tr.innerHTML = `
                   <td>${new Date(tx.givenDate).toLocaleDateString()}</td>
                   <td>${tx.transactionType}</td>
-                  <td>${tx.amount}</td>
+                  <td>${parseFloat(tx.amount).toFixed(2)}</td>
                   <td>${tx.description || "N/A"}</td>
                   <td>${tx.daysRemaining || "N/A"}</td>
-                  <td>${tx.interest || "0.00"}</td>
+                  <td>${parseFloat(tx.interest).toFixed(2)}</td>
                   <td>${tx.status || "N/A"}</td>
+                  <td>
+                    <button class="action-btn edit-btn" data-id="${tx.id}">Edit</button>
+                    <button class="action-btn delete-btn" data-id="${tx.id}">Delete</button>
+                  </td>
               `;
               tbody.appendChild(tr);
             });
+
+            // Attach event listeners for Edit and Delete buttons
+            attachTransactionActionListeners();
+
             // Load interest summary
             loadInterestSummary();
           })
@@ -417,6 +522,107 @@
             console.error("Error fetching transactions:", error);
             document.getElementById("transactionsError").textContent =
               error.message;
+            if (error.message.includes("Unauthorized")) {
+              alert("Session expired or unauthorized. Please log in again.");
+              window.location.href = "/login"; // Redirect to login page
+            }
+          });
+
+        // Show "Add to Next Month" button if applicable
+        checkAddToNextMonthAvailability();
+      }
+
+      // Function to attach event listeners to Edit and Delete buttons
+      function attachTransactionActionListeners() {
+        document.querySelectorAll(".edit-btn").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const transactionId = btn.getAttribute("data-id");
+            editTransaction(transactionId);
+          });
+        });
+
+        document.querySelectorAll(".delete-btn").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const transactionId = btn.getAttribute("data-id");
+            deleteTransaction(transactionId);
+          });
+        });
+      }
+
+      // Function to edit a transaction
+      function editTransaction(transactionId) {
+        editingTransactionId = transactionId;
+
+        // Fetch transaction details
+        fetch(`/plugins/loan-plugin/getTransaction/${transactionId}`, {
+          credentials: "include",
+        })
+          .then(async (response) => {
+            if (response.status === 401) {
+              throw new Error("Unauthorized. Please log in.");
+            }
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(errorText || "Error fetching transaction details.");
+            }
+            return response.json();
+          })
+          .then((tx) => {
+            // Populate the form with transaction details
+            document.getElementById("transactionFormTitle").innerHTML =
+              `Edit Transaction for <span id="transactionClientName">${document.getElementById("selectedClientName").textContent}</span>`;
+            document.getElementById("transactionType").value = tx.transactionType;
+            document.getElementById("transactionAmount").value = parseFloat(tx.amount).toFixed(2);
+            document.getElementById("transactionGivenDate").value = tx.givenDate.split('T')[0];
+            document.getElementById("transactionInterestPercent").value = tx.interestPercent || "";
+            document.getElementById("transactionInterestDueDate").value = tx.interestDueDate ? tx.interestDueDate.split('T')[0] : "";
+            document.getElementById("transactionDescription").value = tx.description || "";
+            document.getElementById("transactionTxid").value = tx.txid || "";
+            document.getElementById("transactionStatus").value = tx.status || "";
+
+            // Show or hide interest fields based on transaction type
+            toggleInterestFields();
+
+            // Open the modal
+            openModal(transactionForm);
+          })
+          .catch((error) => {
+            console.error("Error fetching transaction details:", error);
+            alert(error.message);
+            if (error.message.includes("Unauthorized")) {
+              alert("Session expired or unauthorized. Please log in again.");
+              window.location.href = "/login"; // Redirect to login page
+            }
+          });
+      }
+
+      // Function to delete a transaction
+      function deleteTransaction(transactionId) {
+        if (!confirm("Are you sure you want to delete this transaction?")) {
+          return;
+        }
+
+        fetch(`/plugins/loan-plugin/deleteTransaction/${transactionId}`, {
+          method: "DELETE",
+          credentials: "include",
+        })
+          .then(async (response) => {
+            if (response.status === 401) {
+              throw new Error("Unauthorized. Please log in.");
+            }
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(errorText || "Error deleting transaction.");
+            }
+            return response.json();
+          })
+          .then((result) => {
+            alert(result.message);
+            loadTransactions();
+          })
+          .catch((error) => {
+            console.error("Error deleting transaction:", error);
+            alert(error.message);
             if (error.message.includes("Unauthorized")) {
               alert("Session expired or unauthorized. Please log in again.");
               window.location.href = "/login"; // Redirect to login page
@@ -443,17 +649,34 @@
             return response.json();
           })
           .then((summary) => {
-            document.getElementById("totalInterestDue").textContent = parseFloat(
-              summary.totalInterestDue,
+            document.getElementById("totalInterestGiven").textContent = parseFloat(
+              summary.totalInterestGiven,
             ).toFixed(2);
-            document.getElementById("totalAmountReceived").textContent = parseFloat(
-              summary.totalAmountReceived,
+            document.getElementById("totalInterestReceived").textContent = parseFloat(
+              summary.totalInterestReceived,
             ).toFixed(2);
             document.getElementById("netInterestDue").textContent = parseFloat(
               summary.netInterestDue,
             ).toFixed(2);
+            document.getElementById("totalAmountGiven").textContent = parseFloat(
+              summary.totalAmountGiven,
+            ).toFixed(2);
+            document.getElementById("totalAmountReceived").textContent = parseFloat(
+              summary.totalAmountReceived,
+            ).toFixed(2);
+            document.getElementById("netLoan").textContent = parseFloat(
+              summary.netLoan,
+            ).toFixed(2);
             document.getElementById("interestStatus").value = summary.status ||
               "pending";
+
+            // Show "Add to Next Month" button if status is 'pending'
+            const addToNextMonthBtn = document.getElementById("addToNextMonthBtn");
+            if (summary.status === "pending") {
+              addToNextMonthBtn.classList.remove("hidden");
+            } else {
+              addToNextMonthBtn.classList.add("hidden");
+            }
           })
           .catch((error) => {
             console.error("Error fetching interest summary:", error);
@@ -507,13 +730,14 @@
       // Add Client button event listener
       document.getElementById("addClientBtn").addEventListener("click", () => {
         document.getElementById("addClientForm").classList.remove("hidden");
+        openModal(addClientForm);
       });
 
       // Cancel Add Client button event listener
       document
         .getElementById("cancelAddClientBtn")
         .addEventListener("click", () => {
-          document.getElementById("addClientForm").classList.add("hidden");
+          closeModal(addClientForm);
         });
 
       // Save Client button event listener
@@ -554,6 +778,7 @@
           })
           .then((client) => {
             document.getElementById("addClientForm").classList.add("hidden");
+            closeModal(addClientForm);
             loadClients();
           })
           .catch((error) => {
@@ -570,20 +795,29 @@
       document
         .getElementById("addTransactionBtn")
         .addEventListener("click", () => {
-          document
-            .getElementById("addTransactionForm")
-            .classList.remove("hidden");
-          document.getElementById("transactionClientName").textContent =
-            document.getElementById("selectedClientName").textContent;
-          // Show or hide interest fields based on transaction type
-          toggleInterestFields();
+          editingTransactionId = null; // Reset editing ID
+          document.getElementById("transactionFormTitle").innerHTML =
+            `Add Transaction for <span id="transactionClientName">${document.getElementById("selectedClientName").textContent}</span>`;
+          document.getElementById("transactionType").value = "amount_given";
+          document.getElementById("transactionAmount").value = "";
+          document.getElementById("transactionGivenDate").value = "";
+          document.getElementById("transactionInterestPercent").value = "";
+          document.getElementById("transactionInterestDueDate").value = "";
+          document.getElementById("transactionDescription").value = "";
+          document.getElementById("transactionTxid").value = "";
+          document.getElementById("transactionStatus").value = "";
+
+          // Show interest fields by default for "amount_given"
+          document.getElementById("interestFields").style.display = "block";
+
+          openModal(transactionForm);
         });
 
-      // Cancel Add Transaction button event listener
+      // Cancel Add/Edit Transaction button event listener
       document
         .getElementById("cancelAddTransactionBtn")
         .addEventListener("click", () => {
-          document.getElementById("addTransactionForm").classList.add("hidden");
+          closeModal(transactionForm);
         });
 
       // Transaction Type change event listener
@@ -598,7 +832,7 @@
         if (transactionType === "amount_given") {
           document.getElementById("interestFields").style.display = "block";
         } else {
-          document.getElementById("interestFields").style.display = "none";
+          document.getElementById("interestFields").style.display = "block";
         }
       }
 
@@ -632,6 +866,11 @@
             return;
           }
 
+          if (!givenDate) {
+            alert("Please select a given date.");
+            return;
+          }
+
           const data = {
             clientId: selectedClientId,
             transactionType,
@@ -642,13 +881,29 @@
             status,
           };
 
-          if (transactionType === "amount_given") {
+          if (transactionType === "amount_given" || transactionType === "amount_received") {
+            if (!interestPercent || isNaN(interestPercent)) {
+              alert("Please enter a valid interest percent.");
+              return;
+            }
+            if (!interestDueDate) {
+              alert("Please select an interest due date.");
+              return;
+            }
             data.interestPercent = interestPercent;
             data.interestDueDate = interestDueDate;
           }
 
-          fetch("/plugins/loan-plugin/addTransaction", {
-            method: "POST",
+          let url = "/plugins/loan-plugin/addTransaction";
+          let method = "POST";
+
+          if (editingTransactionId) {
+            url = `/plugins/loan-plugin/editTransaction/${editingTransactionId}`;
+            method = "PUT";
+          }
+
+          fetch(url, {
+            method: method,
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
             credentials: "include",
@@ -659,18 +914,16 @@
               }
               if (!response.ok) {
                 const errorText = await response.text();
-                throw new Error(errorText || "Error adding transaction.");
+                throw new Error(errorText || "Error saving transaction.");
               }
               return response.json();
             })
             .then((transaction) => {
-              document
-                .getElementById("addTransactionForm")
-                .classList.add("hidden");
+              closeModal(transactionForm);
               loadTransactions();
             })
             .catch((error) => {
-              console.error("Error adding transaction:", error);
+              console.error("Error saving transaction:", error);
               document.getElementById("addTransactionError").textContent =
                 error.message;
               if (error.message.includes("Unauthorized")) {
@@ -721,6 +974,17 @@
                 window.location.href = "/login"; // Redirect to login page
               }
             });
+        });
+
+      // Add to Next Month button event listener
+      document
+        .getElementById("addToNextMonthBtn")
+        .addEventListener("click", () => {
+          const statusSelect = document.getElementById("interestStatus");
+          statusSelect.value = "added_to_next_month";
+
+          // Trigger the updateStatusBtn click event
+          document.getElementById("updateStatusBtn").click();
         });
 
       // On page load, load companies

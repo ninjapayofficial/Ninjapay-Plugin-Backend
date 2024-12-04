@@ -124,6 +124,119 @@ module.exports = (models) => {
     }
   });
 
+  // Route to edit a transaction
+  router.put("/editTransaction/:id", authMiddleware, async (req, res) => {
+    const { id } = req.params;
+    const {
+      transactionType,
+      amount,
+      givenDate,
+      interestPercent,
+      interestDueDate,
+      description,
+      txid,
+      status,
+    } = req.body;
+
+    try {
+      const transaction = await LoanTransaction.findByPk(id);
+      if (!transaction) {
+        return res.status(404).json({ error: "Transaction not found" });
+      }
+
+      // Adjust the client's balance based on the old transaction
+      const client = await LoanClient.findByPk(transaction.clientId);
+      if (!client) {
+        return res.status(404).json({ error: "Client not found" });
+      }
+
+      // Revert the previous transaction effect
+      if (transaction.transactionType === "amount_given") {
+        client.currentBalance -= parseFloat(transaction.amount);
+      } else if (transaction.transactionType === "amount_received") {
+        client.currentBalance += parseFloat(transaction.amount);
+      }
+
+      // Apply the new transaction effect
+      if (transactionType === "amount_given") {
+        client.currentBalance += parseFloat(amount);
+      } else if (transactionType === "amount_received") {
+        client.currentBalance -= parseFloat(amount);
+      }
+
+      // Update the transaction
+      await transaction.update({
+        transactionType,
+        amount,
+        givenDate,
+        interestPercent,
+        interestDueDate,
+        description,
+        txid,
+        status,
+        balanceAfter: client.currentBalance,
+      });
+
+      // Save the updated client balance
+      await client.save();
+
+      res.status(200).json(transaction);
+    } catch (error) {
+      console.error("Error editing transaction:", error);
+      res.status(500).json({ error: "Failed to edit transaction" });
+    }
+  });
+
+  // Route to delete a transaction
+  router.delete("/deleteTransaction/:id", authMiddleware, async (req, res) => {
+    const { id } = req.params;
+
+    try {
+      const transaction = await LoanTransaction.findByPk(id);
+      if (!transaction) {
+        return res.status(404).json({ error: "Transaction not found" });
+      }
+
+      // Adjust the client's balance based on the transaction
+      const client = await LoanClient.findByPk(transaction.clientId);
+      if (!client) {
+        return res.status(404).json({ error: "Client not found" });
+      }
+
+      if (transaction.transactionType === "amount_given") {
+        client.currentBalance -= parseFloat(transaction.amount);
+      } else if (transaction.transactionType === "amount_received") {
+        client.currentBalance += parseFloat(transaction.amount);
+      }
+
+      // Delete the transaction
+      await transaction.destroy();
+
+      // Save the updated client balance
+      await client.save();
+
+      res.status(200).json({ message: "Transaction deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting transaction:", error);
+      res.status(500).json({ error: "Failed to delete transaction" });
+    }
+  });
+
+  // Route to fetch single transaction details
+  router.get("/getTransaction/:id", authMiddleware, async (req, res) => {
+    const { id } = req.params;
+    try {
+      const transaction = await LoanTransaction.findByPk(id);
+      if (!transaction) {
+        return res.status(404).json({ error: "Transaction not found" });
+      }
+      res.status(200).json(transaction);
+    } catch (error) {
+      console.error("Error fetching transaction:", error);
+      res.status(500).json({ error: "Failed to fetch transaction" });
+    }
+  });
+
   // Route to get clients for a company
   router.get("/getClients/:companyId", authMiddleware, async (req, res) => {
     const { companyId } = req.params;
@@ -138,11 +251,6 @@ module.exports = (models) => {
   });
 
   // Route to get transactions for a client, filtered by month and year
-  // Import the new function
-
-  // ...
-
-  // Update the getTransactions route
   router.get(
     "/getTransactions/:clientId/:year/:month",
     authMiddleware,
@@ -150,7 +258,6 @@ module.exports = (models) => {
       const { clientId, year, month } = req.params;
 
       try {
-        // eslint-disable-next-line no-unused-vars
         const startDate = new Date(year, month - 1, 1);
         const endDate = new Date(year, month, 0, 23, 59, 59);
 
@@ -158,7 +265,7 @@ module.exports = (models) => {
           where: {
             clientId,
             givenDate: {
-              [Op.lte]: endDate, // Include all transactions up to endDate
+              [Op.between]: [startDate, endDate],
             },
           },
           order: [["givenDate", "DESC"]],
@@ -194,7 +301,7 @@ module.exports = (models) => {
         const startDate = new Date(year, month - 1, 1);
         const endDate = new Date(year, month, 0, 23, 59, 59);
 
-        // Get all 'amount_given' transactions before the end of the month
+        // Get all 'amount_given' transactions up to the end of the month
         const givenTransactions = await LoanTransaction.findAll({
           where: {
             clientId,
@@ -205,12 +312,12 @@ module.exports = (models) => {
           },
         });
 
-        // Calculate total interest due
-        let totalInterestDue = 0;
+        // Calculate total interest due from amount_given
+        let totalInterestGiven = 0;
 
         givenTransactions.forEach((transaction) => {
           const interest = calculateInterest(transaction, endDate);
-          totalInterestDue += interest;
+          totalInterestGiven += interest;
         });
 
         // Get all 'amount_received' transactions within the month
@@ -224,14 +331,28 @@ module.exports = (models) => {
           },
         });
 
-        // Calculate total amount received
-        let totalAmountReceived = 0;
+        // Calculate total interest received from amount_received
+        let totalInterestReceived = 0;
         receivedTransactions.forEach((transaction) => {
-          totalAmountReceived += parseFloat(transaction.amount);
+          const interest = calculateInterest(transaction, endDate);
+          totalInterestReceived += interest;
         });
 
         // Net interest due
-        const netInterestDue = totalInterestDue - totalAmountReceived;
+        const netInterestDue = totalInterestGiven + totalInterestReceived; // received interests are negative
+
+        // Calculate total amount given and received
+        const totalAmountGiven = givenTransactions.reduce(
+          (acc, tx) => acc + parseFloat(tx.amount),
+          0,
+        );
+        const totalAmountReceived = receivedTransactions.reduce(
+          (acc, tx) => acc + parseFloat(tx.amount),
+          0,
+        );
+
+        // Net loan
+        const netLoan = totalAmountGiven - totalAmountReceived;
 
         // Fetch or initialize status for the month
         let interestStatus = await LoanInterestStatus.findOne({
@@ -241,9 +362,12 @@ module.exports = (models) => {
         let status = interestStatus ? interestStatus.status : "pending";
 
         res.status(200).json({
-          totalInterestDue: totalInterestDue.toFixed(2),
-          totalAmountReceived: totalAmountReceived.toFixed(2),
+          totalInterestGiven: totalInterestGiven.toFixed(2),
+          totalInterestReceived: Math.abs(totalInterestReceived).toFixed(2),
           netInterestDue: netInterestDue.toFixed(2),
+          totalAmountGiven: totalAmountGiven.toFixed(2),
+          totalAmountReceived: totalAmountReceived.toFixed(2),
+          netLoan: netLoan.toFixed(2),
           status,
         });
       } catch (error) {
@@ -253,7 +377,7 @@ module.exports = (models) => {
     },
   );
 
-  // Route to update interest status
+  // Route to update interest status and handle "Add to Next Month"
   router.post("/updateInterestStatus", authMiddleware, async (req, res) => {
     const { clientId, year, month, status } = req.body;
 
@@ -264,34 +388,113 @@ module.exports = (models) => {
     }
 
     try {
-      // Update or create the status for the month
-      // Assuming you have a LoanInterestStatus model
+      // Fetch the interest summary to get net loan and net interest
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 0, 23, 59, 59);
 
-      // Handle 'added to next month'
-      if (status === "added_to_next_month") {
-        // Get the net interest due for the month
-        // (You might need to calculate it again or pass it in the request)
-        const netInterestDue = 777;
-
-        // Create a new 'amount_given' transaction on the first of the next month
-        const nextMonth = parseInt(month) + 1;
-        const nextYear = nextMonth > 12 ? parseInt(year) + 1 : year;
-        const adjustedMonth = nextMonth > 12 ? 1 : nextMonth;
-        const nextMonthDate = new Date(nextYear, adjustedMonth - 1, 1);
-
-        await LoanTransaction.create({
+      const givenTransactions = await LoanTransaction.findAll({
+        where: {
           clientId,
           transactionType: "amount_given",
-          amount: netInterestDue, // The interest amount to carry over
-          givenDate: nextMonthDate,
-          interestPercent: 0, // Assuming no additional interest
-          description: "Interest carried over from previous month",
-          status: "pending",
+          givenDate: {
+            [Op.lte]: endDate,
+          },
+        },
+      });
+
+      let totalInterestGiven = 0;
+
+      givenTransactions.forEach((transaction) => {
+        const interest = calculateInterest(transaction, endDate);
+        totalInterestGiven += interest;
+      });
+
+      const receivedTransactions = await LoanTransaction.findAll({
+        where: {
+          clientId,
+          transactionType: "amount_received",
+          givenDate: {
+            [Op.between]: [startDate, endDate],
+          },
+        },
+      });
+
+      let totalInterestReceived = 0;
+      receivedTransactions.forEach((transaction) => {
+        const interest = calculateInterest(transaction, endDate);
+        totalInterestReceived += interest;
+      });
+
+      const netInterestDue = totalInterestGiven + totalInterestReceived; // received interests are negative
+
+      const totalAmountGiven = givenTransactions.reduce(
+        (acc, tx) => acc + parseFloat(tx.amount),
+        0,
+      );
+      const totalAmountReceived = receivedTransactions.reduce(
+        (acc, tx) => acc + parseFloat(tx.amount),
+        0,
+      );
+
+      const netLoan = totalAmountGiven - totalAmountReceived;
+
+      // Update or create the status for the month
+      let interestStatus = await LoanInterestStatus.findOne({
+        where: { clientId, year, month },
+      });
+
+      if (interestStatus) {
+        await interestStatus.update({ status });
+      } else {
+        interestStatus = await LoanInterestStatus.create({
+          clientId,
+          year,
+          month,
+          status,
         });
       }
 
-      // Update the status in the database
-      // ...
+      // Handle 'added_to_next_month'
+      if (status === "added_to_next_month") {
+        // Calculate next month and year
+        let nextMonth = parseInt(month) + 1;
+        let nextYear = parseInt(year);
+        if (nextMonth > 12) {
+          nextMonth = 1;
+          nextYear += 1;
+        }
+
+        const nextMonthStartDate = new Date(nextYear, nextMonth - 1, 1);
+        const nextMonthEndDate = new Date(nextYear, nextMonth, 0, 23, 59, 59);
+
+        // Create Net Loan Transaction
+        await LoanTransaction.create({
+          clientId,
+          transactionType: "amount_given",
+          amount: netLoan,
+          givenDate: nextMonthStartDate,
+          interestPercent: 0, // Assuming no interest on carryover
+          interestDueDate: nextMonthEndDate,
+          description: "Net loan carried over to next month",
+          txid: `carryover-loan-${Date.now()}`,
+          status: "pending",
+          balanceAfter: netLoan, // Adjust as per your balance logic
+        });
+
+        // Create Net Interest Transaction
+        await LoanTransaction.create({
+          clientId,
+          transactionType: "amount_given",
+          amount: netInterestDue,
+          givenDate: nextMonthStartDate,
+          interestPercent: 0, // Assuming no interest on carryover
+          interestDueDate: nextMonthEndDate,
+          description: "Net interest carried over to next month",
+          txid: `carryover-interest-${Date.now()}`,
+          status: "pending",
+          balanceAfter: netInterestDue, // Adjust as per your balance logic
+        });
+      }
 
       res.status(200).json({ message: "Interest status updated successfully" });
     } catch (error) {
@@ -312,8 +515,6 @@ module.exports = (models) => {
       res.status(500).json({ error: "Failed to fetch companies" });
     }
   });
-
-  // Additional routes to handle status updates and calculations can be added here
 
   return router;
 };

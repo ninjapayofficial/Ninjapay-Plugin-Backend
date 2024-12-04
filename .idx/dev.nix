@@ -2,12 +2,11 @@
 # see: https://developers.google.com/idx/guides/customize-idx-env
 { pkgs, ... }: {
   # Which nixpkgs channel to use.
-  channel = "unstable"; # or "unstable" "stable-24.05"
+  channel = "stable-24.05"; # or "unstable" "stable-24.05"
 
   # Use https://search.nixos.org/packages to find packages
   packages = [
-    pkgs.deno
-    # pkgs.nodejs_20 
+    pkgs.nodejs_20 
     pkgs.postgresql_15    # Add PostgreSQL (version 15)
     pkgs.sudo             # Include sudo if needed
     pkgs.tmux             # Optional: any other tools you might need
@@ -16,7 +15,7 @@
   # Sets environment variables in the workspace
   env = {};
   # Enable Docker service
-  # services.docker.enable = true; 
+  services.docker.enable = true; 
 
   idx = {
     # Search for the extensions you want on https://open-vsx.org/ and use "publisher.id"
