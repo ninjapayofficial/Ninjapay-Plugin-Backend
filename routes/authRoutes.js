@@ -48,7 +48,7 @@ module.exports = (sequelize, models) => {
 
       // Record the login in UserLogins table
       const ipAddress =
-        req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+      req.headers["x-forwarded-for"] || req.socket.remoteAddress;
       const userAgent = req.headers["user-agent"];
 
       await UserLogin.create({
@@ -71,7 +71,6 @@ module.exports = (sequelize, models) => {
     res.status(200).send({ status: "success" });
   });
 
-  // Endpoint for user signup
 
   // Endpoint for user signup
   router.post("/signup", async (req, res) => {
@@ -100,9 +99,12 @@ module.exports = (sequelize, models) => {
         // Add other fields if necessary
       });
 
-      res.status(201).json({ uid: userRecord.uid });
+      // Generate an ID token for the newly created user
+      const customToken = await admin.auth().createCustomToken(userRecord.uid);
+
+      res.status(201).json({ uid: userRecord.uid, customToken});
     } catch (error) {
-      console.error("Error creating user:", error);
+      console.error("Error creating user:", error.message);
       res.status(500).send("Error creating user.");
     }
   });
@@ -354,8 +356,6 @@ module.exports = (sequelize, models) => {
       res.status(500).send("Error fetching default provider.");
     }
   });
-
-  module.exports = router;
 
   return router;
 };

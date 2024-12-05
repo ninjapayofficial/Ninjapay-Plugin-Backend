@@ -1,5 +1,4 @@
 <!-- signup.html -->
-
 <!doctype html>
 <html lang="en">
   <head>
@@ -41,24 +40,41 @@
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
 
-        firebase
-          .auth()
-          .createUserWithEmailAndPassword(email, password)
-          .then((userCredential) => {
-            const user = userCredential.user;
-            const uid = user.uid;
+        // Input validation (optional but recommended)
+        if (!email || !password) {
+          document.getElementById("signupMessage").innerHTML =
+            '<p style="color: red;">Email and password are required.</p>';
+          return;
+        }
 
-            // Save user data to Firestore (no walletId, invoiceKey, adminKey here)
-            return db
-              .collection("users")
-              .doc(uid)
-              .set({})
-              .then(() => {
-                return user.getIdToken();
+        // Send signup request to the server
+        fetch("/auth/signup", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, password }),
+        })
+          .then((response) => {
+            if (response.ok) {
+              return response.json();
+            } else {
+              return response.text().then((text) => {
+                throw new Error(text);
               });
+            }
+          })
+          .then((data) => {
+            const customToken = data.customToken;
+            // Sign in with the Custom Token to get a valid ID Token
+            return firebase.auth().signInWithCustomToken(customToken);
+          })
+          .then((userCredential) => {
+            // After signing in with the Custom Token, get the ID Token
+            return userCredential.user.getIdToken();
           })
           .then((idToken) => {
-            // Send ID token to server to create session cookie
+            // Send ID Token to server to create session cookie
             return fetch("/auth/sessionLogin", {
               method: "POST",
               headers: {
