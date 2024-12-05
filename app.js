@@ -12,12 +12,13 @@ const swaggerSpecs = require("./swaggerConfig");
 const swaggerUi = require("swagger-ui-express");
 const pluginRoutes = require("./routes/pluginRoutes");
 const { runCoreMigrations } = require("./migrationManager");
-const authRoutes = require("./routes/authRoutes");
+
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const authMiddleware = require("./middleware/authMiddleware");
 const admin = require("./firebase");
 const paymentRoutes = require("./routes/paymentRoutes");
+
 
 // Database Connection
 const sequelize = new Sequelize(
@@ -39,6 +40,8 @@ const sequelize = new Sequelize(
   },
 );
 
+
+
 // // Alternatively, you can use the connection URI provided:
 // const sequelize = new Sequelize(process.env.DATABASE_URL, {
 //   dialect: 'postgres',
@@ -54,6 +57,8 @@ const sequelize = new Sequelize(
 // Initialize models
 const models = require("./models")(sequelize); // Initialize models
 const LbtcTransaction = models.LbtcTransaction;
+
+const authRoutes = require("./routes/authRoutes")(sequelize, models);
 
 // Allow all origins (or specify allowed origins)
 app.use(cors());

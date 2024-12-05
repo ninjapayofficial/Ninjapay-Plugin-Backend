@@ -19,6 +19,7 @@
     "express": "^4.21.1",
     "express-rate-limit": "^7.4.1",
     "firebase-admin": "^12.7.0",
+    "geoip-lite": "^1.4.10",
     "glob-parent": "^6.0.2",
     "pg": "^8.13.1",
     "sequelize": "^6.37.5",
@@ -26,6 +27,7 @@
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "umzug": "^3.8.2",
+    "useragent": "^2.3.0",
     "uuid": "^11.0.2",
     "vm2": "^3.9.19"
   },

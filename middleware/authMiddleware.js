@@ -41,6 +41,7 @@ async function authMiddleware(req, res, next) {
       req.user = {
         uid,
         walletId: userData.walletId, // Nullable
+        isAdmin: userData.isAdmin || true, // Include isAdmin
       };
 
       // Retrieve the default provider

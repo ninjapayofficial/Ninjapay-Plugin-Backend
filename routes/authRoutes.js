@@ -1,10 +1,16 @@
 // routes/authRoutes.js
-
+module.exports = (sequelize, models) => {
 const express = require("express");
 const router = express.Router();
 const admin = require("../firebase"); // Import Firebase Admin
 const authMiddleware = require("../middleware/authMiddleware");
 const crypto = require("crypto"); // For generating random keys
+// Import the User model
+// const { User } = require('../models')(sequelize);
+// const { UserLogin } = require('../models')(sequelize);
+
+  // Destructure models
+  const { User, UserLogin } = models;
 
 const SESSION_COOKIE_NAME = "session";
 
@@ -22,25 +28,44 @@ function generateWebhookSecret() {
   return "wh_sec_" + crypto.randomBytes(16).toString("hex");
 }
 
+
+
+
+
 // Endpoint to create session login
-router.post("/sessionLogin", (req, res) => {
+router.post('/sessionLogin', async (req, res) => {
   const idToken = req.body.idToken;
   const expiresIn = 60 * 60 * 24 * 5 * 1000; // Session expires in 5 days
 
-  admin
-    .auth()
-    .createSessionCookie(idToken, { expiresIn })
-    .then((sessionCookie) => {
-      // Set cookie with session cookie
-      const options = { maxAge: expiresIn, httpOnly: true, secure: false }; // Set secure: true in production with HTTPS
-      res.cookie(SESSION_COOKIE_NAME, sessionCookie, options);
-      res.status(200).send({ status: "success" });
-    })
-    .catch((error) => {
-      console.error("Error creating session cookie:", error);
-      res.status(401).send("UNAUTHORIZED REQUEST!");
+  try {
+    // Verify the ID token
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const uid = decodedToken.uid;
+
+    // Create the session cookie
+    const sessionCookie = await admin.auth().createSessionCookie(idToken, { expiresIn });
+    // Set cookie with session cookie
+    const options = { maxAge: expiresIn, httpOnly: true, secure: false }; // Set secure: true in production with HTTPS
+    res.cookie(SESSION_COOKIE_NAME, sessionCookie, options);
+
+    // Record the login in UserLogins table
+    const ipAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    const userAgent = req.headers['user-agent'];
+
+    await UserLogin.create({
+      userId: uid,
+      loginTime: new Date(),
+      userAgent: userAgent,
+      ipAddress: ipAddress,
     });
+
+    res.status(200).send({ status: 'success' });
+  } catch (error) {
+    console.error('Error creating session cookie:', error);
+    res.status(401).send('UNAUTHORIZED REQUEST!');
+  }
 });
+
 
 // Endpoint to logout
 router.post("/sessionLogout", (req, res) => {
@@ -49,28 +74,38 @@ router.post("/sessionLogout", (req, res) => {
 });
 
 // Endpoint for user signup
-router.post("/signup", async (req, res) => {
+
+// Endpoint for user signup
+router.post('/signup', async (req, res) => {
   const { email, password } = req.body;
   try {
+    // Create user in Firebase Auth
     const userRecord = await admin.auth().createUser({
       email,
       password,
     });
 
-    // Save user data to Firestore
+    // Save user data to Firestore (if needed)
     const db = admin.firestore();
-    await db.collection("users").doc(userRecord.uid).set({
+    await db.collection('users').doc(userRecord.uid).set({
       // Initialize fields if necessary
-      walletId: "", // Initialize with empty or generate as needed
-      invoiceKey: "", // Initialize empty; can be set when adding a provider
-      adminKey: "", // Initialize empty; can be set when adding a provider
+      walletId: '', // Initialize with empty or generate as needed
+      invoiceKey: '', // Initialize empty; can be set when adding a provider
+      adminKey: '', // Initialize empty; can be set when adding a provider
       fundingProviders: [], // Initialize as empty array
+    });
+
+    // Save user data to SQL 'Users' table
+    await User.create({
+      id: userRecord.uid,
+      email: email,
+      // Add other fields if necessary
     });
 
     res.status(201).json({ uid: userRecord.uid });
   } catch (error) {
-    console.error("Error creating user:", error);
-    res.status(500).send("Error creating user.");
+    console.error('Error creating user:', error);
+    res.status(500).send('Error creating user.');
   }
 });
 
@@ -125,6 +160,7 @@ router.post("/addFundingProvider", authMiddleware, async (req, res) => {
       const webhookSecret = generateWebhookSecret();
       // eslint-disable-next-line no-undef
       const webhookUrl =
+        // eslint-disable-next-line no-undef
         `${process.env.BASE_URL}/webhook/${provider}/${webhookSecret}`;
       fundingProviderData.webhookSecret = webhookSecret;
       fundingProviderData.webhookUrl = webhookUrl;
@@ -146,6 +182,7 @@ router.post("/addFundingProvider", authMiddleware, async (req, res) => {
       const webhookSecret = generateWebhookSecret();
       // eslint-disable-next-line no-undef
       const webhookUrl =
+        // eslint-disable-next-line no-undef
         `${process.env.BASE_URL}/webhook/${provider}/${webhookSecret}`;
       fundingProviderData.webhookSecret = webhookSecret;
       fundingProviderData.webhookUrl = webhookUrl;
@@ -322,3 +359,8 @@ router.get("/getDefaultProvider", authMiddleware, async (req, res) => {
 });
 
 module.exports = router;
+
+return router;
+
+
+};
