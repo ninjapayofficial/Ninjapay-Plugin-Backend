@@ -37,7 +37,7 @@
     <div class="section">
       <h2>Overall Statistics</h2>
       <div class="stats">
-        <div class="stat">
+        <div class="stat" id="totalUsersStat" style="cursor: pointer;">
           <h3>Total Signed-up Users</h3>
           <p id="totalUsers">0</p>
         </div>
@@ -87,6 +87,10 @@
     <script>
       // Fetch data and render charts
       document.addEventListener("DOMContentLoaded", function () {
+      // Add click event listeners
+      document.getElementById("totalUsersStat").addEventListener("click", function () {
+        window.location.href = "/plugins/admin-plugin/signedUpUsers";
+      });
         // Fetch total users
         fetch("/plugins/admin-plugin/totalUsers", { credentials: "include" })
           .then((response) => response.json())

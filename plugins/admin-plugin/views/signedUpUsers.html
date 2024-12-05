@@ -1,0 +1,90 @@
+<!-- plugins/admin-plugin/views/signedUpUsers.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Signed-up Users</title>
+  <style>
+    /* Basic styles */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    h1 {
+      color: #333;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .action-btn {
+      padding: 5px 10px;
+      margin: 2px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Signed-up Users</h1>
+  <table id="usersTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Email</th>
+        <th>Username</th>
+        <th>Phone Number</th>
+        <th>Last Login</th>
+        <th>Created At</th>
+        <th>Updated At</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Users will be populated here -->
+    </tbody>
+  </table>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      fetch('/plugins/admin-plugin/api/signedUpUsers', { credentials: 'include' })
+        .then(response => response.json())
+        .then(users => {
+          const tbody = document.querySelector('#usersTable tbody');
+          users.forEach(user => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${user.id}</td>
+              <td>${user.email || ''}</td>
+              <td>${user.username || ''}</td>
+              <td>${user.phoneNumber || ''}</td>
+              <td>${user.lastLoginTime ? new Date(user.lastLoginTime).toLocaleString() : 'Never'}</td>
+              <td>${new Date(user.createdAt).toLocaleString()}</td>
+              <td>${new Date(user.updatedAt).toLocaleString()}</td>
+              <td><button class="action-btn" data-id="${user.id}">View Profile</button></td>
+            `;
+            tbody.appendChild(tr);
+          });
+          // Add event listeners to buttons
+          document.querySelectorAll('.action-btn').forEach(button => {
+            button.addEventListener('click', function() {
+              const userId = this.getAttribute('data-id');
+              window.location.href = `/plugins/admin-plugin/signedUpUsers/${userId}`;
+            });
+          });
+        })
+        .catch(error => {
+          console.error('Error fetching users:', error);
+          alert('Error fetching users');
+        });
+    });
+  </script>
+</body>
+</html>

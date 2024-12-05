@@ -5,6 +5,7 @@ const router = express.Router();
 const { Op } = require("sequelize");
 const useragent = require("useragent");
 const geoip = require("geoip-lite");
+const path = require("path");
 
 module.exports = (models, sequelize) => {
   //   const { UserLogin } = models; // Assuming UserLogin model is defined in admin-plugin app
@@ -139,6 +140,69 @@ module.exports = (models, sequelize) => {
       }
     },
   );
+
+
+
+
+// Route to render the signed-up users page
+router.get("/signedUpUsers", authMiddleware, isAdminMiddleware, (req, res) => {
+  // eslint-disable-next-line no-undef
+  res.sendFile(path.join(__dirname, "../views", "signedUpUsers.html"));
+});
+
+// API route to get the list of signed-up users
+router.get("/api/signedUpUsers", authMiddleware, isAdminMiddleware, async (req, res) => {
+  try {
+    const users = await User.findAll({
+      attributes: ["id", "email", "username", "phoneNumber", "createdAt", "updatedAt"],
+      include: [
+        {
+          model: UserLogin,
+          attributes: ["loginTime"],
+          limit: 1,
+          order: [["loginTime", "DESC"]],
+          as: "logins",
+        },
+      ],
+    });
+
+    // Map users to include lastLoginTime
+    const usersWithLastLogin = users.map((user) => {
+      const userJson = user.toJSON();
+      userJson.lastLoginTime =
+        userJson.logins && userJson.logins.length > 0 ? userJson.logins[0].loginTime : null;
+      delete userJson.logins;
+      return userJson;
+    });
+
+    res.status(200).json(usersWithLastLogin);
+  } catch (error) {
+    console.error("Error fetching signed-up users:", error);
+    res.status(500).json({ error: "Failed to fetch signed-up users" });
+  }
+});
+
+// Route to render the user profile page
+router.get("/signedUpUsers/:id", authMiddleware, isAdminMiddleware, (req, res) => {
+  // eslint-disable-next-line no-undef
+  res.sendFile(path.join(__dirname, "../views", "userProfile.html"));
+});
+
+// API route to get user data by ID
+router.get("/api/signedUpUsers/:id", authMiddleware, isAdminMiddleware, async (req, res) => {
+  const userId = req.params.id;
+  try {
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.status(200).json(user);
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+    res.status(500).json({ error: "Failed to fetch user data" });
+  }
+});
+
 
   return router;
 };

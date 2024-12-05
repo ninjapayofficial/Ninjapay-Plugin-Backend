@@ -1,0 +1,51 @@
+<!-- plugins/admin-plugin/views/userProfile.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>User Profile</title>
+  <style>
+    /* Basic styles */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    h1 {
+      color: #333;
+    }
+    .field {
+      margin-bottom: 10px;
+    }
+    .field label {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>User Profile</h1>
+  <div id="userInfo">
+    <!-- User info will be displayed here -->
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const userId = window.location.pathname.split('/').pop();
+      fetch(`/plugins/admin-plugin/api/signedUpUsers/${userId}`, { credentials: 'include' })
+        .then(response => response.json())
+        .then(user => {
+          const userInfoDiv = document.getElementById('userInfo');
+          for (const key in user) {
+            const fieldDiv = document.createElement('div');
+            fieldDiv.className = 'field';
+            fieldDiv.innerHTML = `<label>${key}:</label> ${user[key]}`;
+            userInfoDiv.appendChild(fieldDiv);
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching user data:', error);
+          alert('Error fetching user data');
+        });
+    });
+  </script>
+</body>
+</html>

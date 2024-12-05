@@ -22,7 +22,7 @@ module.exports = (sequelize) => {
     },
   );
 
-  // Define associations
+  // // Define associations
   // UserLogin.associate = (models) => {
   //   UserLogin.belongsTo(models.User, { foreignKey: 'userId' });
   // };

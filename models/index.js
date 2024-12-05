@@ -16,9 +16,10 @@ module.exports = (sequelize) => {
   // Define associations
   // User.hasMany(UserLogin, { foreignKey: 'userId' });
   // UserLogin.belongsTo(User, { foreignKey: 'userId' });
+  
   // Define associations
-  // User.hasMany(UserLogin, { foreignKey: 'userId', as: 'logins' });
-  // UserLogin.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+  User.hasMany(UserLogin, { foreignKey: 'userId', as: 'logins' });
+  UserLogin.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
   // Define associations here if necessary
   // e.g., User.hasMany(Transaction, { foreignKey: 'userId' });
