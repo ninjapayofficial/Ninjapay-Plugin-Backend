@@ -1,5 +1,5 @@
 <!-- home.html -->
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -211,33 +211,36 @@
       <h4>Menu</h4>
       <nav class="nav flex-column">
         <a class="nav-item nav-link active" href="#" onclick="loadHome()"
-        >Home</a>
-        <a
-          class="nav-item nav-link"
-          href="#"
-          onclick="togglePluginsMenu()"
-        >Plugins <i class="fas fa-caret-down"></i></a>
+          >Home</a
+        >
+        <a class="nav-item nav-link" href="#" onclick="togglePluginsMenu()"
+          >Plugins <i class="fas fa-caret-down"></i
+        ></a>
         <div id="pluginsMenu" style="display: none; margin-left: 15px">
           <a
             class="nav-item nav-link"
             href="#"
             onclick="loadPlugin('lightning-btc-plugin')"
-          >Lightning BTC Plugin</a>
+            >Lightning BTC Plugin</a
+          >
           <a
             class="nav-item nav-link"
             href="#"
             onclick="loadPlugin('opennode-plugin')"
-          >OpenNode Plugin</a>
+            >OpenNode Plugin</a
+          >
           <a
             class="nav-item nav-link"
             href="#"
             onclick="loadPlugin('Khata-plugin')"
-          >Khata Plugin</a>
+            >Khata Plugin</a
+          >
           <a
             class="nav-item nav-link"
             href="#"
             onclick="loadPlugin('loan-plugin')"
-          >Loan Plugin</a>
+            >Loan Plugin</a
+          >
           <!-- Add more plugins here -->
         </div>
         <!-- Other menu items -->
@@ -246,7 +249,8 @@
           class="nav-item nav-link"
           href="https://ninjapay.notion.site/12dd4f66270880f7b599cd9d7804a1ae"
           target="_blank"
-        >Report Bug</a>
+          >Report Bug</a
+        >
         <a class="nav-item nav-link" href="#">Settings</a>
       </nav>
     </div>
@@ -290,8 +294,7 @@
               type="button"
               class="btn-close"
               onclick="closeModal()"
-            >
-            </button>
+            ></button>
           </div>
           <div class="modal-body">
             <form id="modalForm">
@@ -310,7 +313,8 @@
               </div>
               <div class="mb-3" id="invoiceField" style="display: none">
                 <label for="invoice" class="form-label"
-                >Lightning Invoice</label>
+                  >Lightning Invoice</label
+                >
                 <input type="text" class="form-control" id="invoice" required />
               </div>
             </form>
@@ -345,8 +349,7 @@
               type="button"
               class="btn-close"
               onclick="closeInvoiceModal()"
-            >
-            </button>
+            ></button>
           </div>
           <div class="modal-body">
             <div class="copy-invoice">
@@ -366,9 +369,7 @@
     </div>
 
     <!-- Include Bootstrap JS and dependencies -->
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"
-    ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
     <!-- Your custom JavaScript -->
     <script>
       // Function to toggle the plugins menu
@@ -587,11 +588,15 @@
             tr.innerHTML = `
                         <td>${index + 1}</td>
                         <td>${
-              tx.createdAt ? new Date(tx.createdAt).toLocaleString() : "N/A"
-            }</td>
+                          tx.createdAt
+                            ? new Date(tx.createdAt).toLocaleString()
+                            : "N/A"
+                        }</td>
                         <td>${
-              tx.amount !== null ? tx.amount + " " + tx.currency : "N/A"
-            }</td>
+                          tx.amount !== null
+                            ? tx.amount + " " + tx.currency
+                            : "N/A"
+                        }</td>
                         <td>${tx.description || "N/A"}</td>
                         <td>${tx.txid || "N/A"}</td>
                     `;
@@ -600,7 +605,8 @@
           document.getElementById("transactionsError").textContent = "";
         } catch (error) {
           console.error("Error loading transactions:", error);
-          document.getElementById("transactionsError").textContent = error.message;
+          document.getElementById("transactionsError").textContent =
+            error.message;
           document.getElementById("transactionsTableBody").innerHTML =
             `<tr><td colspan="5">Error loading transactions</td></tr>`;
         }

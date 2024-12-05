@@ -1,5 +1,5 @@
-const admin = require('firebase-admin');
-const { sequelize, models } = require('./models');
+const admin = require("firebase-admin");
+const { sequelize, models } = require("./models");
 
 admin.initializeApp({
   credential: admin.credential.applicationDefault(),
@@ -15,7 +15,7 @@ async function migrateUsers() {
         users.push({
           id: userRecord.uid,
           email: userRecord.email || null,
-        //   isAdmin: false, // Set default or determine based on your logic
+          //   isAdmin: false, // Set default or determine based on your logic
           // Add other fields as necessary
         });
       });

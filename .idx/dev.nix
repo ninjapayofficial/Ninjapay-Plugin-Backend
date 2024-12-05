@@ -13,7 +13,7 @@
   ];
 
   # Sets environment variables in the workspace
-  env = {};
+  env = {}; 
   # Enable Docker service
   services.docker.enable = true; 
 

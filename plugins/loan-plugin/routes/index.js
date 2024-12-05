@@ -2,9 +2,10 @@
 
 const express = require("express");
 const router = express.Router();
-const { calculateInterest, calculateDaysRemaining } = require(
-  "../utils/calculateInterest",
-);
+const {
+  calculateInterest,
+  calculateDaysRemaining,
+} = require("../utils/calculateInterest");
 const { Op } = require("sequelize");
 
 module.exports = (models) => {

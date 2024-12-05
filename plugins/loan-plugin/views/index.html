@@ -1,6 +1,6 @@
 <!-- plugins/loan-plugin/views/index.html -->
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -161,7 +161,9 @@
 
       <h3>Interest Summary</h3>
       <p>Total Interest Given: <span id="totalInterestGiven">0.00</span></p>
-      <p>Total Interest Received: <span id="totalInterestReceived">0.00</span></p>
+      <p>
+        Total Interest Received: <span id="totalInterestReceived">0.00</span>
+      </p>
       <p>Net Interest Due: <span id="netInterestDue">0.00</span></p>
       <p>Total Amount Given: <span id="totalAmountGiven">0.00</span></p>
       <p>Total Amount Received: <span id="totalAmountReceived">0.00</span></p>
@@ -214,7 +216,9 @@
     <div id="transactionForm" class="modal">
       <div class="modal-content">
         <span class="close" id="closeTransactionForm">&times;</span>
-        <h3 id="transactionFormTitle">Add Transaction for <span id="transactionClientName"></span></h3>
+        <h3 id="transactionFormTitle">
+          Add Transaction for <span id="transactionClientName"></span>
+        </h3>
         <div class="form-group">
           <label for="transactionType">Transaction Type:</label>
           <select id="transactionType">
@@ -264,7 +268,11 @@
         </div>
         <div class="form-group">
           <label for="transactionStatus">Status:</label>
-          <input type="text" id="transactionStatus" placeholder="Enter status" />
+          <input
+            type="text"
+            id="transactionStatus"
+            placeholder="Enter status"
+          />
         </div>
         <button id="saveTransactionBtn">Save</button>
         <button id="cancelAddTransactionBtn">Cancel</button>
@@ -283,7 +291,9 @@
       const addClientForm = document.getElementById("addClientForm");
       const closeAddClientForm = document.getElementById("closeAddClientForm");
       const transactionForm = document.getElementById("transactionForm");
-      const closeTransactionForm = document.getElementById("closeTransactionForm");
+      const closeTransactionForm = document.getElementById(
+        "closeTransactionForm",
+      );
 
       // Function to open modal
       function openModal(modal) {
@@ -406,7 +416,8 @@
           })
           .catch((error) => {
             console.error("Error fetching companies:", error);
-            document.getElementById("companiesError").textContent = error.message;
+            document.getElementById("companiesError").textContent =
+              error.message;
             if (error.message.includes("Unauthorized")) {
               alert("Session expired or unauthorized. Please log in again.");
               window.location.href = "/login"; // Redirect to login page
@@ -563,7 +574,9 @@
             }
             if (!response.ok) {
               const errorText = await response.text();
-              throw new Error(errorText || "Error fetching transaction details.");
+              throw new Error(
+                errorText || "Error fetching transaction details.",
+              );
             }
             return response.json();
           })
@@ -571,14 +584,22 @@
             // Populate the form with transaction details
             document.getElementById("transactionFormTitle").innerHTML =
               `Edit Transaction for <span id="transactionClientName">${document.getElementById("selectedClientName").textContent}</span>`;
-            document.getElementById("transactionType").value = tx.transactionType;
-            document.getElementById("transactionAmount").value = parseFloat(tx.amount).toFixed(2);
-            document.getElementById("transactionGivenDate").value = tx.givenDate.split('T')[0];
-            document.getElementById("transactionInterestPercent").value = tx.interestPercent || "";
-            document.getElementById("transactionInterestDueDate").value = tx.interestDueDate ? tx.interestDueDate.split('T')[0] : "";
-            document.getElementById("transactionDescription").value = tx.description || "";
+            document.getElementById("transactionType").value =
+              tx.transactionType;
+            document.getElementById("transactionAmount").value = parseFloat(
+              tx.amount,
+            ).toFixed(2);
+            document.getElementById("transactionGivenDate").value =
+              tx.givenDate.split("T")[0];
+            document.getElementById("transactionInterestPercent").value =
+              tx.interestPercent || "";
+            document.getElementById("transactionInterestDueDate").value =
+              tx.interestDueDate ? tx.interestDueDate.split("T")[0] : "";
+            document.getElementById("transactionDescription").value =
+              tx.description || "";
             document.getElementById("transactionTxid").value = tx.txid || "";
-            document.getElementById("transactionStatus").value = tx.status || "";
+            document.getElementById("transactionStatus").value =
+              tx.status || "";
 
             // Show or hide interest fields based on transaction type
             toggleInterestFields();
@@ -649,29 +670,26 @@
             return response.json();
           })
           .then((summary) => {
-            document.getElementById("totalInterestGiven").textContent = parseFloat(
-              summary.totalInterestGiven,
-            ).toFixed(2);
-            document.getElementById("totalInterestReceived").textContent = parseFloat(
-              summary.totalInterestReceived,
-            ).toFixed(2);
+            document.getElementById("totalInterestGiven").textContent =
+              parseFloat(summary.totalInterestGiven).toFixed(2);
+            document.getElementById("totalInterestReceived").textContent =
+              parseFloat(summary.totalInterestReceived).toFixed(2);
             document.getElementById("netInterestDue").textContent = parseFloat(
               summary.netInterestDue,
             ).toFixed(2);
-            document.getElementById("totalAmountGiven").textContent = parseFloat(
-              summary.totalAmountGiven,
-            ).toFixed(2);
-            document.getElementById("totalAmountReceived").textContent = parseFloat(
-              summary.totalAmountReceived,
-            ).toFixed(2);
+            document.getElementById("totalAmountGiven").textContent =
+              parseFloat(summary.totalAmountGiven).toFixed(2);
+            document.getElementById("totalAmountReceived").textContent =
+              parseFloat(summary.totalAmountReceived).toFixed(2);
             document.getElementById("netLoan").textContent = parseFloat(
               summary.netLoan,
             ).toFixed(2);
-            document.getElementById("interestStatus").value = summary.status ||
-              "pending";
+            document.getElementById("interestStatus").value =
+              summary.status || "pending";
 
             // Show "Add to Next Month" button if status is 'pending'
-            const addToNextMonthBtn = document.getElementById("addToNextMonthBtn");
+            const addToNextMonthBtn =
+              document.getElementById("addToNextMonthBtn");
             if (summary.status === "pending") {
               addToNextMonthBtn.classList.remove("hidden");
             } else {
@@ -783,7 +801,8 @@
           })
           .catch((error) => {
             console.error("Error adding client:", error);
-            document.getElementById("addClientError").textContent = error.message;
+            document.getElementById("addClientError").textContent =
+              error.message;
             if (error.message.includes("Unauthorized")) {
               alert("Session expired or unauthorized. Please log in again.");
               window.location.href = "/login"; // Redirect to login page
@@ -828,7 +847,8 @@
         });
 
       function toggleInterestFields() {
-        const transactionType = document.getElementById("transactionType").value;
+        const transactionType =
+          document.getElementById("transactionType").value;
         if (transactionType === "amount_given") {
           document.getElementById("interestFields").style.display = "block";
         } else {
@@ -840,7 +860,8 @@
       document
         .getElementById("saveTransactionBtn")
         .addEventListener("click", () => {
-          const transactionType = document.getElementById("transactionType").value;
+          const transactionType =
+            document.getElementById("transactionType").value;
           const amount = parseFloat(
             document.getElementById("transactionAmount").value,
           );
@@ -881,7 +902,10 @@
             status,
           };
 
-          if (transactionType === "amount_given" || transactionType === "amount_received") {
+          if (
+            transactionType === "amount_given" ||
+            transactionType === "amount_received"
+          ) {
             if (!interestPercent || isNaN(interestPercent)) {
               alert("Please enter a valid interest percent.");
               return;

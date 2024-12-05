@@ -1,6 +1,5 @@
 // migrations/20241108-create-user-login.js
 
-
 "use strict";
 
 module.exports = {
@@ -11,7 +10,11 @@ module.exports = {
     await queryInterface.createTable("UserLogins", {
       id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
       userId: { type: DataTypes.STRING, allowNull: false },
-      loginTime: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
+      loginTime: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: DataTypes.NOW,
+      },
       userAgent: { type: DataTypes.TEXT, allowNull: true },
       ipAddress: { type: DataTypes.STRING, allowNull: true },
     });
@@ -22,5 +25,3 @@ module.exports = {
     await queryInterface.dropTable("UserLogins");
   },
 };
-
-

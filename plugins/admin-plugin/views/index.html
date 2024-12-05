@@ -1,157 +1,168 @@
 <!-- plugins/admin-plugin/views/index.html -->
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Admin Dashboard</title>
-  <style>
-    /* Basic styles */
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
-    h1, h2 {
-      color: #333;
-    }
-    .section {
-      margin-bottom: 40px;
-    }
-    .chart-container {
-      width: 50%;
-      margin: auto;
-    }
-    .stats {
-      display: flex;
-      justify-content: space-around;
-      margin-bottom: 40px;
-    }
-    .stat {
-      text-align: center;
-    }
-  </style>
-</head>
-<body>
-  <h1>Admin Dashboard</h1>
-
-  <div class="section">
-    <h2>Overall Statistics</h2>
-    <div class="stats">
-      <div class="stat">
-        <h3>Total Signed-up Users</h3>
-        <p id="totalUsers">0</p>
-      </div>
-      <div class="stat">
-        <h3>Total Active Users</h3>
-        <p id="activeUsers">0</p>
-      </div>
-      <div class="stat">
-        <h3>Total Loan Companies</h3>
-        <p id="totalCompanies">0</p>
-      </div>
-      <div class="stat">
-        <h3>Total Loan Clients</h3>
-        <p id="totalClients">0</p>
-      </div>
-      <div class="stat">
-        <h3>Total Transactions</h3>
-        <p id="totalTransactions">0</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="section">
-    <h2>Login by Browser</h2>
-    <div class="chart-container">
-      <canvas id="browserChart"></canvas>
-    </div>
-  </div>
-
-  <div class="section">
-    <h2>Login by OS</h2>
-    <div class="chart-container">
-      <canvas id="osChart"></canvas>
-    </div>
-  </div>
-
-  <div class="section">
-    <h2>Login by Location</h2>
-    <div class="chart-container">
-      <canvas id="locationChart"></canvas>
-    </div>
-  </div>
-
-  <!-- Include Chart.js from CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <script>
-    // Fetch data and render charts
-    document.addEventListener('DOMContentLoaded', function () {
-      // Fetch total users
-      fetch('/plugins/admin-plugin/totalUsers', { credentials: 'include' })
-        .then(response => response.json())
-        .then(data => {
-          document.getElementById('totalUsers').textContent = data.totalUsers;
-        });
-
-      // Fetch active users
-      fetch('/plugins/admin-plugin/activeUsers', { credentials: 'include' })
-        .then(response => response.json())
-        .then(data => {
-          document.getElementById('activeUsers').textContent = data.activeUsers;
-        });
-
-      // Fetch loan stats
-      fetch('/plugins/admin-plugin/loanStats', { credentials: 'include' })
-        .then(response => response.json())
-        .then(data => {
-          document.getElementById('totalCompanies').textContent = data.totalCompanies;
-          document.getElementById('totalClients').textContent = data.totalClients;
-          document.getElementById('totalTransactions').textContent = data.totalTransactions;
-        });
-
-      // Fetch login data and render charts
-      fetch('/plugins/admin-plugin/loginData', { credentials: 'include' })
-        .then(response => response.json())
-        .then(data => {
-          renderChart('browserChart', 'Login by Browser', data.browserCounts);
-          renderChart('osChart', 'Login by OS', data.osCounts);
-          renderChart('locationChart', 'Login by Location', data.locationCounts);
-        });
-
-      function renderChart(canvasId, title, dataCounts) {
-        const labels = Object.keys(dataCounts);
-        const dataValues = Object.values(dataCounts);
-
-        const ctx = document.getElementById(canvasId).getContext('2d');
-        const chart = new Chart(ctx, {
-          type: 'pie',
-          data: {
-            labels: labels,
-            datasets: [{
-              data: dataValues,
-              backgroundColor: getRandomColors(labels.length),
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            title: {
-              display: true,
-              text: title
-            }
-          }
-        });
+  <head>
+    <meta charset="UTF-8" />
+    <title>Admin Dashboard</title>
+    <style>
+      /* Basic styles */
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
       }
+      h1,
+      h2 {
+        color: #333;
+      }
+      .section {
+        margin-bottom: 40px;
+      }
+      .chart-container {
+        width: 50%;
+        margin: auto;
+      }
+      .stats {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 40px;
+      }
+      .stat {
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Admin Dashboard</h1>
 
-      function getRandomColors(numColors) {
-        const colors = [];
-        for (let i = 0; i < numColors; i++) {
-          const color = 'hsl(' + (360 * Math.random()) + ', 70%, 70%)';
-          colors.push(color);
+    <div class="section">
+      <h2>Overall Statistics</h2>
+      <div class="stats">
+        <div class="stat">
+          <h3>Total Signed-up Users</h3>
+          <p id="totalUsers">0</p>
+        </div>
+        <div class="stat">
+          <h3>Total Active Users</h3>
+          <p id="activeUsers">0</p>
+        </div>
+        <div class="stat">
+          <h3>Total Loan Companies</h3>
+          <p id="totalCompanies">0</p>
+        </div>
+        <div class="stat">
+          <h3>Total Loan Clients</h3>
+          <p id="totalClients">0</p>
+        </div>
+        <div class="stat">
+          <h3>Total Transactions</h3>
+          <p id="totalTransactions">0</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Login by Browser</h2>
+      <div class="chart-container">
+        <canvas id="browserChart"></canvas>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Login by OS</h2>
+      <div class="chart-container">
+        <canvas id="osChart"></canvas>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Login by Location</h2>
+      <div class="chart-container">
+        <canvas id="locationChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Include Chart.js from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+      // Fetch data and render charts
+      document.addEventListener("DOMContentLoaded", function () {
+        // Fetch total users
+        fetch("/plugins/admin-plugin/totalUsers", { credentials: "include" })
+          .then((response) => response.json())
+          .then((data) => {
+            document.getElementById("totalUsers").textContent = data.totalUsers;
+          });
+
+        // Fetch active users
+        fetch("/plugins/admin-plugin/activeUsers", { credentials: "include" })
+          .then((response) => response.json())
+          .then((data) => {
+            document.getElementById("activeUsers").textContent =
+              data.activeUsers;
+          });
+
+        // Fetch loan stats
+        fetch("/plugins/admin-plugin/loanStats", { credentials: "include" })
+          .then((response) => response.json())
+          .then((data) => {
+            document.getElementById("totalCompanies").textContent =
+              data.totalCompanies;
+            document.getElementById("totalClients").textContent =
+              data.totalClients;
+            document.getElementById("totalTransactions").textContent =
+              data.totalTransactions;
+          });
+
+        // Fetch login data and render charts
+        fetch("/plugins/admin-plugin/loginData", { credentials: "include" })
+          .then((response) => response.json())
+          .then((data) => {
+            renderChart("browserChart", "Login by Browser", data.browserCounts);
+            renderChart("osChart", "Login by OS", data.osCounts);
+            renderChart(
+              "locationChart",
+              "Login by Location",
+              data.locationCounts,
+            );
+          });
+
+        function renderChart(canvasId, title, dataCounts) {
+          const labels = Object.keys(dataCounts);
+          const dataValues = Object.values(dataCounts);
+
+          const ctx = document.getElementById(canvasId).getContext("2d");
+          const chart = new Chart(ctx, {
+            type: "pie",
+            data: {
+              labels: labels,
+              datasets: [
+                {
+                  data: dataValues,
+                  backgroundColor: getRandomColors(labels.length),
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              title: {
+                display: true,
+                text: title,
+              },
+            },
+          });
         }
-        return colors;
-      }
-    });
-  </script>
-</body>
+
+        function getRandomColors(numColors) {
+          const colors = [];
+          for (let i = 0; i < numColors; i++) {
+            const color = "hsl(" + 360 * Math.random() + ", 70%, 70%)";
+            colors.push(color);
+          }
+          return colors;
+        }
+      });
+    </script>
+  </body>
 </html>

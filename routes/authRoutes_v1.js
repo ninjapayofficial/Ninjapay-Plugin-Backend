@@ -10,7 +10,6 @@
 // // // const UserLogin = require("../models/UserLogin");
 // // // const User = require("../models/User");
 
-
 // const SESSION_COOKIE_NAME = "session";
 
 // // Function to generate provider-specific keys
@@ -27,13 +26,10 @@
 //   return "wh_sec_" + crypto.randomBytes(16).toString("hex");
 // }
 
-
 // // Endpoint to create session login
 // router.post("/sessionLogin", async (req, res ) => {
 //   const idToken = req.body.idToken;
 //   const expiresIn = 60 * 60 * 24 * 5 * 1000; // Session expires in 5 days
-
-  
 
 //   try {
 
@@ -75,7 +71,6 @@
 //   }
 // });
 
-
 // // Endpoint to logout
 // router.post("/sessionLogout", (req, res) => {
 //   res.clearCookie(SESSION_COOKIE_NAME);
@@ -91,7 +86,6 @@
 //       password,
 //     });
 
-
 //     // const uid = userRecord.uid;
 
 //     // Save user data to Firestore
@@ -103,7 +97,6 @@
 //       adminKey: "", // Initialize empty; can be set when adding a provider
 //       fundingProviders: [], // Initialize as empty array
 //     });
-
 
 //     // // Save user data to the database
 //     // await User.create({

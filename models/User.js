@@ -1,9 +1,9 @@
 // models/User.js
-const { DataTypes } = require('sequelize');
+const { DataTypes } = require("sequelize");
 
 module.exports = (sequelize) => {
   const User = sequelize.define(
-    'User',
+    "User",
     {
       id: {
         type: DataTypes.STRING,
@@ -57,8 +57,8 @@ module.exports = (sequelize) => {
     },
     {
       timestamps: true, // Automatically adds createdAt and updatedAt
-      tableName: 'Users',
-    }
+      tableName: "Users",
+    },
   );
 
   // Define associations if necessary

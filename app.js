@@ -19,7 +19,6 @@ const authMiddleware = require("./middleware/authMiddleware");
 const admin = require("./firebase");
 const paymentRoutes = require("./routes/paymentRoutes");
 
-
 // Database Connection
 const sequelize = new Sequelize(
   process.env.DB_NAME,
@@ -30,17 +29,16 @@ const sequelize = new Sequelize(
     dialect: process.env.DB_DIALECT || "postgres",
     port: process.env.DB_PORT || 5432,
     dialectOptions: {
-      ssl: process.env.DB_SSL === "true"
-        ? {
-          require: true,
-          rejectUnauthorized: false,
-        }
-        : false,
+      ssl:
+        process.env.DB_SSL === "true"
+          ? {
+              require: true,
+              rejectUnauthorized: false,
+            }
+          : false,
     },
   },
 );
-
-
 
 // // Alternatively, you can use the connection URI provided:
 // const sequelize = new Sequelize(process.env.DATABASE_URL, {
