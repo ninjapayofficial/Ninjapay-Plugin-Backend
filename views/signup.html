@@ -9,6 +9,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
     <!-- Include Firebase Firestore if using it -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    <!-- Include Firebase config from server -->
+    <script src="/firebase-config.js"></script>
   </head>
   <body>
     <h1>Sign Up</h1>
@@ -20,21 +22,6 @@
     <div id="signupMessage"></div>
 
     <script>
-      // Your Firebase config
-      const firebaseConfig = {
-        apiKey: "AIzaSyAkbmy7CVJCRzyDv-Aw37vorNNoi1e5sOc",
-        authDomain: "ninjapay-plugin-backend-dev.firebaseapp.com",
-        projectId: "ninjapay-plugin-backend-dev",
-        storageBucket: "ninjapay-plugin-backend-dev.firebasestorage.app",
-        messagingSenderId: "76820525398",
-        appId: "1:76820525398:web:4378028e4c6f705a73a6f7",
-        measurementId: "G-C8VB4E2X80",
-      };
-
-      firebase.initializeApp(firebaseConfig);
-
-      // Initialize Firestore
-      const db = firebase.firestore();
 
       function signup() {
         const email = document.getElementById("email").value;
