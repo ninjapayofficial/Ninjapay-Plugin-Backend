@@ -1,6 +1,7 @@
+
 {
   "development": {
-    "url": "postgresql://neonnindb_owner:4bIRVy3adqsT@ep-sparkling-firefly-a5jyamgl.us-east-2.aws.neon.tech/neonnindb?sslmode=require",
+    "url": "${DEV_DATABASE_URL}",
     "dialect": "postgres",
     "dialectOptions": {
       "ssl": {
@@ -10,14 +11,14 @@
     }
   },
   "test": {
-    "username": "root",
-    "password": null,
-    "database": "database_test",
-    "host": "127.0.0.1",
+    "username": "${TEST_DB_USER}",
+    "password": "${TEST_DB_PASSWORD}",
+    "database": "${TEST_DB_NAME}",
+    "host": "${TEST_DB_HOST}",
     "dialect": "postgres"
   },
   "production": {
-    "url": "postgresql://neonnindb_owner:4bIRVy3adqsT@ep-sparkling-firefly-a5jyamgl.us-east-2.aws.neon.tech/neonnindb?sslmode=require",
+    "url": "${PROD_DATABASE_URL}",
     "dialect": "postgres",
     "dialectOptions": {
       "ssl": {

@@ -14,7 +14,6 @@ module.exports = {
 async function runCoreMigrations(sequelize) {
   const umzug = new Umzug({
     migrations: {
-      // eslint-disable-next-line no-undef
       glob: path.join(__dirname, "migrations/*.js"),
     },
     context: sequelize, // Pass the Sequelize instance
@@ -27,7 +26,6 @@ async function runCoreMigrations(sequelize) {
 }
 
 async function runPluginMigrations(sequelize, pluginName) {
-  // eslint-disable-next-line no-undef
   const pluginMigrationsPath = path.join(
     __dirname,
     "plugins",
@@ -56,7 +54,6 @@ async function runPluginMigrations(sequelize, pluginName) {
 }
 
 async function rollbackPluginMigrations(sequelize, pluginName) {
-  // eslint-disable-next-line no-undef
   const pluginMigrationsPath = path.join(
     __dirname,
     "plugins",
