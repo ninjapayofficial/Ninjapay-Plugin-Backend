@@ -441,30 +441,31 @@
             return response.json();
           })
           .then((clients) => {
+            // Always show the clientsSection
+            document.getElementById("clientsSection").classList.remove("hidden");
+            
+            const clientsList = document.getElementById("clientsList");
+            clientsList.innerHTML = ""; // Clear existing clients
+
             if (clients && clients.length > 0) {
-              document
-                .getElementById("clientsSection")
-                .classList.remove("hidden");
-              const clientsList = document.getElementById("clientsList");
-              clientsList.innerHTML = "";
               clients.forEach((client) => {
                 const li = document.createElement("li");
                 const btn = document.createElement("button");
                 btn.textContent = client.name;
                 btn.addEventListener("click", () => {
                   selectedClientId = client.id;
-                  document.getElementById("selectedClientName").textContent =
-                    client.name;
-                  document
-                    .getElementById("clientsSection")
-                    .classList.add("hidden");
+                  document.getElementById("selectedClientName").textContent = client.name;
+                  document.getElementById("clientsSection").classList.add("hidden");
                   loadTransactions();
                 });
                 li.appendChild(btn);
                 clientsList.appendChild(li);
               });
             } else {
-              alert("No clients found for this company.");
+              // Display a message indicating no clients and prompt to add one
+              const li = document.createElement("li");
+              li.textContent = "No clients found for this company.";
+              clientsList.appendChild(li);
             }
           })
           .catch((error) => {
@@ -476,6 +477,7 @@
             }
           });
       }
+
 
       // Function to load transactions
       function loadTransactions() {
