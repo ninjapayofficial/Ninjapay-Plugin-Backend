@@ -87,8 +87,8 @@ module.exports = (sequelize, models) => {
       await db.collection("users").doc(userRecord.uid).set({
         // Initialize fields if necessary
         walletId: "", // Initialize with empty or generate as needed
-        invoiceKey: "", // Initialize empty; can be set when adding a provider
-        adminKey: "", // Initialize empty; can be set when adding a provider
+        userInvoiceKey: "", // Initialize empty; can be set when adding a provider
+        userAdminKey: "", // Initialize empty; can be set when adding a provider
         isAdmin: false, // Initialize as false
         fundingProviders: [], // Initialize as empty array
       });
