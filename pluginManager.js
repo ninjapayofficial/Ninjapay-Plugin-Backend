@@ -38,7 +38,7 @@ module.exports = {
   uninstallPlugin,
 };
 
-async function installPlugin(repoUrl, app, sequelize, invoiceKey) {
+async function installPlugin(repoUrl, app, sequelize) {
   try {
     const pluginName = repoUrl.split("/").pop().replace(".git", "");
     const pluginPath = path.join(pluginsDir, pluginName);
@@ -60,7 +60,7 @@ async function installPlugin(repoUrl, app, sequelize, invoiceKey) {
     await runPluginMigrations(sequelize, pluginName);
 
     // Load the plugin into the application
-    await loadPlugin(app, sequelize, pluginName, invoiceKey);
+    await loadPlugin(app, sequelize, pluginName);
   } catch (err) {
     console.error("Error installing plugin:", err);
     throw err;
@@ -186,10 +186,10 @@ async function loadPlugin(app, sequelize, pluginName) {
 //   }
 // }
 
-async function loadPlugins(app, sequelize, invoiceKey) {
+async function loadPlugins(app, sequelize) {
   const pluginFolders = fs.readdirSync(pluginsDir);
   for (const folder of pluginFolders) {
-    await loadPlugin(app, sequelize, folder, invoiceKey);
+    await loadPlugin(app, sequelize, folder);
   }
 }
 

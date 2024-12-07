@@ -148,7 +148,7 @@ app.use((req, res, next) => {
 });
 
 // Load the Invoice Key from the .env file
-const invoiceKey = process.env.INVOICE_KEY;
+// const invoiceKey = process.env.INVOICE_KEY;
 
 // Wrap the initialization code in an async function
 (async () => {
@@ -160,7 +160,7 @@ const invoiceKey = process.env.INVOICE_KEY;
     await runCoreMigrations(sequelize);
 
     // Load existing plugins after DB connection
-    await pluginManager.loadPlugins(app, sequelize, invoiceKey);
+    await pluginManager.loadPlugins(app, sequelize);
 
     // Start the server
     app.listen(port, () => {
@@ -194,7 +194,7 @@ app.post("/install-plugin", async (req, res) => {
     return res.status(400).send("Invalid repository URL.");
   }
   try {
-    await pluginManager.installPlugin(repoUrl, app, sequelize, invoiceKey);
+    await pluginManager.installPlugin(repoUrl, app, sequelize);
     res.send("Plugin installed and loaded successfully!");
   } catch (error) {
     console.error(error);
