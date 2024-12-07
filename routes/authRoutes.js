@@ -89,6 +89,7 @@ module.exports = (sequelize, models) => {
         walletId: "", // Initialize with empty or generate as needed
         invoiceKey: "", // Initialize empty; can be set when adding a provider
         adminKey: "", // Initialize empty; can be set when adding a provider
+        isAdmin: false, // Initialize as false
         fundingProviders: [], // Initialize as empty array
       });
 
