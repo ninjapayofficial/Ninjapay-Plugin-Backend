@@ -1,3 +1,6 @@
+/* eslint-disable no-undef */
+/* eslint-disable no-unused-vars */
+// /* eslint-disable no-undef */
 // const express = require('express');
 // const router = express.Router();
 // const pluginManager = require('../pluginManager');
@@ -18,6 +21,33 @@
 const express = require("express");
 const router = express.Router();
 const pluginManager = require("../pluginManager");
+const validator = require("validator");
+const app = express();
+require("dotenv").config();
+const { sequelize } = require("sequelize");
+const fs = require("fs");
+const path = require("path");
+
+// // Database Connection
+// const sequelize = new Sequelize(
+//   process.env.DB_NAME,
+//   process.env.DB_USER,
+//   process.env.DB_PASSWORD,
+//   {
+//     host: process.env.DB_HOST,
+//     dialect: process.env.DB_DIALECT || "postgres",
+//     port: process.env.DB_PORT || 5432,
+//     dialectOptions: {
+//       ssl:
+//         process.env.DB_SSL === "true"
+//           ? {
+//               require: true,
+//               rejectUnauthorized: false,
+//             }
+//           : false,
+//     },
+//   },
+// );
 
 /**
  * @swagger
@@ -51,7 +81,7 @@ router.post("/install-plugin", async (req, res) => {
     return res.status(400).send("Invalid repository URL.");
   }
   try {
-    await pluginManager.installPlugin(repoUrl, app, sequelize, invoiceKey);
+    await pluginManager.installPlugin(repoUrl, app, sequelize);
     res.send("Plugin installed and loaded successfully!");
   } catch (error) {
     console.error(error);
@@ -76,7 +106,7 @@ router.post("/install-plugin", async (req, res) => {
  *                 type: string
  */
 router.get("/plugins", (req, res) => {
-  const pluginsDir = path.join(__dirname, "plugins");
+  const pluginsDir = path.join(__dirname, "../plugins");
   fs.readdir(pluginsDir, (err, files) => {
     if (err) {
       console.error("Error reading plugins directory:", err);

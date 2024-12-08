@@ -110,7 +110,7 @@ app.use("/auth", authRoutes);
 app.use("/api", pluginRoutes);
 
 // Set up Swagger UI
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
+app.use("/api-docs", authMiddleware, swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
 // Serve funding.html (ensure the user is authenticated)
 app.get("/funding", authMiddleware, (req, res) => {
