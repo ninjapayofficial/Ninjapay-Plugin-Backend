@@ -159,7 +159,6 @@ module.exports = (sequelize, models) => {
         fundingProviderData.providerAdminKey = generateProviderAdminKey();
         // Generate a unique webhook secret and URL
         const webhookSecret = generateWebhookSecret();
-        // eslint-disable-next-line no-undef
         const webhookUrl =
           // eslint-disable-next-line no-undef
           `${process.env.BASE_URL}/webhook/${provider}/${webhookSecret}`;
@@ -181,7 +180,6 @@ module.exports = (sequelize, models) => {
         fundingProviderData.providerAdminKey = generateProviderAdminKey();
         // Generate a unique webhook secret and URL
         const webhookSecret = generateWebhookSecret();
-        // eslint-disable-next-line no-undef
         const webhookUrl =
           // eslint-disable-next-line no-undef
           `${process.env.BASE_URL}/webhook/${provider}/${webhookSecret}`;
