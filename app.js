@@ -41,7 +41,7 @@ const paymentRoutes = require("./routes/paymentRoutes");
 // );
 
 // Alternatively, you can use the connection URI provided:
-const sequelize = new Sequelize(process.env.DATABASE_URL, {
+const sequelize = new Sequelize(process.env.PROD_DATABASE_URL, {
   dialect: 'postgres',
   protocol: 'postgres',
   port: process.env.DB_PORT || 5432,
