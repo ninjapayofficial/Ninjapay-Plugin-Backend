@@ -3,11 +3,6 @@
 
 const express = require("express");
 const router = express.Router();
-const {
-  calculateInterest,
-  calculateDaysRemaining,
-} = require("../utils/calculateInterest");
-const { Op } = require("sequelize");
 
 // Middleware to check authentication
 const authMiddleware = require("../../../middleware/authMiddleware");
@@ -19,7 +14,149 @@ module.exports = (models) => {
    * @swagger
    * tags:
    *   name: LoanPlugin
-   *   description: Endpoints for managing loan companies, clients, and transactions
+   *   description: Endpoints for managing loan companies, clients, transactions, and interest statuses
+   */
+
+  /**
+   * @swagger
+   * components:
+   *   schemas:
+   *     ErrorResponse:
+   *       type: object
+   *       properties:
+   *         error:
+   *           type: string
+   *           description: Error message detailing what went wrong.
+   *
+   *     LoanCompany:
+   *       type: object
+   *       properties:
+   *         id:
+   *           type: integer
+   *           description: Unique identifier for the loan company.
+   *         userId:
+   *           type: integer
+   *           description: ID of the user who owns the company.
+   *         name:
+   *           type: string
+   *           description: Name of the loan company.
+   *         createdAt:
+   *           type: string
+   *           format: date-time
+   *           description: Timestamp when the company was created.
+   *         updatedAt:
+   *           type: string
+   *           format: date-time
+   *           description: Timestamp when the company was last updated.
+   *
+   *     LoanClient:
+   *       type: object
+   *       properties:
+   *         id:
+   *           type: integer
+   *           description: Unique identifier for the loan client.
+   *         companyId:
+   *           type: integer
+   *           description: ID of the associated loan company.
+   *         name:
+   *           type: string
+   *           description: Name of the client.
+   *         phoneNumber:
+   *           type: string
+   *           description: Client's phone number.
+   *         email:
+   *           type: string
+   *           format: email
+   *           description: Client's email address.
+   *         address:
+   *           type: string
+   *           description: Client's physical address.
+   *         currentBalance:
+   *           type: number
+   *           description: Current loan balance for the client.
+   *         createdAt:
+   *           type: string
+   *           format: date-time
+   *           description: Timestamp when the client was created.
+   *         updatedAt:
+   *           type: string
+   *           format: date-time
+   *           description: Timestamp when the client was last updated.
+   *
+   *     LoanTransaction:
+   *       type: object
+   *       properties:
+   *         id:
+   *           type: integer
+   *           description: Unique identifier for the loan transaction.
+   *         clientId:
+   *           type: integer
+   *           description: ID of the associated loan client.
+   *         transactionType:
+   *           type: string
+   *           enum: ["amount_given", "amount_received"]
+   *           description: Type of transaction.
+   *         amount:
+   *           type: number
+   *           description: Transaction amount.
+   *         givenDate:
+   *           type: string
+   *           format: date-time
+   *           description: Date when the transaction was given.
+   *         interestPercent:
+   *           type: number
+   *           description: Interest percentage for the transaction.
+   *         interestDueDate:
+   *           type: string
+   *           format: date-time
+   *           description: Due date for the interest.
+   *         description:
+   *           type: string
+   *           description: Description of the transaction.
+   *         txid:
+   *           type: string
+   *           description: Transaction ID.
+   *         status:
+   *           type: string
+   *           description: Status of the transaction.
+   *         balanceAfter:
+   *           type: number
+   *           description: Balance after the transaction.
+   *         createdAt:
+   *           type: string
+   *           format: date-time
+   *           description: Timestamp when the transaction was created.
+   *         updatedAt:
+   *           type: string
+   *           format: date-time
+   *           description: Timestamp when the transaction was last updated.
+   *
+   *     LoanInterestStatus:
+   *       type: object
+   *       properties:
+   *         id:
+   *           type: integer
+   *           description: Unique identifier for the interest status.
+   *         clientId:
+   *           type: integer
+   *           description: ID of the associated loan client.
+   *         year:
+   *           type: integer
+   *           description: Year of the interest status.
+   *         month:
+   *           type: integer
+   *           description: Month of the interest status.
+   *         status:
+   *           type: string
+   *           description: Status of the interest.
+   *         createdAt:
+   *           type: string
+   *           format: date-time
+   *           description: Timestamp when the interest status was created.
+   *         updatedAt:
+   *           type: string
+   *           format: date-time
+   *           description: Timestamp when the interest status was last updated.
    */
 
   /**
@@ -617,6 +754,8 @@ module.exports = (models) => {
   router.get("/getCompanies", authMiddleware, async (req, res) => {
     // Implementation code omitted
   });
+
+  // Additional routes can be added here with similar Swagger annotations
 
   return router;
 };
