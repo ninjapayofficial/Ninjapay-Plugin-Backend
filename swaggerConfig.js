@@ -46,11 +46,11 @@ const swaggerOptions = {
   swaggerDefinition: {
     openapi: "3.0.0",
     info: {
-      title: "NinjaPay API",
+      title: "Ninjapay API",
       version: "1.0.0",
-      description: "API documentation for NinjaPay platform",
+      description: "API documentation for Ninjapay platform",
       contact: {
-        name: "NinjaPay Team",
+        name: "Ninjapay Team",
         email: "dev@ninjapay.me",
       },
     },
