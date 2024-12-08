@@ -20,25 +20,38 @@ const admin = require("./firebase");
 const paymentRoutes = require("./routes/paymentRoutes");
 
 // Database Connection
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    dialect: process.env.DB_DIALECT || "postgres",
-    port: process.env.DB_PORT || 5432,
-    dialectOptions: {
-      ssl:
-        process.env.DB_SSL === "true"
-          ? {
-              require: true,
-              rejectUnauthorized: false,
-            }
-          : false,
-    },
+// const sequelize = new Sequelize(
+//   process.env.DB_NAME,
+//   process.env.DB_USER,
+//   process.env.DB_PASSWORD,
+//   {
+//     host: process.env.DB_HOST,
+//     dialect: process.env.DB_DIALECT || "postgres",
+//     port: process.env.DB_PORT || 5432,
+//     dialectOptions: {
+//       ssl:
+//         process.env.DB_SSL === "true"
+//           ? {
+//               require: true,
+//               rejectUnauthorized: false,
+//             }
+//           : false,
+//     },
+//   },
+// );
+
+// Alternatively, you can use the connection URI provided:
+const sequelize = new Sequelize(process.env.DATABASE_URL, {
+  dialect: 'postgres',
+  protocol: 'postgres',
+  port: process.env.DB_PORT || 5432,
+  dialectOptions: {
+    ssl: process.env.DB_SSL === 'true' ? {
+      require: true,
+      rejectUnauthorized: false,
+    } : false,
   },
-);
+});
 
 // Route to serve Firebase config as a JavaScript file
 app.get('/firebase-config.js', (req, res) => {
@@ -62,17 +75,7 @@ app.get('/firebase-config.js', (req, res) => {
   `);
 });
 
-// // Alternatively, you can use the connection URI provided:
-// const sequelize = new Sequelize(process.env.DATABASE_URL, {
-//   dialect: 'postgres',
-//   protocol: 'postgres',
-//   dialectOptions: {
-//     ssl: process.env.DB_SSL === 'true' ? {
-//       require: true,
-//       rejectUnauthorized: false,
-//     } : false,
-//   },
-// });
+
 
 // Initialize models
 const models = require("./models")(sequelize); // Initialize models
