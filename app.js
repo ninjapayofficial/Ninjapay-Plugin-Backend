@@ -18,6 +18,7 @@ const cors = require("cors");
 const authMiddleware = require("./middleware/authMiddleware");
 const admin = require("./firebase");
 const paymentRoutes = require("./routes/paymentRoutes");
+const tradeRoutes = require("./routes/tradeRoutes");
 
 // Database Connection
 // const sequelize = new Sequelize(
@@ -130,6 +131,9 @@ app.get("/home", authMiddleware, (req, res) => {
 // Mount payment routes, passing the models
 const initializedPaymentRoutes = paymentRoutes(models);
 app.use("/payments", initializedPaymentRoutes);
+
+// Mount trade routes, no passing the models
+app.use("/trade", tradeRoutes);
 
 // Middleware to serve static files from plugins' 'views' directories
 app.use((req, res, next) => {

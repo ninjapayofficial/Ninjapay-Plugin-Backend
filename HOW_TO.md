@@ -179,3 +179,13 @@ docker stop <containerId> \
 du -ah . | sort -rh | head -n 20\
 df -h /home\
 npx prettier --write . \
+
+
+
+
+///// Binance \
+curl -X GET http://localhost:3000/trade/balance \
+     -H "x-provider-invoice-key: p_ik_958iaba5m"
+
+curl -X GET http://localhost:3000/trade/profile \
+     -H "x-provider-invoice-key: p_ik_958iaba5m"

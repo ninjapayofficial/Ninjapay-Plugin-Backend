@@ -52,6 +52,7 @@
       <select id="provider" onchange="showProviderFields()">
         <option value="lnbits">LNbits</option>
         <option value="opennode">OpenNode</option>
+        <option value="binance">Binance</option>
         <!-- Add other providers here -->
       </select>
       <br />
@@ -77,6 +78,16 @@
         <br />
         <label for="opennodeReadApiKey">OpenNode Read API Key:</label>
         <input type="text" id="opennodeReadApiKey" />
+        <br />
+      </div>
+
+      <!-- Binance Fields -->
+      <div id="binance-fields" style="display: none">
+        <label for="binanceApiKey">Binance API Key:</label>
+        <input type="text" id="binanceApiKey" />
+        <br />
+        <label for="binanceSecretApiKey">Binance Secret API Key:</label>
+        <input type="text" id="binanceSecretApiKey" />
         <br />
       </div>
 
@@ -108,6 +119,8 @@
           provider === "lnbits" ? "block" : "none";
         document.getElementById("opennode-fields").style.display =
           provider === "opennode" ? "block" : "none";
+        document.getElementById("binance-fields").style.display =
+          provider === "binance" ? "block" : "none";
       }
 
       function connectProvider() {
@@ -121,6 +134,9 @@
         } else if (provider === "opennode") {
           data.apiKey = document.getElementById("opennodeApiKey").value;
           data.readApiKey = document.getElementById("opennodeReadApiKey").value;
+        } else if (provider === "binance") {
+          data.apiKey = document.getElementById("binanceApiKey").value;
+          data.secretApiKey = document.getElementById("binanceSecretApiKey").value;
         }
 
         // // Debug: Log data being sent
@@ -168,6 +184,11 @@
               <strong>Provider Admin Key:</strong> ${provider.providerAdminKey}
             `;
               } else if (provider.provider === "opennode") {
+                details = `
+              <strong>Provider Invoice Key:</strong> ${provider.providerInvoiceKey}<br>
+              <strong>Provider Admin Key:</strong> ${provider.providerAdminKey}
+            `;
+              } else if (provider.provider === "binance") {
                 details = `
               <strong>Provider Invoice Key:</strong> ${provider.providerInvoiceKey}<br>
               <strong>Provider Admin Key:</strong> ${provider.providerAdminKey}
