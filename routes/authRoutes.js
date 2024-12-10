@@ -140,6 +140,9 @@ module.exports = (sequelize, models) => {
 
     // console.log('Received provider:', provider);
     // console.log('Request body:', req.body);
+    if (!provider) {
+      return res.status(400).send("Provider is required.");
+    }
 
     try {
       const db = admin.firestore();
@@ -190,11 +193,11 @@ module.exports = (sequelize, models) => {
 
         console.log("Received apiKey:", apiKey);
 
-        if (!apiKey) {
-          return res.status(400).send("API Key is required for Binance.");
+        if (!apiKey || !secretApiKey) {
+          return res.status(400).send("API Key and Secret are required for Binance.");
         }
         fundingProviderData.apiKey = apiKey; // Store in plaintext but consider encrypting
-        fundingProviderData.secretApiKey = secretApiKey;
+        fundingProviderData.secretApiKey = secretApiKey; // Store in plaintext but consider encrypting
         fundingProviderData.baseUrl = "https://api.binance.com";
 
         // Generate provider-specific keys for our system
@@ -237,60 +240,6 @@ module.exports = (sequelize, models) => {
     }
   });
   
-  // Endpoint to add a Trade Funding Provider (e.g., Binance)
-  router.post("/addTradeFundingProvider", authMiddleware, async (req, res) => {
-    const uid = req.user.uid;
-    const { provider } = req.body;
-    
-    if (!provider) {
-      return res.status(400).send("Provider is required.");
-    }
-
-    const db = admin.firestore();
-    const userRef = db.collection("users").doc(uid);
-
-    try {
-      let fundingProviderData = { provider };
-
-      if (provider === "binance") {
-        const { apiKey, secretApiKey } = req.body;
-
-        if (!apiKey || !secretApiKey) {
-          return res.status(400).send("API Key and Secret are required for Binance.");
-        }
-
-        // You can store these in plaintext or consider encrypting them.
-        // Make sure to always use HTTPS and secure cookies in production.
-        fundingProviderData.apiKey = apiKey;
-        fundingProviderData.secretApiKey = secretApiKey;
-        fundingProviderData.baseUrl = "https://api.binance.com";
-
-        // Generate provider-specific keys for our system
-        fundingProviderData.providerInvoiceKey = generateProviderInvoiceKey();
-        fundingProviderData.providerAdminKey = generateProviderAdminKey();
-        // Generate a unique webhook secret and URL
-        const webhookSecret = generateWebhookSecret();
-        const webhookUrl =
-          // eslint-disable-next-line no-undef
-          `${process.env.BASE_URL}/webhook/${provider}/${webhookSecret}`;
-        fundingProviderData.webhookSecret = webhookSecret;
-        fundingProviderData.webhookUrl = webhookUrl;
-      } else {
-        return res.status(400).send("Unsupported trade provider.");
-      }
-
-      // Update the user's tradeProviders array
-      await userRef.update({
-        tradeProviders: admin.firestore.FieldValue.arrayUnion(fundingProviderData),
-      });
-
-      return res.status(200).send("Trade provider connected successfully.");
-    } catch (error) {
-      console.error("Error adding trade provider:", error);
-      return res.status(500).send("Error adding trade provider.");
-    }
-  });
-
 
   // Route to get connected funding providers
   router.get("/getFundingProviders", authMiddleware, async (req, res) => {
@@ -432,50 +381,6 @@ module.exports = (sequelize, models) => {
       res.status(500).send("Error fetching default provider.");
     }
   });
-
-
-//   // Endpoint to add a Trade Funding Provider (e.g., Binance)
-// router.post("/addTradeFundingProvider", authMiddleware, async (req, res) => {
-//   const uid = req.user.uid;
-//   const { provider } = req.body;
-  
-//   if (!provider) {
-//     return res.status(400).send("Provider is required.");
-//   }
-
-//   const db = admin.firestore();
-//   const userRef = db.collection("users").doc(uid);
-
-//   try {
-//     let tradeProviderData = { provider };
-
-//     if (provider === "binance") {
-//       const { apiKey, apiSecret } = req.body;
-
-//       if (!apiKey || !apiSecret) {
-//         return res.status(400).send("API Key and Secret are required for Binance.");
-//       }
-
-//       // You can store these in plaintext or consider encrypting them.
-//       // Make sure to always use HTTPS and secure cookies in production.
-//       tradeProviderData.apiKey = apiKey;
-//       tradeProviderData.apiSecret = apiSecret;
-//       tradeProviderData.baseUrl = "https://api.binance.com";
-//     } else {
-//       return res.status(400).send("Unsupported trade provider.");
-//     }
-
-//     // Update the user's tradeProviders array
-//     await userRef.update({
-//       tradeProviders: admin.firestore.FieldValue.arrayUnion(tradeProviderData),
-//     });
-
-//     return res.status(200).send("Trade provider connected successfully.");
-//   } catch (error) {
-//     console.error("Error adding trade provider:", error);
-//     return res.status(500).send("Error adding trade provider.");
-//   }
-// });
 
 
   return router;
