@@ -2,5 +2,8 @@
 /node_modules
 .env
 HOW_TO.md
+HOW_TO_TRADE.md
 /ninjapay-plugin-backend-dev-firebase-adminsdk-oiyn8-3f93833a6b.json
 /pgdata
+/routes/tradeAuthRoutes.js
+/views/tradeFunding.html

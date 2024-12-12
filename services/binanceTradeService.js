@@ -135,7 +135,7 @@ async function getHoldings(user, provider) {
  * Get recent spot transactions (trade history).
  * @param {Object} user
  * @param {Object} provider
- * @param {String} symbol - optional, if you want to filter by symbol
+ * @param {String} symbol - optional for NIN.Trade, if you want to filter by symbol, but for binance is mandatory!
  * @returns {Array|null}
  */
 async function getSpotTransactions(user, provider, symbol = null) {

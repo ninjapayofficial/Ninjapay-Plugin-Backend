@@ -1,4 +1,4 @@
-// // routes/authRoutes.js
+// // routes/tradeAuthRoutes.js
 // module.exports = (sequelize, models) => {
 //     const express = require("express");
 //     const router = express.Router();
