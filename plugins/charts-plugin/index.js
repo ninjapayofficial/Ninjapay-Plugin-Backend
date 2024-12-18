@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-// plugins/candle-chart-plugin/index.js
+// plugins/charts-plugin/index.js
 const path = require("path");
 const express = require("express");
 

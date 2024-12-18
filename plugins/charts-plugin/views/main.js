@@ -1,4 +1,4 @@
-// plugins/candle-chart-plugin/views/index.js
+// plugins/charts-plugin/views/index.js
 
 /* eslint-disable no-unused-vars */
 /* global LightweightCharts */
