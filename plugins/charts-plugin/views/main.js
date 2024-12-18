@@ -2,7 +2,6 @@
 
 // /* eslint-disable no-unused-vars */
 /* global LightweightCharts */
-// Ensure the file name here matches the one referenced in your HTML script tag.
 document.addEventListener('DOMContentLoaded', () => {
     const { createChart } = LightweightCharts;
     const chartContainer = document.getElementById('chart-container');
@@ -141,9 +140,10 @@ document.addEventListener('DOMContentLoaded', () => {
         actionsDiv.style.display = 'block';
 
         const popupWidth = actionsDiv.offsetWidth;
+        const popupHeight = actionsDiv.offsetHeight;
         const containerWidth = chartContainer.clientWidth;
         const x = containerWidth - popupWidth - 10;
-        const y = param.point.y + 10;
+        const y = param.point.y + (-(popupHeight / 2));
 
         actionsDiv.style.left = x + 'px';
         actionsDiv.style.top = y + 'px';
