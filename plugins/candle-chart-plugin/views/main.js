@@ -42,9 +42,8 @@ document.addEventListener('DOMContentLoaded', () => {
         chart.applyOptions({ width: chartContainer.clientWidth });
     });
 
-    // We will show the popup once and never hide it automatically
     chart.subscribeCrosshairMove(param => {
-        // If no param.point, we just don't update. But we won't hide the popup.
+        // If no param.point, don't update or hide the popup automatically
         if (!param.point) {
             return;
         }
@@ -54,12 +53,14 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Update popup content
+        // Create vertical layout with price at the top and buttons below it
         actionsDiv.innerHTML = `
-            <p>Price: ${price.toFixed(2)}</p>
-            <button id="buy-button">Buy</button>
-            <button id="sell-button">Sell</button>
-            <button id="close-button">Close</button>
+            <div style="display: flex; flex-direction: column; align-items: flex-end;">
+                <p style="margin: 0; margin-bottom: 8px;">Price: ${price.toFixed(2)}</p>
+                <button id="buy-button" style="margin-bottom: 5px;">Buy</button>
+                <button id="sell-button" style="margin-bottom: 5px;">Sell</button>
+                <button id="close-button">Close</button>
+            </div>
         `;
 
         const buyButton = document.getElementById('buy-button');
@@ -73,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Show the popup
         actionsDiv.style.display = 'block';
 
-        // Position the popup on the right side of the chart
+        // Position the popup near the right side of the chart
         const popupWidth = actionsDiv.offsetWidth;
         const containerWidth = chartContainer.clientWidth;
         const x = containerWidth - popupWidth - 10; // 10px from the right edge
