@@ -1,0 +1,30 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    position: relative;
+}
+
+#chart-container {
+    position: relative;
+    width: 100%;
+    height: 400px;
+    background: #ffffff;
+}
+
+#actions {
+    position: absolute;
+    display: none;
+    z-index: 9999;
+    background: rgba(255,255,255,0.8);
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    pointer-events: auto;
+}
+
+#actions button {
+    margin: 2px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
