@@ -1,4 +1,4 @@
-// plugins/charts-plugin/views/index.js
+// plugins/charts-plugin/views/main.js
 
 // /* eslint-disable no-unused-vars */
 /* global LightweightCharts */
