@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ma99.setData(ma99Data);
 
     // Keep track of last known param to maintain the popup when mouse leaves chart
-    let lastCandle = null; // remove if not needed, but keeping for now (nanda)
+    let lastCandle = null; 
     let lastPrice = null;
     let lastParamPoint = null;
 
