@@ -18,9 +18,9 @@ body {
     z-index: 9999;
     background: rgba(255,255,255,0.8);
     padding: 10px;
-    border: 1px solid #333;
+    border: 1px solid #00000017;
     border-radius: 5px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    box-shadow: 0 2px 8px rgba(166, 206, 219, 0.5);
     pointer-events: auto;
 }
 

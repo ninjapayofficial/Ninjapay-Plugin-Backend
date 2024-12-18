@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* global LightweightCharts */
 // plugins/candle-chart-plugin/views/index.js
 // Ensure the file name here matches the one referenced in your HTML script tag.
