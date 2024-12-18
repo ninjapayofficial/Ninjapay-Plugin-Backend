@@ -3,7 +3,6 @@
 /* eslint-disable no-unused-vars */
 /* global LightweightCharts */
 // Ensure the file name here matches the one referenced in your HTML script tag.
-// Assuming your HTML is `<script src="main.js"></script>`, call this file `main.js`.
 document.addEventListener('DOMContentLoaded', () => {
     const { createChart } = LightweightCharts;
     const chartContainer = document.getElementById('chart-container');
