@@ -1,6 +1,6 @@
 // plugins/charts-plugin/views/index.js
 
-/* eslint-disable no-unused-vars */
+// /* eslint-disable no-unused-vars */
 /* global LightweightCharts */
 // Ensure the file name here matches the one referenced in your HTML script tag.
 document.addEventListener('DOMContentLoaded', () => {
@@ -57,72 +57,75 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     candleSeries.setData(data);
 
-    // Compute SMA (for demonstration)
-    function sma(data, length) {
-        const result = [];
-        for (let i = 0; i < data.length; i++) {
-            if (i < length - 1) {
-                result.push({ time: data[i].time, value: null });
-            } else {
-                const slice = data.slice(i - length + 1, i + 1);
-                const avg = slice.reduce((sum, d) => sum + d.close, 0) / length;
-                result.push({ time: data[i].time, value: avg });
-            }
-        }
-        return result;
-    }
+    window.addEventListener('resize', () => {
+        chart.applyOptions({ width: chartContainer.clientWidth });
+    });
 
-    const ma7Data = sma(data, 7);
-    const ma25Data = sma(data, 25);
-    const ma99Data = sma(data, 99);
 
-    const ma7 = chart.addLineSeries({ color: '#f1c40f', lineWidth: 2 });
-    ma7.setData(ma7Data);
+    // // Compute SMA (for demonstration)
+    // function sma(data, length) {
+    //     const result = [];
+    //     for (let i = 0; i < data.length; i++) {
+    //         if (i < length - 1) {
+    //             result.push({ time: data[i].time, value: null });
+    //         } else {
+    //             const slice = data.slice(i - length + 1, i + 1);
+    //             const avg = slice.reduce((sum, d) => sum + d.close, 0) / length;
+    //             result.push({ time: data[i].time, value: avg });
+    //         }
+    //     }
+    //     return result;
+    // }
 
-    const ma25 = chart.addLineSeries({ color: '#9b59b6', lineWidth: 2 });
-    ma25.setData(ma25Data);
+    // const ma7Data = sma(data, 7);
+    // const ma25Data = sma(data, 25);
+    // const ma99Data = sma(data, 99);
 
-    const ma99 = chart.addLineSeries({ color: '#e74c3c', lineWidth: 2 });
-    ma99.setData(ma99Data);
+    // const ma7 = chart.addLineSeries({ color: '#f1c40f', lineWidth: 2 });
+    // ma7.setData(ma7Data);
 
-    // Keep track of last known param to maintain the popup when mouse leaves chart
-    let lastCandle = null; 
-    let lastPrice = null;
-    let lastParamPoint = null;
+    // const ma25 = chart.addLineSeries({ color: '#9b59b6', lineWidth: 2 });
+    // ma25.setData(ma25Data);
 
+    // const ma99 = chart.addLineSeries({ color: '#e74c3c', lineWidth: 2 });
+    // ma99.setData(ma99Data);
+
+    // Show popup anywhere, not just on candles
     chart.subscribeCrosshairMove(param => {
-        if (!param.time) {
-            // If we have no param.time (mouse off chart) do not hide the popup
-            // Instead, just don't update. The popup stays at last known data.
-            return;
+        if (!param.point) {
+            return; // If mouse is outside chart area entirely, do nothing
         }
 
+        // Always get a price from Y coordinate
         const price = candleSeries.coordinateToPrice(param.point.y);
         if (price === null) {
+            // If price is null, we might be off the scale—just hide popup or ignore
             return;
         }
 
-        // Candle data at hovered time
-        const candle = data.find(d => d.time === param.time);
-        if (!candle) {
-            return;
+        // Attempt to find a candle at param.time if available
+        let candle = null;
+        if (param.time) {
+            candle = data.find(d => d.time === param.time);
         }
 
-        // Get MAs
-        const ma7Val = ma7Data.find(d => d.time === param.time)?.value ?? '—';
-        const ma25Val = ma25Data.find(d => d.time === param.time)?.value ?? '—';
-        const ma99Val = ma99Data.find(d => d.time === param.time)?.value ?? '—';
-
-        // Update OHLC info
-        ohlcInfoDiv.innerHTML = `
-            <p><strong>${param.time}</strong></p>
-            <p>O: ${candle.open.toFixed(2)} H: ${candle.high.toFixed(2)} L: ${candle.low.toFixed(2)} C: ${candle.close.toFixed(2)}</p>
-            <p>Vol: ${candle.volume}</p>
-            <p>MA(7): ${ma7Val.toFixed ? ma7Val.toFixed(2) : ma7Val} | MA(25): ${ma25Val.toFixed ? ma25Val.toFixed(2) : ma25Val} | MA(99): ${ma99Val.toFixed ? ma99Val.toFixed(2) : ma99Val}</p>
-        `;
+        // Update OHLC info if candle found
+        if (candle) {
+            ohlcInfoDiv.innerHTML = `
+                <p><strong>${param.time}</strong></p>
+                <p>O: ${candle.open.toFixed(2)} H: ${candle.high.toFixed(2)} L: ${candle.low.toFixed(2)} C: ${candle.close.toFixed(2)}</p>
+                <p>Vol: ${candle.volume}</p>
+            `;
+        } else {
+            // No candle? Just show the current price line
+            ohlcInfoDiv.innerHTML = `
+                <p>No candle data at this time</p>
+                <p>Price (Y): ${price.toFixed(2)}</p>
+            `;
+        }
         ohlcInfoDiv.style.display = 'block';
 
-        // Update and show the popup - never hide automatically
+        // Update actions popup
         actionsDiv.innerHTML = `
             <div style="display: flex; flex-direction: column; align-items: flex-end;">
                 <p style="margin: 0; margin-bottom: 8px; color: black;">${price.toFixed(2)}</p>
@@ -131,7 +134,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button id="close-button" style="background: #555; color: #fff;">Close</button>
             </div>
         `;
-
         document.getElementById('buy-button').onclick = () => alert('Buy at ' + price.toFixed(2));
         document.getElementById('sell-button').onclick = () => alert('Sell at ' + price.toFixed(2));
         document.getElementById('close-button').onclick = () => { actionsDiv.style.display = 'none'; };
@@ -145,15 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         actionsDiv.style.left = x + 'px';
         actionsDiv.style.top = y + 'px';
-
-        // Update last known values
-        lastCandle = candle;
-        lastPrice = price;
-        lastParamPoint = param.point;
-    });
-
-    window.addEventListener('resize', () => {
-        chart.applyOptions({ width: chartContainer.clientWidth });
     });
 
     // Instructions
