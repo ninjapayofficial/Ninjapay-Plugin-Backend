@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const popupHeight = actionsDiv.offsetHeight;
         const containerWidth = chartContainer.clientWidth;
         const x = containerWidth - popupWidth - 10;
-        const y = param.point.y + (-(popupHeight / 2));
+        const y = param.point.y - (popupHeight / 2);
 
         actionsDiv.style.left = x + 'px';
         actionsDiv.style.top = y + 'px';
