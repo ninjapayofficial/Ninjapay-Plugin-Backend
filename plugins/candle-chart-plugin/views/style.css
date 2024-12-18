@@ -1,30 +1,65 @@
 body {
     margin: 0;
     font-family: Arial, sans-serif;
-    position: relative;
+    background: #0b0e11; /* Dark background for a modern trading feel */
+    color: #e0e0e0;
 }
 
 #chart-container {
     position: relative;
     width: 100%;
-    height: 400px;
-    background: #ffffff;
+    height: 600px;
 }
 
+/* Action popup styling */
 #actions {
     position: absolute;
     display: none;
     z-index: 9999;
     background: rgba(255,255,255,0.8);
-    padding: 5px;
-    border: 1px solid #ccc;
+    padding: 10px;
+    border: 1px solid #333;
     border-radius: 5px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
     pointer-events: auto;
 }
 
 #actions button {
-    margin: 2px;
+    margin: 5px 0;
     padding: 5px 10px;
     cursor: pointer;
+    border: none;
+    border-radius: 3px;
+    color: #fff;
+}
+
+#actions #buy-button {
+    background: #16a085; /* A green shade */
+}
+
+#actions #sell-button {
+    background: #c0392b; /* A red shade */
+}
+
+#actions #close-button {
+    background: #555; /* Neutral */
+}
+
+/* OHLC Info Tooltip */
+#ohlc-info {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(0,0,0,0.7);
+    padding: 10px;
+    border-radius: 5px;
+    color: #e0e0e0;
+    font-size: 14px;
+    pointer-events: none;
+    display: none;
+    z-index: 9999;
+}
+
+#ohlc-info p {
+    margin: 0 0 4px;
 }

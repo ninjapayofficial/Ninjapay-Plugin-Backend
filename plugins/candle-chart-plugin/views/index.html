@@ -4,26 +4,14 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>My Candlestick Chart</title>
+    <title>Advanced Candlestick Chart</title>
     <link rel="stylesheet" href="style.css"/>
-    <!-- Lightweight Charts CDN -->
     <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
-    <!-- Use only one chart container -->
-    <div id="chart-container" style="position: relative; width: 100%; height: 400px;"></div>
-
-    <!-- One actions container, no buttons defined here, just empty -->
-    <div id="actions" style="
-        position: absolute; 
-        display: none; 
-        z-index: 9999; 
-        background: rgba(255, 255, 255, 0.9); 
-        padding: 5px; 
-        border: 1px solid #ccc; 
-        border-radius: 5px;">
-    </div>
-
+    <div id="chart-container"></div>
+    <div id="actions"></div>
+    <div id="ohlc-info"></div>
     <script src="main.js"></script>
 </body>
 </html>

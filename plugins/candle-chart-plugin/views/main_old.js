@@ -7,23 +7,6 @@
 //     const chartContainer = document.getElementById('chart-container');
 //     const actionsDiv = document.getElementById('actions');
 
-//     // Enable pointer events so popup can be interacted with
-//     actionsDiv.style.pointerEvents = 'auto';
-
-//     let isHoveringPopup = false;
-
-//     // Track when the mouse enters/leaves the popup
-//     actionsDiv.addEventListener('mouseenter', () => {
-//         isHoveringPopup = true;
-//     });
-//     actionsDiv.addEventListener('mouseleave', () => {
-//         isHoveringPopup = false;
-//         // If not over chart and not over popup, hide popup
-//         if (!lastParamPoint && !isHoveringPopup) {
-//             actionsDiv.style.display = 'none';
-//         }
-//     });
-
 //     const chart = createChart(chartContainer, {
 //         width: chartContainer.clientWidth,
 //         height: 400,
@@ -36,6 +19,10 @@
 //         },
 //         rightPriceScale: {
 //             borderColor: '#D1D4DC',
+//         },
+//         crosshair: {
+//             vertLine: { visible: true, labelVisible: false },
+//             horzLine: { visible: true, labelVisible: false },
 //         },
 //     });
 
@@ -55,59 +42,45 @@
 //         chart.applyOptions({ width: chartContainer.clientWidth });
 //     });
 
-//     let lastParamPoint = null;
-
 //     chart.subscribeCrosshairMove(param => {
-//         // Update the lastParamPoint to know if mouse is over chart
-//         lastParamPoint = param.point;
-
-//         // If mouse not over chart and not over popup, hide it
-//         if (!param.point && !isHoveringPopup) {
-//             actionsDiv.style.display = 'none';
+//         // If no param.point, don't update or hide the popup automatically
+//         if (!param.point) {
 //             return;
 //         }
 
-//         // If mouse not over chart but over popup, do nothing (keep popup visible)
-//         if (!param.point && isHoveringPopup) {
-//             return;
-//         }
-
-//         // Mouse is over the chart
 //         const price = candleSeries.coordinateToPrice(param.point.y);
 //         if (price === null) {
-//             // No valid price at this Y coordinate
-//             if (!isHoveringPopup) {
-//                 actionsDiv.style.display = 'none';
-//             }
 //             return;
 //         }
 
-//         // Update popup content
+//         // Create vertical layout with price at the top and buttons below it
 //         actionsDiv.innerHTML = `
-//             <p>Price: ${price.toFixed(2)}</p>
-//             <button id="buy-button">Buy</button>
-//             <button id="sell-button">Sell</button>
+//             <div style="display: flex; flex-direction: column; align-items: flex-end;">
+//                 <p style="margin: 0; margin-bottom: 8px;">Price: ${price.toFixed(2)}</p>
+//                 <button id="buy-button" style="margin-bottom: 5px;">Buy</button>
+//                 <button id="sell-button" style="margin-bottom: 5px;">Sell</button>
+//                 <button id="close-button">Close</button>
+//             </div>
 //         `;
 
 //         const buyButton = document.getElementById('buy-button');
 //         const sellButton = document.getElementById('sell-button');
+//         const closeButton = document.getElementById('close-button');
 
-//         buyButton.addEventListener('click', () => {
-//             alert('Buy at ' + price);
-//         });
+//         buyButton.onclick = () => { alert('Buy at ' + price); };
+//         sellButton.onclick = () => { alert('Sell at ' + price); };
+//         closeButton.onclick = () => { actionsDiv.style.display = 'none'; };
 
-//         sellButton.addEventListener('click', () => {
-//             alert('Sell at ' + price);
-//         });
-
-//         // Position popup anchored near the right side
-//         const chartRect = chartContainer.getBoundingClientRect();
-//         const popupWidth = actionsDiv.offsetWidth;
-//         const x = chartRect.right - popupWidth - 10; // 10px padding from right edge
-//         const y = chartRect.top + param.point.y;
-
-//         actionsDiv.style.top = (y + 10) + 'px';
-//         actionsDiv.style.left = x + 'px';
+//         // Show the popup
 //         actionsDiv.style.display = 'block';
+
+//         // Position the popup near the right side of the chart
+//         const popupWidth = actionsDiv.offsetWidth;
+//         const containerWidth = chartContainer.clientWidth;
+//         const x = containerWidth - popupWidth - 10; // 10px from the right edge
+//         const y = param.point.y + 10;
+
+//         actionsDiv.style.left = x + 'px';
+//         actionsDiv.style.top = y + 'px';
 //     });
 // });
