@@ -55,11 +55,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         layout: {
             background: {
                 color: '#0b0e11'
-              },
+            },
             textColor: '#e0e0e0',
         },
         timeScale: {
             borderColor: '#2f3336',
+            barSpacing: 1,
         },
         rightPriceScale: {
             borderColor: '#2f3336',
@@ -74,22 +75,75 @@ document.addEventListener('DOMContentLoaded', async () => {
         },
     });
 
-    // If you need to change it later:
     chart.applyOptions({
         layout: {
             backgroundColor: '#0b0e11'
         }
     });
 
-    const candleSeries = chart.addCandlestickSeries({
-        upColor: '#26a69a',
-        downColor: '#ef5350',
-        borderDownColor: '#ef5350',
-        borderUpColor: '#26a69a',
-        wickDownColor: '#ef5350',
-        wickUpColor: '#26a69a'
-    });
-    candleSeries.setData(data);
+    // Keep track of all series here
+    let allSeries = [];
+
+    function addCandleSeries(data) {
+        const s = chart.addCandlestickSeries({
+            upColor: '#26a69a',
+            downColor: '#ef5350',
+            borderDownColor: '#ef5350',
+            borderUpColor: '#26a69a',
+            wickDownColor: '#ef5350',
+            wickUpColor: '#26a69a'
+        });
+        s.setData(data);
+        allSeries.push(s);
+        return s;
+    }
+
+    function addVolumeSeries(data) {
+        const volumeSeries = chart.addHistogramSeries({
+            priceScaleId: 'my-overlay'
+        });
+        const priceScale = chart.priceScale('my-overlay');
+        priceScale.applyOptions({
+            priceFormat: { type: 'volume' },
+            priceScaleId: '',
+            scaleMargins: { top: 0.8, bottom: 0 }
+        });
+        const volumeData = data.map(d => {
+            const color = d.close > d.open ? '#26a69a' : '#ef5350';
+            return { time: d.time, value: d.volume, color: color };
+        });
+        volumeSeries.setData(volumeData);
+        allSeries.push(volumeSeries);
+    }
+
+    function calculateSMA(dataArr, length) {
+        const sma = [];
+        for (let i = 0; i < dataArr.length; i++) {
+            if (i < length - 1) {
+                sma.push({ time: dataArr[i].time, value: null });
+            } else {
+                const slice = dataArr.slice(i - length + 1, i + 1);
+                const avg = slice.reduce((sum, d) => sum + d.close, 0) / length;
+                sma.push({ time: dataArr[i].time, value: avg });
+            }
+        }
+        return sma;
+    }
+
+    function addSMASeries(data, length = 14) {
+        const smaData = calculateSMA(data, length);
+        const smaSeries = chart.addLineSeries({
+            color: '#f1c40f',
+            lineWidth: 2
+        });
+        smaSeries.setData(smaData);
+        allSeries.push(smaSeries);
+    }
+
+    // Initial load of series
+    const candleSeries = addCandleSeries(data);
+    addVolumeSeries(data);
+    addSMASeries(data, 14);
 
     window.addEventListener('resize', () => {
         chart.applyOptions({ width: chartContainer.clientWidth });
@@ -151,4 +205,124 @@ document.addEventListener('DOMContentLoaded', async () => {
     instructions.style.fontSize = '12px';
     instructions.innerHTML = 'Scroll to zoom, drag to pan';
     chartContainer.appendChild(instructions);
+
+    const candleBtn = document.getElementById('candle-btn');
+    const lineBtn = document.getElementById('line-btn');
+    const areaBtn = document.getElementById('area-btn');
+
+    function clearAllSeries() {
+        // Remove each series
+        for (let i = 0; i < allSeries.length; i++) {
+            chart.removeSeries(allSeries[i]);
+        }
+        allSeries = [];
+    }
+
+    function setChartType(type) {
+        clearAllSeries(); // remove current series
+
+        let mainSeries;
+        if (type === 'candlestick') {
+            mainSeries = chart.addCandlestickSeries({
+                upColor: '#26a69a',
+                downColor: '#ef5350',
+                borderDownColor: '#ef5350',
+                borderUpColor: '#26a69a',
+                wickDownColor: '#ef5350',
+                wickUpColor: '#26a69a'
+            });
+            mainSeries.setData(data);
+            allSeries.push(mainSeries);
+        } else if (type === 'line') {
+            mainSeries = chart.addLineSeries({ color: '#ffffff', lineWidth: 2 });
+            const lineData = data.map(d => ({ time: d.time, value: d.close }));
+            mainSeries.setData(lineData);
+            allSeries.push(mainSeries);
+        } else if (type === 'area') {
+            mainSeries = chart.addAreaSeries({ 
+                topColor: 'rgba(67,83,254,0.7)', 
+                bottomColor: 'rgba(67,83,254,0.3)', 
+                lineColor: 'rgba(67,83,254,1)', 
+                lineWidth: 2 
+            });
+            const areaData = data.map(d => ({ time: d.time, value: d.close }));
+            mainSeries.setData(areaData);
+            allSeries.push(mainSeries);
+        }
+
+        // Re-add volume
+        const volumeSeries = chart.addHistogramSeries({
+            priceScaleId: 'my-overlay'
+        });
+        const priceScale = chart.priceScale('my-overlay');
+        priceScale.applyOptions({
+            priceFormat: { type: 'volume' },
+            priceScaleId: '',
+            scaleMargins: { top: 0.8, bottom: 0 }
+        });
+        const volumeData = data.map(d => {
+            const color = d.close > d.open ? '#26a69a' : '#ef5350';
+            return { time: d.time, value: d.volume, color: color };
+        });
+        volumeSeries.setData(volumeData);
+        allSeries.push(volumeSeries);
+
+        // Re-add SMA
+        const smaData = calculateSMA(data, 14);
+        const smaSeries = chart.addLineSeries({
+            color: '#f1c40f',
+            lineWidth: 2
+        });
+        smaSeries.setData(smaData);
+        allSeries.push(smaSeries);
+    }
+
+    candleBtn.addEventListener('click', () => setChartType('candlestick'));
+    lineBtn.addEventListener('click', () => setChartType('line'));
+    areaBtn.addEventListener('click', () => setChartType('area'));
+
+    // Simple Drawing Overlay
+    const drawingCanvas = document.createElement('canvas');
+    drawingCanvas.style.position = 'absolute';
+    drawingCanvas.style.top = '0';
+    drawingCanvas.style.left = '0';
+    drawingCanvas.style.pointerEvents = 'none';
+    chartContainer.appendChild(drawingCanvas);
+
+    function resizeCanvas() {
+        drawingCanvas.width = chartContainer.clientWidth;
+        drawingCanvas.height = 600;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    const ctx = drawingCanvas.getContext('2d');
+    let isDrawing = false;
+    let startX, startY;
+
+    chartContainer.addEventListener('mousedown', (e) => {
+        isDrawing = true;
+        const rect = drawingCanvas.getBoundingClientRect();
+        startX = e.clientX - rect.left;
+        startY = e.clientY - rect.top;
+    });
+
+    chartContainer.addEventListener('mousemove', (e) => {
+        if (!isDrawing) return;
+        const rect = drawingCanvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+        ctx.beginPath();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+    });
+
+    chartContainer.addEventListener('mouseup', () => {
+        isDrawing = false;
+    });
 });
