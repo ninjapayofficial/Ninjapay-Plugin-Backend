@@ -2,7 +2,6 @@
 // plugins/charts-plugin/routes/data.js
 
 const express = require("express");
-// eslint-disable-next-line no-unused-vars
 const fetch = require("node-fetch");
 
 const router = express.Router();
@@ -35,15 +34,16 @@ router.get("/data", async (req, res) => {
     return res.status(400).json({ error: "No symbol provided" });
   }
 
+  // eslint-disable-next-line no-undef
   const apiKey = process.env.POLYGON_API_KEY;
   if (!apiKey) {
     return res.status(500).json({ error: "Polygon API key not configured" });
   }
 
-  // Set a default date range (e.g., last 30 days). You can customize this.
+  // Set a default date range (e.g., last 180 days). You can customize this.
   const now = new Date();
   const from = new Date();
-  from.setDate(from.getDate() - 30);
+  from.setDate(from.getDate() - 180);
 
   // Format dates as YYYY-MM-DD for Polygon
   const formatDate = (d) => d.toISOString().split('T')[0];
@@ -58,7 +58,6 @@ router.get("/data", async (req, res) => {
     }
 
     const data = await response.json();
-    console.log(data);
     if (!data.results || data.results.length === 0) {
       return res.json([]); // No data, return empty array
     }
@@ -91,7 +90,6 @@ router.get("/data", async (req, res) => {
     });
 
     res.json(results);
-    console.log("lightweight:", results);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch data from Polygon" });
