@@ -60,7 +60,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         },
         timeScale: {
             borderColor: '#2f3336',
-            barSpacing: 1,
+            // Increase barSpacing to zoom in
+            barSpacing: 15
         },
         rightPriceScale: {
             borderColor: '#2f3336',
@@ -75,19 +76,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         },
     });
 
-    chart.applyOptions({
-        layout: {
-            backgroundColor: '#0b0e11'
-        }
-    });
-
     // Keep track of all series here
     let allSeries = [];
+    let horizontalLines = []; // store references to horizontal line series
 
     function addCandleSeries(data) {
         const s = chart.addCandlestickSeries({
-            upColor: '#26a69a',
-            downColor: '#ef5350',
+            upColor: '#2DBD85',
+            downColor: '#F6465D',
             borderDownColor: '#ef5350',
             borderUpColor: '#26a69a',
             wickDownColor: '#ef5350',
@@ -109,7 +105,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             scaleMargins: { top: 0.8, bottom: 0 }
         });
         const volumeData = data.map(d => {
-            const color = d.close > d.open ? '#26a69a' : '#ef5350';
+            const color = d.close > d.open ? '#2DBD85' : '#F6465D';
             return { time: d.time, value: d.volume, color: color };
         });
         volumeSeries.setData(volumeData);
@@ -145,14 +141,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     addVolumeSeries(data);
     addSMASeries(data, 14);
 
+    // Fit content to see everything clearly
+    chart.timeScale().fitContent();
+
     window.addEventListener('resize', () => {
         chart.applyOptions({ width: chartContainer.clientWidth });
     });
 
+    // eslint-disable-next-line no-unused-vars
+    let currentCrosshairPrice = null;
     chart.subscribeCrosshairMove(param => {
         if (!param.point) return;
         const price = candleSeries.coordinateToPrice(param.point.y);
         if (price === null) return;
+        currentCrosshairPrice = price;
 
         let candle = null;
         if (param.time) {
@@ -178,12 +180,31 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <p style="margin: 0; margin-bottom: 8px; color: black;">${price.toFixed(2)}</p>
                 <button id="buy-button" style="margin-bottom: 5px; background: #16a085; color: #fff;">Buy</button>
                 <button id="sell-button" style="margin-bottom: 5px; background: #c0392b; color: #fff;">Sell</button>
+                <button id="draw-button" style="margin-bottom: 5px; background: #2980b9; color: #fff;">Draw</button>
                 <button id="close-button" style="background: #555; color: #fff;">Close</button>
             </div>
         `;
         document.getElementById('buy-button').onclick = () => alert('Buy at ' + price.toFixed(2));
         document.getElementById('sell-button').onclick = () => alert('Sell at ' + price.toFixed(2));
         document.getElementById('close-button').onclick = () => { actionsDiv.style.display = 'none'; };
+
+        // Draw button: Place a horizontal line at this price
+        document.getElementById('draw-button').onclick = () => {
+            if (data.length < 1) return;
+            const lineSeries = chart.addLineSeries({
+                color: '#ffffff',
+                lineWidth: 1
+            });
+            // create a horizontal line by setting two points at the same price
+            const firstTime = data[0].time;
+            const lastTime = data[data.length - 1].time;
+            lineSeries.setData([
+                { time: firstTime, value: price },
+                { time: lastTime, value: price }
+            ]);
+            horizontalLines.push(lineSeries);
+            alert('Horizontal line drawn at ' + price.toFixed(2));
+        };
 
         actionsDiv.style.display = 'block';
 
@@ -215,7 +236,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         for (let i = 0; i < allSeries.length; i++) {
             chart.removeSeries(allSeries[i]);
         }
+        // Also remove horizontal lines
+        for (let j = 0; j < horizontalLines.length; j++) {
+            chart.removeSeries(horizontalLines[j]);
+        }
         allSeries = [];
+        horizontalLines = [];
     }
 
     function setChartType(type) {
@@ -275,13 +301,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
         smaSeries.setData(smaData);
         allSeries.push(smaSeries);
+
+        // Fit again after re-building series
+        chart.timeScale().fitContent();
+
+        // Re-draw previously drawn horizontal lines if you want that persistence (not required)
+        // In this example, we cleared them, so no re-draw.
     }
 
     candleBtn.addEventListener('click', () => setChartType('candlestick'));
     lineBtn.addEventListener('click', () => setChartType('line'));
     areaBtn.addEventListener('click', () => setChartType('area'));
 
-    // Simple Drawing Overlay
+    // Simple Drawing Overlay (unchanged)
     const drawingCanvas = document.createElement('canvas');
     drawingCanvas.style.position = 'absolute';
     drawingCanvas.style.top = '0';
@@ -324,5 +356,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     chartContainer.addEventListener('mouseup', () => {
         isDrawing = false;
+    });
+
+    // Symbol Loader Logic
+    const symbolInput = document.getElementById('symbol-input');
+    const loadSymbolBtn = document.getElementById('load-symbol');
+    loadSymbolBtn.addEventListener('click', () => {
+        const newSymbol = symbolInput.value.trim();
+        if (newSymbol) {
+            window.location.href = `/plugins/charts-plugin/${newSymbol}`;
+        }
     });
 });
