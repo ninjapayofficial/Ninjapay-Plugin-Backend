@@ -53,7 +53,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         width: chartContainer.clientWidth,
         height: 600,
         layout: {
-            backgroundColor: '#0b0e11',
+            background: {
+                color: '#0b0e11'
+              },
             textColor: '#e0e0e0',
         },
         timeScale: {
@@ -70,6 +72,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             vertLine: { visible: true, style: 2, color: '#9194a3', labelVisible: false },
             horzLine: { visible: true, style: 2, color: '#9194a3', labelVisible: false },
         },
+    });
+
+    // If you need to change it later:
+    chart.applyOptions({
+        layout: {
+            backgroundColor: '#0b0e11'
+        }
     });
 
     const candleSeries = chart.addCandlestickSeries({
