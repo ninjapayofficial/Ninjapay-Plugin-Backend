@@ -364,4 +364,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             window.location.href = `/plugins/charts-plugin/${newSymbol}`;
         }
     });
+
+    // // -----------------------
+    // // ADDING THE DELTA TOOLTIP PRIMITIVE
+    // // -----------------------
+    // // Assuming you have the DeltaTooltipPrimitive code as shown in the reference:
+    // // https://github.com/tradingview/lightweight-charts/tree/master/plugin-examples
+    // // Attach the primitive to the main candle series (or any other series).
+    // const deltaTooltip = new DeltaTooltipPrimitive({
+    //     lineColor: 'rgba(0, 0, 0, 0.2)',
+    // });
+
+    // // Attach the primitive to the candle series
+    // candleSeries.attachPrimitive(deltaTooltip);
 });
