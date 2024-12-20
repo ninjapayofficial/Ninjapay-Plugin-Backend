@@ -295,13 +295,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         allSeries.push(volumeSeries);
 
         // Re-add SMA
-        const smaData = calculateSMA(data, 14);
-        const smaSeries = chart.addLineSeries({
-            color: '#f1c40f',
-            lineWidth: 2
-        });
-        smaSeries.setData(smaData);
-        allSeries.push(smaSeries);
+        addSMASeries(data, 14, '#f1c40f');
+        addSMASeries(data, 7, '#9b59b6');
+        addSMASeries(data, 25, '#e74c3c');
 
         // Fit again after re-building series
         chart.timeScale().fitContent();
