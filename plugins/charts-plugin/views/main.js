@@ -180,13 +180,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <p style="margin: 0; margin-bottom: 8px; color: black;">${price.toFixed(2)}</p>
                 <button id="buy-button" style="margin-bottom: 5px; background: #16a085; color: #fff;">Buy</button>
                 <button id="sell-button" style="margin-bottom: 5px; background: #c0392b; color: #fff;">Sell</button>
-                <button id="draw-button" style="margin-bottom: 5px; background: #2980b9; color: #fff;">Draw</button>
-                <button id="close-button" style="background: #555; color: #fff;">Close</button>
+                <button id="draw-button" style="margin-bottom: 5px; background: #2980b9; color: #fff;">Draw</button>    
             </div>
         `;
         document.getElementById('buy-button').onclick = () => alert('Buy at ' + price.toFixed(2));
         document.getElementById('sell-button').onclick = () => alert('Sell at ' + price.toFixed(2));
-        document.getElementById('close-button').onclick = () => { actionsDiv.style.display = 'none'; };
+        // document.getElementById('close-button').onclick = () => { actionsDiv.style.display = 'none'; };
 
         // Draw button: Place a horizontal line at this price
         document.getElementById('draw-button').onclick = () => {
