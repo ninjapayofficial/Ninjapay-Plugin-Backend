@@ -126,10 +126,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         return sma;
     }
 
-    function addSMASeries(data, length = 14) {
+    function addSMASeries(data, length = 14, color) {
         const smaData = calculateSMA(data, length);
         const smaSeries = chart.addLineSeries({
-            color: '#f1c40f',
+            color: color,
             lineWidth: 2
         });
         smaSeries.setData(smaData);
@@ -139,7 +139,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initial load of series
     const candleSeries = addCandleSeries(data);
     addVolumeSeries(data);
-    addSMASeries(data, 14);
+    addSMASeries(data, 14, '#f1c40f');
+    addSMASeries(data, 7, '#9b59b6');
+    addSMASeries(data, 25, '#e74c3c');
 
     // Fit content to see everything clearly
     chart.timeScale().fitContent();
