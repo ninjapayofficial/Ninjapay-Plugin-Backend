@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     border-radius: 50%; 
                     text-align: center; 
                     padding: 0; 
-                    font-size: 14px;
+                    font-size: 12px;
                     line-height: 18px;
                     cursor: pointer;
                     border: none;
