@@ -511,13 +511,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
     
             // Now manually make the fetch request to the backend
-            const url = `/plugins/charts-plugin/api/data-symbol?symbol=${symbol}`;
+            const url = `/plugins/charts-plugin/api/data?symbol=${symbol}`;
     
             // Fetch the data
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
-                    console.log("Fetched Data: ", data);
     
                     // Check if the data is valid
                     if (!Array.isArray(data) || data.length === 0) {
@@ -546,7 +545,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                         chart.timeScale().fitContent(); // Fallback if data is less than visibleBars
                     }
                 
-                    console.log("Chart updated successfully!");
                 })
                 .catch(error => {
                     console.error('Error fetching data:', error);
