@@ -7,10 +7,10 @@
     <title>Advanced Candlestick Chart</title>
     <link rel="stylesheet" href="style.css"/>
     <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
-    <script src="https://unpkg.com/htmx.org"></script> <!-- Add HTMX -->
 </head>
 <body>
     <!-- Symbol Loader -->
+   
     <div id="chart-container"></div>
     <div id="actions"></div>
     <div id="ohlc-info"></div>
@@ -19,29 +19,24 @@
         <button id="line-btn">Line</button>
         <button id="area-btn">Area</button>
     </div>
-    <div style="display:flex; gap:5px;">
-        <form 
-            id="symbol-form" 
-            hx-get="/plugins/charts-plugin/api/data" 
+    <!-- <div style="position:relative; top:10px; left:10px; z-index:9999; display:flex; gap:5px;">
+        <input type="text" id="symbol-input" placeholder="Enter symbol" style="padding:5px; border-radius:3px; border:1px solid #333; background:#222; color:#fff;">
+        <button id="load-symbol" style="padding:5px 10px; background:#333; color:#fff; border:none; border-radius:3px; cursor:pointer;">Load</button>
+    </div> -->
+
+    <div style="position:relative; top:10px; left:10px; z-index:9999; display:flex; gap:5px;">
+        <input type="text" id="symbol-input" placeholder="Enter symbol" style="padding:5px; border-radius:3px; border:1px solid #333; background:#222; color:#fff;">
+        <button 
+            id="load-symbol" 
+            style="padding:5px 10px; background:#333; color:#fff; border:none; border-radius:3px; cursor:pointer;"
+            hx-get="/plugins/charts-plugin/api/data-symbol" 
             hx-target="#chart-container" 
-            hx-trigger="submit" 
-            hx-swap="outerHTML">
-            <input
-                type="text"
-                name="symbol"
-                id="symbol-input"
-                placeholder="Enter symbol"
-                style="padding: 5px; border-radius: 3px; border: 1px solid #333; background: #222; color: #fff;"
-                required
-            />
-            <button
-                type="submit"
-                style="padding: 5px 10px; background: #333; color: #fff; border: none; border-radius: 3px; cursor: pointer;"
-            >
-                Load
-            </button>
-        </form>
+            hx-params="symbol: #symbol-input"
+            hx-push-url="true"
+            hx-trigger="click">Load</button>
     </div>
+    
+    
     
     <script src="main.js"></script>
 </body>
