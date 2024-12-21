@@ -71,6 +71,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             horzLines: { color: '#2f3336', style: 1 },
         },
         crosshair: {
+            mode: LightweightCharts.CrosshairMode.Normal,
             vertLine: { visible: true, style: 2, color: '#9194a3', labelVisible: false },
             horzLine: { visible: true, style: 2, color: '#9194a3', labelVisible: false },
         },
@@ -152,16 +153,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // eslint-disable-next-line no-unused-vars
     let currentCrosshairPrice = null;
+    const latestPrice = data.length > 0 ? data[data.length - 1].close : null;
+
     chart.subscribeCrosshairMove(param => {
         if (!param.point) return;
         const price = candleSeries.coordinateToPrice(param.point.y);
-        if (price === null) return;
+        if (price === null || latestPrice === null) return;
         currentCrosshairPrice = price;
 
         let candle = null;
         if (param.time) {
             candle = data.find(d => d.time === param.time);
         }
+
+        // Calculate percentage change
+        const percentChange = ((price - latestPrice) / latestPrice) * 100;
+        const formattedPercentChange = percentChange >= 0
+            ? `(+${percentChange.toFixed(2)}%)`
+            : `(${percentChange.toFixed(2)}%)`;
+
+        // Determine color based on positive or negative change
+        const percentColor = percentChange >= 0 ? '#16a085' : '#c0392b';
 
         if (candle) {
             ohlcInfoDiv.innerHTML = `
@@ -179,10 +191,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         actionsDiv.innerHTML = `
             <div style="display: flex; flex-direction: column; align-items: flex-end;">
-                <p style="margin: 0; margin-bottom: 8px; color: black;">${price.toFixed(2)}</p>
+                <p style="margin: 0; margin-bottom: 8px; font-size:14px; color: black;">
+                    ${price.toFixed(2)} <span style="color: ${percentColor};">${formattedPercentChange}</span>
+                </p>
                 <button id="buy-button" style="margin-bottom: 5px; background: #16a085; color: #fff;">Buy</button>
                 <button id="sell-button" style="margin-bottom: 5px; background: #c0392b; color: #fff;">Sell</button>
-                <button id="draw-button" style="margin-bottom: 5px; background: #2980b9; color: #fff;">Draw</button>    
+                <button id="draw-button" style="margin-bottom: 5px; background: #2980b9; color: #fff;">Draw</button>
             </div>
         `;
         document.getElementById('buy-button').onclick = () => alert('Buy at ' + price.toFixed(2));
@@ -196,7 +210,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 color: '#ffffff',
                 lineWidth: 1
             });
-            // create a horizontal line by setting two points at the same price
+            // Create a horizontal line by setting two points at the same price
             const firstTime = data[0].time;
             const lastTime = data[data.length - 1].time;
             lineSeries.setData([
@@ -206,6 +220,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             horizontalLines.push(lineSeries);
             alert('Horizontal line drawn at ' + price.toFixed(2));
         };
+    
 
         actionsDiv.style.display = 'block';
 
