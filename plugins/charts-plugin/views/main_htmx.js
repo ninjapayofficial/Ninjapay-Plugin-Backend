@@ -497,29 +497,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     //     }
     // });
     
-    // // document.addEventListener("DOMContentLoaded", () => {
-    //     const symbolInput = document.getElementById('symbol-input');
-    //     const loadSymbolBtn = document.getElementById('load-symbol');
-        
-    //     if (loadSymbolBtn && symbolInput) {
-    //         loadSymbolBtn.addEventListener('click', () => {
-    //             const newSymbol = symbolInput.value.trim();
-    //             if (symbol) {
-    //                 fetch(`/plugins/charts-plugin/api/data-symbol?symbol=${symbol}`)
-    //                     .then(response => response.json())
-    //                     .then(data => {
-    //                         console.log(data);  // Check the fetched data
-    //                         // Update the chart with new data
-    //                     })
-    //                     .catch(error => console.error('Error fetching data:', error));
-    //             }
-    //         });
-    //     } else {
-    //         console.error("Symbol input or load button not found in the DOM.");
-    //     }
-    // // });
 
-    // document.addEventListener('DOMContentLoaded', () => {
+
         const loadSymbolBtn = document.getElementById('load-symbol');
         const symbolInput = document.getElementById('symbol-input');
     
@@ -553,16 +532,26 @@ document.addEventListener('DOMContentLoaded', async () => {
                     addSMASeries(data, 14, '#f1c40f');
                     addSMASeries(data, 7, '#9b59b6');
                     addSMASeries(data, 25, '#e74c3c');
-    
-                    // Fit the chart content
-                    chart.timeScale().fitContent();
+
+                    // Adjust the visible range to focus on the latest data
+                    const visibleBars = 50; // Number of recent bars to display
+                    const totalBars = data.length;
+
+                    if (totalBars > visibleBars) {
+                        chart.timeScale().setVisibleLogicalRange({
+                            from: totalBars - visibleBars,
+                            to: totalBars,
+                        });
+                    } else {
+                        chart.timeScale().fitContent(); // Fallback if data is less than visibleBars
+                    }
+                
                     console.log("Chart updated successfully!");
                 })
                 .catch(error => {
                     console.error('Error fetching data:', error);
                 });
         });
-    // });
     
     
 
