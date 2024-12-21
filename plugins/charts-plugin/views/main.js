@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             data = [];
         }
     } else {
-        // No symbol, no data (or use some default)
+        // No symbol, use default data
         data = [
             { time: '2022-10-19', open: 100, high: 110, low: 95, close: 105, volume: 5000 },
             { time: '2022-10-20', open: 105, high: 112, low: 104, close: 110, volume: 7000 },
@@ -161,7 +161,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         chart.applyOptions({ width: chartContainer.clientWidth });
     });
 
-
     let currentCrosshairPrice = null;
     const latestPrice = data.length > 0 ? data[data.length - 1].close : null;
 
@@ -199,49 +198,96 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         ohlcInfoDiv.style.display = 'block';
 
+        // **Updated Actions Popup with [+] Button Next to Price and Percentage**
         actionsDiv.innerHTML = `
-            <div style="display: flex; flex-direction: column; align-items: flex-end;">
-                <p style="margin: 0; margin-bottom: 8px; font-size:14px; color: black;">
-                    ${price.toFixed(2)} <span style="color: ${percentColor};">${formattedPercentChange}</span>
+            <div style="display: flex; align-items: center;"> 
+                <button id="toggle-actions" style="
+                    background: #88a1ac; 
+                    color: #fff; 
+                    width: 18px; 
+                    height: 18px; 
+                    border-radius: 50%; 
+                    text-align: center; 
+                    padding: 0; 
+                    font-size: 14px;
+                    line-height: 18px;
+                    cursor: pointer;
+                    border: none;
+                ">+</button>
+                <div id="action-buttons" style="display: none; margin-left: 5px; flex-direction: column;">
+                    <button id="buy-button" style="margin-bottom: 5px; background: #16a085; color: #fff;">
+                        Buy at $${price.toFixed(2)}
+                    </button>
+                    <button id="sell-button" style="margin-bottom: 5px; background: #c0392b; color: #fff;">
+                        Sell at $${price.toFixed(2)}
+                    </button>
+                    <button id="draw-button" style="background: #2980b9; color: #fff;">
+                        Draw
+                    </button>
+                </div>
+                <p style="margin: 0; margin-left: 5px; font-size:10px; color: black;">
+                    $${price.toFixed(2)} <span style="color: ${percentColor};">${formattedPercentChange}</span>
                 </p>
-                <button id="buy-button" style="margin-bottom: 5px; background: #16a085; color: #fff;">Buy</button>
-                <button id="sell-button" style="margin-bottom: 5px; background: #c0392b; color: #fff;">Sell</button>
-                <button id="draw-button" style="margin-bottom: 5px; background: #2980b9; color: #fff;">Draw</button>
             </div>
         `;
-        document.getElementById('buy-button').onclick = () => alert('Buy at ' + price.toFixed(2));
-        document.getElementById('sell-button').onclick = () => alert('Sell at ' + price.toFixed(2));
-        // document.getElementById('close-button').onclick = () => { actionsDiv.style.display = 'none'; };
 
-        // Draw button: Place a horizontal line at this price
-        document.getElementById('draw-button').onclick = () => {
-            if (data.length < 1) return;
-            const lineSeries = chart.addLineSeries({
-                color: '#ffffff',
-                lineWidth: 1
-            });
-            // Create a horizontal line by setting two points at the same price
-            const firstTime = data[0].time;
-            const lastTime = data[data.length - 1].time;
-            lineSeries.setData([
-                { time: firstTime, value: price },
-                { time: lastTime, value: price }
-            ]);
-            horizontalLines.push(lineSeries);
-            alert('Horizontal line drawn at ' + price.toFixed(2));
-        };
-    
+        // **Event Listener for [+] Button to Toggle Action Buttons**
+        const toggleActionsBtn = document.getElementById('toggle-actions');
+        const actionButtonsDiv = document.getElementById('action-buttons');
+
+        if (toggleActionsBtn) {
+            toggleActionsBtn.onclick = () => {
+                if (actionButtonsDiv.style.display === 'none') {
+                    actionButtonsDiv.style.display = 'flex';
+                } else {
+                    actionButtonsDiv.style.display = 'none';
+                }
+            };
+        }
+
+        // **Event Listeners for Buy, Sell, and Draw Buttons**
+        const buyButton = document.getElementById('buy-button');
+        const sellButton = document.getElementById('sell-button');
+        const drawButton = document.getElementById('draw-button');
+
+        if (buyButton) {
+            buyButton.onclick = () => alert(`Buy at $${price.toFixed(2)}`);
+        }
+
+        if (sellButton) {
+            sellButton.onclick = () => alert(`Sell at $${price.toFixed(2)}`);
+        }
+
+        if (drawButton) {
+            drawButton.onclick = () => {
+                if (data.length < 1) return;
+                const lineSeries = chart.addLineSeries({
+                    color: '#ffffff',
+                    lineWidth: 1
+                });
+                // Create a horizontal line by setting two points at the same price
+                const firstTime = data[0].time;
+                const lastTime = data[data.length - 1].time;
+                lineSeries.setData([
+                    { time: firstTime, value: price },
+                    { time: lastTime, value: price }
+                ]);
+                horizontalLines.push(lineSeries);
+                alert(`Horizontal line drawn at $${price.toFixed(2)}`);
+            };
+        }
 
         actionsDiv.style.display = 'block';
 
+        // **Position the Actions Popup**
         const popupWidth = actionsDiv.offsetWidth;
         const popupHeight = actionsDiv.offsetHeight;
         const containerWidth = chartContainer.clientWidth;
         const x = containerWidth - popupWidth - 10;
         const y = param.point.y - (popupHeight / 2);
 
-        actionsDiv.style.left = x + 'px';
-        actionsDiv.style.top = y + 'px';
+        actionsDiv.style.left = `${x}px`;
+        actionsDiv.style.top = `${y}px`;
     });
 
     const instructions = document.createElement('div');
