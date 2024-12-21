@@ -207,7 +207,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <button id="buy-button" style="margin-bottom: 5px; background: #16a085; color: #fff;">Buy</button>
                 <button id="sell-button" style="margin-bottom: 5px; background: #c0392b; color: #fff;">Sell</button>
                 <button id="draw-button" style="margin-bottom: 5px; background: #2980b9; color: #fff;">Draw</button>
-                <button id="close-button" style="background: #555; color: #fff;">Close</button>
             </div>
         `;
         document.getElementById('buy-button').onclick = () => alert('Buy at ' + price.toFixed(2));
