@@ -1,0 +1,49 @@
+<!-- plugins/charts-plugin/views/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Advanced Candlestick Chart</title>
+    <link rel="stylesheet" href="style.css"/>
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+    <script src="https://unpkg.com/htmx.org"></script> <!-- Add HTMX -->
+</head>
+<body>
+    <!-- Symbol Loader -->
+    <div id="chart-container"></div>
+    <div id="actions"></div>
+    <div id="ohlc-info"></div>
+    <div id="toolbar" style="position:absolute; top:10px; left:10px; z-index:9999;">
+        <button id="candle-btn">Candlestick</button>
+        <button id="line-btn">Line</button>
+        <button id="area-btn">Area</button>
+    </div>
+    <div style="display:flex; gap:5px;">
+        <form 
+            id="symbol-form" 
+            hx-get="/plugins/charts-plugin/api/data" 
+            hx-target="#chart-container" 
+            hx-trigger="submit" 
+            hx-swap="outerHTML">
+            <input
+                type="text"
+                name="symbol"
+                id="symbol-input"
+                placeholder="Enter symbol"
+                style="padding: 5px; border-radius: 3px; border: 1px solid #333; background: #222; color: #fff;"
+                required
+            />
+            <button
+                type="submit"
+                style="padding: 5px 10px; background: #333; color: #fff; border: none; border-radius: 3px; cursor: pointer;"
+            >
+                Load
+            </button>
+        </form>
+    </div>
+    <div id="chart-container"></div>
+    
+    <script src="main.js"></script>
+</body>
+</html>
