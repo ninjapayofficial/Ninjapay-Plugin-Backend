@@ -1,9 +1,9 @@
 // plugins/charts-plugin/views/main.js
 
-// /* eslint-disable no-unused-vars */
+/* eslint-disable no-unused-vars */
 /* global LightweightCharts */
 document.addEventListener('DOMContentLoaded', async () => {
-    const { createChart } = LightweightCharts;
+    const { createChart, CrosshairMode } = LightweightCharts;
     const chartContainer = document.getElementById('chart-container');
     const actionsDiv = document.getElementById('actions');
     const ohlcInfoDiv = document.getElementById('ohlc-info');
@@ -54,14 +54,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         height: 600,
         layout: {
             background: {
-                color: '#0b0e11'
+                color: '#0b0e11' // Dark background
             },
             textColor: '#e0e0e0',
         },
         timeScale: {
             borderColor: '#2f3336',
-            // Increase barSpacing to zoom in
-            barSpacing: 15
+            barSpacing: 15, // Increase barSpacing to zoom in
+            // Optional: Add more configurations as needed
         },
         rightPriceScale: {
             borderColor: '#2f3336',
@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             horzLines: { color: '#2f3336', style: 1 },
         },
         crosshair: {
-            mode: LightweightCharts.CrosshairMode.Normal,
+            mode: CrosshairMode.Normal,
             vertLine: { visible: true, style: 2, color: '#9194a3', labelVisible: false },
             horzLine: { visible: true, style: 2, color: '#9194a3', labelVisible: false },
         },
@@ -144,8 +144,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     addSMASeries(data, 7, '#9b59b6');
     addSMASeries(data, 25, '#e74c3c');
 
-    // Fit content to see everything clearly
-    chart.timeScale().fitContent();
+    // Adjust the visible range to focus on the latest data
+    const visibleBars = 50; // Number of recent bars to display
+    const totalBars = data.length;
+
+    if (totalBars > visibleBars) {
+        chart.timeScale().setVisibleLogicalRange({
+            from: totalBars - visibleBars,
+            to: totalBars,
+        });
+    } else {
+        chart.timeScale().fitContent(); // Fallback if data is less than visibleBars
+    }
 
     window.addEventListener('resize', () => {
         chart.applyOptions({ width: chartContainer.clientWidth });
@@ -197,6 +207,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <button id="buy-button" style="margin-bottom: 5px; background: #16a085; color: #fff;">Buy</button>
                 <button id="sell-button" style="margin-bottom: 5px; background: #c0392b; color: #fff;">Sell</button>
                 <button id="draw-button" style="margin-bottom: 5px; background: #2980b9; color: #fff;">Draw</button>
+                <button id="close-button" style="background: #555; color: #fff;">Close</button>
             </div>
         `;
         document.getElementById('buy-button').onclick = () => alert('Buy at ' + price.toFixed(2));
@@ -314,12 +325,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         addSMASeries(data, 7, '#9b59b6');
         addSMASeries(data, 25, '#e74c3c');
 
-        // Fit again after re-building series
-        chart.timeScale().fitContent();
+        // Adjust the visible range to focus on the latest data
+        const visibleBars = 50; // Number of recent bars to display
+        const totalBars = data.length;
+
+        if (totalBars > visibleBars) {
+            chart.timeScale().setVisibleLogicalRange({
+                from: totalBars - visibleBars,
+                to: totalBars,
+            });
+        } else {
+            chart.timeScale().fitContent(); // Fallback if data is less than visibleBars
+        }
 
         // Re-draw previously drawn horizontal lines if you want that persistence (not required)
         // In this example, we cleared them, so no re-draw.
-    }
+    }  
 
     candleBtn.addEventListener('click', () => setChartType('candlestick'));
     lineBtn.addEventListener('click', () => setChartType('line'));
