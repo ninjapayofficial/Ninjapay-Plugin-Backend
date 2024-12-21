@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         chart.applyOptions({ width: chartContainer.clientWidth });
     });
 
-    // eslint-disable-next-line no-unused-vars
+
     let currentCrosshairPrice = null;
     const latestPrice = data.length > 0 ? data[data.length - 1].close : null;
 
