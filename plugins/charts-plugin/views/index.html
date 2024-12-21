@@ -23,6 +23,17 @@
         <input type="text" id="symbol-input" placeholder="Enter symbol" style="padding:5px; border-radius:3px; border:1px solid #333; background:#222; color:#fff;">
         <button id="load-symbol" style="padding:5px 10px; background:#333; color:#fff; border:none; border-radius:3px; cursor:pointer;">Load</button>
     </div>
+
+    <!-- <div style="position:relative; top:10px; left:10px; z-index:9999; display:flex; gap:5px;">
+        <input type="text" id="symbol-input" placeholder="Enter symbol" style="padding:5px; border-radius:3px; border:1px solid #333; background:#222; color:#fff;">
+        <button 
+            id="load-symbol" 
+            style="padding:5px 10px; background:#333; color:#fff; border:none; border-radius:3px; cursor:pointer;"
+            hx-get="/plugins/charts-plugin/api/data-symbol" 
+            hx-target="#chart-container" 
+            hx-params="symbol: #symbol-input" 
+            hx-push-url="true">Load</button>
+    </div> -->
     
     <script src="main.js"></script>
 </body>
