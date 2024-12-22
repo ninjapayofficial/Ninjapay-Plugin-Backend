@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     let currentCrosshairPrice = null;
-    const latestPrice = data.length > 0 ? data[data.length - 1].close : null;
+
 
     chart.subscribeCrosshairMove(param => {
         if (!param.point) return;
@@ -221,7 +221,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (param.time) {
             candle = data.find(d => d.time === param.time);
         }
-
+    const latestPrice = data.length > 0 ? data[data.length - 1].close : null;
         // Calculate percentage change
         const percentChange = ((price - latestPrice) / latestPrice) * 100;
         const formattedPercentChange = percentChange >= 0
@@ -526,7 +526,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                     // Update the chart with the new data
                     clearAllSeries();
-                    candleSeries = addCandleSeries(data);
+                    candleSeries = addCandleSeries(data); // Assign to the global candleSeries
                     addVolumeSeries(data);
                     addSMASeries(data, 14, '#f1c40f');
                     addSMASeries(data, 7, '#9b59b6');
