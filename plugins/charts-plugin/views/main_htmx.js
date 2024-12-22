@@ -137,47 +137,47 @@ document.addEventListener('DOMContentLoaded', async () => {
         allSeries.push(smaSeries);
     }
 
-    document.addEventListener("htmx:afterRequest", (event) => {
-        if (event.detail.target.id === "chart-container") {
-            try {
-                // The response from HTMX will be in the event.detail.xhr.responseText
-                const newData = event.detail.xhr.responseText ? JSON.parse(event.detail.xhr.responseText) : [];
+    // document.addEventListener("htmx:afterRequest", (event) => {
+    //     if (event.detail.target.id === "chart-container") {
+    //         try {
+    //             // The response from HTMX will be in the event.detail.xhr.responseText
+    //             const newData = event.detail.xhr.responseText ? JSON.parse(event.detail.xhr.responseText) : [];
      
-                if (!Array.isArray(newData) || newData.length === 0) {
-                    console.log("No data available for the selected symbol.");
-                    return;
-                }
+    //             if (!Array.isArray(newData) || newData.length === 0) {
+    //                 console.log("No data available for the selected symbol.");
+    //                 return;
+    //             }
     
-                // Clear existing chart series
-                clearAllSeries();
+    //             // Clear existing chart series
+    //             clearAllSeries();
     
-                // Add new candlestick series
-                const candleSeries = chart.addCandlestickSeries({
-                    upColor: "#26a69a",
-                    downColor: "#ef5350",
-                    borderUpColor: "#26a69a",
-                    borderDownColor: "#ef5350",
-                    wickUpColor: "#26a69a",
-                    wickDownColor: "#ef5350",
-                });
-                candleSeries.setData(newData);
+    //             // Add new candlestick series
+    //             const candleSeries = chart.addCandlestickSeries({
+    //                 upColor: "#26a69a",
+    //                 downColor: "#ef5350",
+    //                 borderUpColor: "#26a69a",
+    //                 borderDownColor: "#ef5350",
+    //                 wickUpColor: "#26a69a",
+    //                 wickDownColor: "#ef5350",
+    //             });
+    //             candleSeries.setData(newData);
     
-                // Add volume series
-                addVolumeSeries(newData);
+    //             // Add volume series
+    //             addVolumeSeries(newData);
     
-                // Add SMA series
-                addSMASeries(newData, 14, "#f1c40f");
-                addSMASeries(newData, 7, "#9b59b6");
-                addSMASeries(newData, 25, "#e74c3c");
+    //             // Add SMA series
+    //             addSMASeries(newData, 14, "#f1c40f");
+    //             addSMASeries(newData, 7, "#9b59b6");
+    //             addSMASeries(newData, 25, "#e74c3c");
     
-                // Adjust chart view
-                chart.timeScale().fitContent();
-                console.log("Chart updated successfully!");
-            } catch (error) {
-                console.error("Error processing response:", error);
-            }
-        }
-    });
+    //             // Adjust chart view
+    //             chart.timeScale().fitContent();
+    //             console.log("Chart updated successfully!");
+    //         } catch (error) {
+    //             console.error("Error processing response:", error);
+    //         }
+    //     }
+    // });
     
     
     
@@ -185,7 +185,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
 
     // Initial load of series
-    const candleSeries = addCandleSeries(data);
+    let candleSeries = addCandleSeries(data);
     addVolumeSeries(data);
     addSMASeries(data, 14, '#f1c40f');
     addSMASeries(data, 7, '#9b59b6');
@@ -368,16 +368,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         let mainSeries;
         if (type === 'candlestick') {
-            mainSeries = chart.addCandlestickSeries({
-                upColor: '#26a69a',
-                downColor: '#ef5350',
-                borderDownColor: '#ef5350',
-                borderUpColor: '#26a69a',
-                wickDownColor: '#ef5350',
-                wickUpColor: '#26a69a'
-            });
-            mainSeries.setData(data);
-            allSeries.push(mainSeries);
+            // mainSeries = chart.addCandlestickSeries({
+            //     upColor: '#26a69a',
+            //     downColor: '#ef5350',
+            //     borderDownColor: '#ef5350',
+            //     borderUpColor: '#26a69a',
+            //     wickDownColor: '#ef5350',
+            //     wickUpColor: '#26a69a'
+            // });
+            // mainSeries.setData(data);
+            // allSeries.push(mainSeries);
+            candleSeries = addCandleSeries(data);
         } else if (type === 'line') {
             mainSeries = chart.addLineSeries({ color: '#ffffff', lineWidth: 2 });
             const lineData = data.map(d => ({ time: d.time, value: d.close }));
@@ -498,7 +499,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // });
     
 
-
+        // Symbol Loader Logic
         const loadSymbolBtn = document.getElementById('load-symbol');
         const symbolInput = document.getElementById('symbol-input');
     
@@ -516,17 +517,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Fetch the data
             fetch(url)
                 .then(response => response.json())
-                .then(data => {
-    
+                .then(newData => {
+                     data = newData;
                     // Check if the data is valid
                     if (!Array.isArray(data) || data.length === 0) {
                         console.log("No data available for the selected symbol.");
                         return;
                     }
-    
                     // Update the chart with the new data
                     clearAllSeries();
-                    addCandleSeries(data);
+                    candleSeries = addCandleSeries(data);
                     addVolumeSeries(data);
                     addSMASeries(data, 14, '#f1c40f');
                     addSMASeries(data, 7, '#9b59b6');

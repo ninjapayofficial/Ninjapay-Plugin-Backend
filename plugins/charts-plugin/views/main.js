@@ -137,8 +137,55 @@ document.addEventListener('DOMContentLoaded', async () => {
         allSeries.push(smaSeries);
     }
 
+    // document.addEventListener("htmx:afterRequest", (event) => {
+    //     if (event.detail.target.id === "chart-container") {
+    //         try {
+    //             // The response from HTMX will be in the event.detail.xhr.responseText
+    //             const newData = event.detail.xhr.responseText ? JSON.parse(event.detail.xhr.responseText) : [];
+     
+    //             if (!Array.isArray(newData) || newData.length === 0) {
+    //                 console.log("No data available for the selected symbol.");
+    //                 return;
+    //             }
+    
+    //             // Clear existing chart series
+    //             clearAllSeries();
+    
+    //             // Add new candlestick series
+    //             const candleSeries = chart.addCandlestickSeries({
+    //                 upColor: "#26a69a",
+    //                 downColor: "#ef5350",
+    //                 borderUpColor: "#26a69a",
+    //                 borderDownColor: "#ef5350",
+    //                 wickUpColor: "#26a69a",
+    //                 wickDownColor: "#ef5350",
+    //             });
+    //             candleSeries.setData(newData);
+    
+    //             // Add volume series
+    //             addVolumeSeries(newData);
+    
+    //             // Add SMA series
+    //             addSMASeries(newData, 14, "#f1c40f");
+    //             addSMASeries(newData, 7, "#9b59b6");
+    //             addSMASeries(newData, 25, "#e74c3c");
+    
+    //             // Adjust chart view
+    //             chart.timeScale().fitContent();
+    //             console.log("Chart updated successfully!");
+    //         } catch (error) {
+    //             console.error("Error processing response:", error);
+    //         }
+    //     }
+    // });
+    
+    
+    
+    
+    
+
     // Initial load of series
-    const candleSeries = addCandleSeries(data);
+    let candleSeries = addCandleSeries(data);
     addVolumeSeries(data);
     addSMASeries(data, 14, '#f1c40f');
     addSMASeries(data, 7, '#9b59b6');
@@ -321,16 +368,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         let mainSeries;
         if (type === 'candlestick') {
-            mainSeries = chart.addCandlestickSeries({
-                upColor: '#26a69a',
-                downColor: '#ef5350',
-                borderDownColor: '#ef5350',
-                borderUpColor: '#26a69a',
-                wickDownColor: '#ef5350',
-                wickUpColor: '#26a69a'
-            });
-            mainSeries.setData(data);
-            allSeries.push(mainSeries);
+            // mainSeries = chart.addCandlestickSeries({
+            //     upColor: '#26a69a',
+            //     downColor: '#ef5350',
+            //     borderDownColor: '#ef5350',
+            //     borderUpColor: '#26a69a',
+            //     wickDownColor: '#ef5350',
+            //     wickUpColor: '#26a69a'
+            // });
+            // mainSeries.setData(data);
+            // allSeries.push(mainSeries);
+            candleSeries = addCandleSeries(data);
         } else if (type === 'line') {
             mainSeries = chart.addLineSeries({ color: '#ffffff', lineWidth: 2 });
             const lineData = data.map(d => ({ time: d.time, value: d.close }));
@@ -437,14 +485,73 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // Symbol Loader Logic
-    const symbolInput = document.getElementById('symbol-input');
-    const loadSymbolBtn = document.getElementById('load-symbol');
-    loadSymbolBtn.addEventListener('click', () => {
-        const newSymbol = symbolInput.value.trim();
-        if (newSymbol) {
-            window.location.href = `/plugins/charts-plugin/${newSymbol}`;
-        }
-    });
+    // document.getElementById('load-symbol').addEventListener('click', () => {
+    //     const symbol = document.getElementById('symbol-input').value;
+    //     if (symbol) {
+    //         fetch(`/plugins/charts-plugin/api/data-symbol?symbol=${symbol}`)
+    //             .then(response => response.json())
+    //             .then(data => {
+    //                 console.log(data);  // Check the fetched data
+    //                 // Update the chart with new data
+    //             })
+    //             .catch(error => console.error('Error fetching data:', error));
+    //     }
+    // });
+    
+
+        // Symbol Loader Logic
+        const loadSymbolBtn = document.getElementById('load-symbol');
+        const symbolInput = document.getElementById('symbol-input');
+    
+        loadSymbolBtn.addEventListener('click', () => {
+            const symbol = symbolInput.value.trim();
+            
+            if (!symbol) {
+                console.log("Please enter a symbol.");
+                return;  // Don't make a request if no symbol is entered
+            }
+    
+            // Now manually make the fetch request to the backend
+            const url = `/plugins/charts-plugin/api/data?symbol=${symbol}`;
+    
+            // Fetch the data
+            fetch(url)
+                .then(response => response.json())
+                .then(newData => {
+                     data = newData;
+                    // Check if the data is valid
+                    if (!Array.isArray(data) || data.length === 0) {
+                        console.log("No data available for the selected symbol.");
+                        return;
+                    }
+                    // Update the chart with the new data
+                    clearAllSeries();
+                    candleSeries = addCandleSeries(data);
+                    addVolumeSeries(data);
+                    addSMASeries(data, 14, '#f1c40f');
+                    addSMASeries(data, 7, '#9b59b6');
+                    addSMASeries(data, 25, '#e74c3c');
+
+                    // Adjust the visible range to focus on the latest data
+                    const visibleBars = 50; // Number of recent bars to display
+                    const totalBars = data.length;
+
+                    if (totalBars > visibleBars) {
+                        chart.timeScale().setVisibleLogicalRange({
+                            from: totalBars - visibleBars,
+                            to: totalBars,
+                        });
+                    } else {
+                        chart.timeScale().fitContent(); // Fallback if data is less than visibleBars
+                    }
+                
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                });
+        });
+    
+    
 
     // // -----------------------
     // // ADDING THE DELTA TOOLTIP PRIMITIVE
