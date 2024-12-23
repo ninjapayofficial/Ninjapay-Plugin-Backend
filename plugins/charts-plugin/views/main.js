@@ -7,6 +7,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const chartContainer = document.getElementById('chart-container');
     const actionsDiv = document.getElementById('actions');
     const ohlcInfoDiv = document.getElementById('ohlc-info');
+    const toolbar = document.getElementById('toolbar');
+    const drawingToolbar = document.getElementById('drawing-toolbar');
+
+    // Toolbar Buttons
+    const candleBtn = document.getElementById('candle-btn');
+    const lineBtn = document.getElementById('line-btn');
+    const areaBtn = document.getElementById('area-btn');
+    const drawBtn = document.getElementById('draw-btn');
+    const closeDrawBtn = document.getElementById('close-draw-btn');
 
     // Detect symbol from URL
     const pathSegments = window.location.pathname.split('/');
@@ -208,7 +217,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         chart.applyOptions({ width: chartContainer.clientWidth });
     });
 
-
     let currentCrosshairPrice = null;
     let latestPrice = data.length > 0 ? data[data.length - 1].close : null;
 
@@ -346,10 +354,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     instructions.innerHTML = 'Scroll to zoom, drag to pan';
     chartContainer.appendChild(instructions);
 
-    const candleBtn = document.getElementById('candle-btn');
-    const lineBtn = document.getElementById('line-btn');
-    const areaBtn = document.getElementById('area-btn');
-
     function clearAllSeries() {
         // Remove each series
         for (let i = 0; i < allSeries.length; i++) {
@@ -439,127 +443,155 @@ document.addEventListener('DOMContentLoaded', async () => {
     lineBtn.addEventListener('click', () => setChartType('line'));
     areaBtn.addEventListener('click', () => setChartType('area'));
 
-    // Simple Drawing Overlay (unchanged)
+    // -----------------------
+    // Drawing Mode Setup
+    // -----------------------
+    
+    // Create the drawing canvas
     const drawingCanvas = document.createElement('canvas');
     drawingCanvas.style.position = 'absolute';
     drawingCanvas.style.top = '0';
     drawingCanvas.style.left = '0';
-    drawingCanvas.style.pointerEvents = 'none';
+    drawingCanvas.style.width = '100%';
+    drawingCanvas.style.height = '100%';
+    drawingCanvas.style.zIndex = '10'; // Ensure it's above the chart
+    drawingCanvas.style.pointerEvents = 'none'; // Disabled by default
     chartContainer.appendChild(drawingCanvas);
 
+    // Resize the canvas to match the chart size
     function resizeCanvas() {
         drawingCanvas.width = chartContainer.clientWidth;
-        drawingCanvas.height = 600;
+        drawingCanvas.height = chartContainer.clientHeight;
     }
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
     const ctx = drawingCanvas.getContext('2d');
     let isDrawing = false;
-    let startX, startY;
+    let lastX = 0;
+    let lastY = 0;
+    let isDrawingMode = false;
 
-    chartContainer.addEventListener('mousedown', (e) => {
-        isDrawing = true;
-        const rect = drawingCanvas.getBoundingClientRect();
-        startX = e.clientX - rect.left;
-        startY = e.clientY - rect.top;
+    // Drawing Button Event Listener
+    drawBtn.addEventListener('click', () => {
+        if (isDrawingMode) return; // Already in drawing mode
+
+        isDrawingMode = true;
+        drawingCanvas.style.pointerEvents = 'auto'; // Enable drawing
+        chartContainer.classList.add('chart-drawing-mode'); // Change cursor
+        drawingToolbar.style.display = 'block'; // Show Close button
     });
 
-    chartContainer.addEventListener('mousemove', (e) => {
+    // Close Drawing Mode Button Event Listener
+    closeDrawBtn.addEventListener('click', () => {
+        if (!isDrawingMode) return; // Not in drawing mode
+
+        isDrawingMode = false;
+        drawingCanvas.style.pointerEvents = 'none'; // Disable drawing
+        chartContainer.classList.remove('chart-drawing-mode'); // Restore cursor
+        drawingToolbar.style.display = 'none'; // Hide Close button
+        ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height); // Optionally clear drawings
+    });
+
+    // Start drawing
+    drawingCanvas.addEventListener('mousedown', (e) => {
+        if (!isDrawingMode) return;
+        isDrawing = true;
+        const rect = drawingCanvas.getBoundingClientRect();
+        lastX = e.clientX - rect.left;
+        lastY = e.clientY - rect.top;
+    });
+
+    // Draw on mouse move
+    drawingCanvas.addEventListener('mousemove', (e) => {
         if (!isDrawing) return;
         const rect = drawingCanvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
 
-        ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+        ctx.strokeStyle = '#fff'; // White color for drawing
+        ctx.lineWidth = 2;        // Thickness of the line
+        ctx.lineCap = 'round';
         ctx.beginPath();
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2;
-        ctx.moveTo(startX, startY);
+        ctx.moveTo(lastX, lastY);
         ctx.lineTo(x, y);
         ctx.stroke();
+
+        lastX = x;
+        lastY = y;
     });
 
-    chartContainer.addEventListener('mouseup', () => {
+    // Stop drawing
+    drawingCanvas.addEventListener('mouseup', () => {
+        if (!isDrawingMode) return;
+        isDrawing = false;
+    });
+
+    // Optionally, handle mouse leave to stop drawing
+    drawingCanvas.addEventListener('mouseleave', () => {
+        if (!isDrawingMode) return;
         isDrawing = false;
     });
 
     // Symbol Loader Logic
-    // document.getElementById('load-symbol').addEventListener('click', () => {
-    //     const symbol = document.getElementById('symbol-input').value;
-    //     if (symbol) {
-    //         fetch(`/plugins/charts-plugin/api/data-symbol?symbol=${symbol}`)
-    //             .then(response => response.json())
-    //             .then(data => {
-    //                 console.log(data);  // Check the fetched data
-    //                 // Update the chart with new data
-    //             })
-    //             .catch(error => console.error('Error fetching data:', error));
-    //     }
-    // });
-    
+    const loadSymbolBtn = document.getElementById('load-symbol');
+    const symbolInput = document.getElementById('symbol-input');
 
-        // Symbol Loader Logic
-        const loadSymbolBtn = document.getElementById('load-symbol');
-        const symbolInput = document.getElementById('symbol-input');
-    
-        loadSymbolBtn.addEventListener('click', () => {
-            const symbol = symbolInput.value.trim();
+    loadSymbolBtn.addEventListener('click', () => {
+        const symbol = symbolInput.value.trim();
+        
+        if (!symbol) {
+            console.log("Please enter a symbol.");
+            return;  // Don't make a request if no symbol is entered
+        }
+
+        // Now manually make the fetch request to the backend
+        const url = `/plugins/charts-plugin/api/data?symbol=${symbol}`;
+
+        // Fetch the data
+        fetch(url)
+            .then(response => response.json())
+            .then(newData => {
+                data = newData;
+                // Check if the data is valid
+                if (!Array.isArray(data) || data.length === 0) {
+                    console.log("No data available for the selected symbol.");
+                    return;
+                }
+                // Update the chart with the new data
+                clearAllSeries();
+                candleSeries = addCandleSeries(data); // Assign to the global candleSeries
+                addVolumeSeries(data);
+                addSMASeries(data, 14, '#f1c40f');
+                addSMASeries(data, 7, '#9b59b6');
+                addSMASeries(data, 25, '#e74c3c');
+                latestPrice = data.length > 0 ? data[data.length - 1].close : null;
+
+                // Adjust the visible range to focus on the latest data
+                const visibleBars = 50; // Number of recent bars to display
+                const totalBars = data.length;
+
+                if (totalBars > visibleBars) {
+                    chart.timeScale().setVisibleLogicalRange({
+                        from: totalBars - visibleBars,
+                        to: totalBars,
+                    });
+                } else {
+                    chart.timeScale().fitContent(); // Fallback if data is less than visibleBars
+                }
             
-            if (!symbol) {
-                console.log("Please enter a symbol.");
-                return;  // Don't make a request if no symbol is entered
-            }
-    
-            // Now manually make the fetch request to the backend
-            const url = `/plugins/charts-plugin/api/data?symbol=${symbol}`;
-    
-            // Fetch the data
-            fetch(url)
-                .then(response => response.json())
-                .then(newData => {
-                     data = newData;
-                    // Check if the data is valid
-                    if (!Array.isArray(data) || data.length === 0) {
-                        console.log("No data available for the selected symbol.");
-                        return;
-                    }
-                    // Update the chart with the new data
-                    clearAllSeries();
-                    candleSeries = addCandleSeries(data); // Assign to the global candleSeries
-                    addVolumeSeries(data);
-                    addSMASeries(data, 14, '#f1c40f');
-                    addSMASeries(data, 7, '#9b59b6');
-                    addSMASeries(data, 25, '#e74c3c');
-                    latestPrice = data.length > 0 ? data[data.length - 1].close : null;
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
+    });
 
-                    // Adjust the visible range to focus on the latest data
-                    const visibleBars = 50; // Number of recent bars to display
-                    const totalBars = data.length;
-
-                    if (totalBars > visibleBars) {
-                        chart.timeScale().setVisibleLogicalRange({
-                            from: totalBars - visibleBars,
-                            to: totalBars,
-                        });
-                    } else {
-                        chart.timeScale().fitContent(); // Fallback if data is less than visibleBars
-                    }
-                
-                })
-                .catch(error => {
-                    console.error('Error fetching data:', error);
-                });
-        });
-    
-    
-
-    // // -----------------------
-    // // ADDING THE DELTA TOOLTIP PRIMITIVE
-    // // -----------------------
-    // // Assuming you have the DeltaTooltipPrimitive code as shown in the reference:
-    // // https://github.com/tradingview/lightweight-charts/tree/master/plugin-examples
-    // // Attach the primitive to the main candle series (or any other series).
+    // -----------------------
+    // ADDING THE DELTA TOOLTIP PRIMITIVE (Commented Out)
+    // -----------------------
+    // Assuming you have the DeltaTooltipPrimitive code as shown in the reference:
+    // https://github.com/tradingview/lightweight-charts/tree/master/plugin-examples
+    // Attach the primitive to the main candle series (or any other series).
     // const deltaTooltip = new DeltaTooltipPrimitive({
     //     lineColor: 'rgba(0, 0, 0, 0.2)',
     // });

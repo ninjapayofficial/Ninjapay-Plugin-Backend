@@ -1,3 +1,5 @@
+/* plugins/charts-plugin/views/style.css */
+
 body {
     margin: 0;
     font-family: Arial, sans-serif;
@@ -73,8 +75,30 @@ body {
     border: none;
     border-radius: 3px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 
 #toolbar button:hover {
     background: #444;
+}
+
+/* Drawing Toolbar Styling */
+#drawing-toolbar button {
+    padding: 5px 10px;
+    background: #dbcdcb;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+#drawing-toolbar button:hover {
+    background: #c0392b;
+}
+
+/* Cursor Styles */
+.chart-drawing-mode {
+    cursor: crosshair;
 }
