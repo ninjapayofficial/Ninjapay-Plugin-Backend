@@ -210,7 +210,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     let currentCrosshairPrice = null;
-    const latestPrice = data.length > 0 ? data[data.length - 1].close : null;
+    let latestPrice = data.length > 0 ? data[data.length - 1].close : null;
 
     chart.subscribeCrosshairMove(param => {
         if (!param.point) return;
@@ -531,6 +531,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     addSMASeries(data, 14, '#f1c40f');
                     addSMASeries(data, 7, '#9b59b6');
                     addSMASeries(data, 25, '#e74c3c');
+                    latestPrice = data.length > 0 ? data[data.length - 1].close : null;
 
                     // Adjust the visible range to focus on the latest data
                     const visibleBars = 50; // Number of recent bars to display
