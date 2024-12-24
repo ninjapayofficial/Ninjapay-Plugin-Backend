@@ -6,7 +6,6 @@ const router = express.Router();
 const path = require("path");
 const crypto = require("crypto");
 const nodemailer = require('nodemailer');
-const marked = require('marked'); // Import marked
 require('dotenv').config();
 const { Op } = require("sequelize");
 const PDFDocument = require('pdfkit');
@@ -200,10 +199,7 @@ module.exports = (models) => {
         return res.status(404).json({ error: "Document not found." });
       }
 
-      // Convert markdown to HTML
-      const htmlContent = marked(document.content);
-
-      res.json({ content: htmlContent, title: document.title });
+      res.json({ content: document.content, title: document.title });
     } catch (error) {
       console.error("Error fetching document:", error);
       res.status(400).json({ error: "Failed to fetch document." });
@@ -274,7 +270,7 @@ module.exports = (models) => {
 
       // Convert the edited content back to markdown if necessary or handle as HTML
       // Assuming content is in HTML format since it's rendered as HTML
-      // If you need to store it as markdown, you'll have to convert it back
+      // If you need to store it as markdown, you'll have to convert it back but cient is handling anyway
 
       // Sanitize the edited content
       const sanitizedContent = sanitizeHtml(content, {
@@ -289,8 +285,6 @@ module.exports = (models) => {
 
       // Update the document content if edited
       if (content !== document.content) {
-        // Optionally sanitize the HTML content here to prevent XSS
-        // We'll cover sanitization in the next section
         document.content = sanitizedContent; // Assuming content is sanitized
         await document.save();
       }

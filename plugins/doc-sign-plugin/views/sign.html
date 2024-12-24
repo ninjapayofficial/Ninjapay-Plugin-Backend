@@ -49,6 +49,8 @@
       }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/turndown@7.1.1/dist/turndown.min.js"></script>
   </head>
   <body>
     <h1>Nveda Securities & Investments Pvt Ltd</h1>
@@ -91,10 +93,16 @@
           const signatureData = signaturePad.toDataURL(); // Base64 encoded image
 
           // Get the edited content from the document div
-          const editedContent = document.getElementById('document').innerHTML;
+          const editedContentHTML = document.getElementById('document').innerHTML;
+
+          // Initialize Turndown
+          const turndownService = new TurndownService();
+
+          // Convert HTML to Markdown
+          const editedContentMarkdown = turndownService.turndown(editedContentHTML);
 
           // Optional: Validate that content is not empty
-          if (!editedContent.trim()) {
+          if (!editedContentMarkdown.trim()) {
             alert("Document content cannot be empty.");
             return;
           }
@@ -105,7 +113,7 @@
             credentials: 'include', // Ensure cookies are sent for auth
             body: JSON.stringify({ 
               signature: signatureData,
-              content: editedContent // Send the edited content
+              content: editedContentMarkdown // Send the edited content
              }),
           })
           .then(response => response.json())
@@ -139,7 +147,7 @@
           }
         })
         .then(data => {
-          document.getElementById('document').innerHTML = data.content;
+          document.getElementById('document').innerHTML = marked.parse(data.content);
           document.getElementById('title').innerHTML = data.title;
         })
         .catch(error => {
