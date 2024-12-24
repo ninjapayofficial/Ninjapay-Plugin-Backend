@@ -11,6 +11,7 @@ require('dotenv').config();
 const { Op } = require("sequelize");
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
+const sanitizeHtml = require('sanitize-html');
 
 module.exports = (models) => {
   const { Document, Signature } = models;
@@ -209,40 +210,44 @@ module.exports = (models) => {
     }
   });
 
-  // Route to serve the signing page
-  router.get("/sign/:token", authMiddleware, async (req, res) => {
-    const { token } = req.params;
+    // Route to serve the signing page
+    router.get("/sign/:token", authMiddleware, async (req, res) => {
+      const { token } = req.params;
 
-    try {
-      const signature = await Signature.findOne({ where: { signatureUrl: token } });
+      try {
+        const signature = await Signature.findOne({ where: { signatureUrl: token } });
 
-      if (!signature) {
-        return res.status(404).send("Invalid signature link.");
+        if (!signature) {
+          return res.status(404).send("Invalid signature link.");
+        }
+
+        // Check if user is authenticated and email matches
+        if (!req.user || req.user.email !== signature.signerEmail) {
+          return res.status(403).send("Unauthorized access.");
+        }
+
+        if (signature.expiresAt < new Date()) {
+          throw new Error("Token has expired.");
+        }
+
+        res.sendFile(path.join(__dirname, "../views", "sign.html"));
+      } catch (error) {
+        console.error("Error accessing signing page:", error);
+        res.status(400).send("Invalid or expired signature link.");
       }
-
-      // Check if user is authenticated and email matches
-      if (!req.user || req.user.email !== signature.signerEmail) {
-        return res.status(403).send("Unauthorized access.");
-      }
-
-      if (signature.expiresAt < new Date()) {
-        throw new Error("Token has expired.");
-      }
-
-      res.sendFile(path.join(__dirname, "../views", "sign.html"));
-    } catch (error) {
-      console.error("Error accessing signing page:", error);
-      res.status(400).send("Invalid or expired signature link.");
-    }
-  });
+    });
 
   // API Route to handle signing
   router.post("/sign/:token", authMiddleware, async (req, res) => {
     const { token } = req.params;
-    const { signature } = req.body;
+    const { signature, content } = req.body; // Destructure content
 
     if (!signature) {
       return res.status(400).json({ error: "Signature data is required." });
+    }
+
+    if (!content) {
+      return res.status(400).json({ error: "Document content is required." });
     }
 
     try {
@@ -267,6 +272,29 @@ module.exports = (models) => {
         return res.status(404).json({ error: "Associated document not found." });
       }
 
+      // Convert the edited content back to markdown if necessary or handle as HTML
+      // Assuming content is in HTML format since it's rendered as HTML
+      // If you need to store it as markdown, you'll have to convert it back
+
+      // Sanitize the edited content
+      const sanitizedContent = sanitizeHtml(content, {
+        allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']),
+        allowedAttributes: {
+          'a': ['href', 'name', 'target'],
+          'img': ['src', 'alt'],
+          '*': ['style'], // Allow inline styles if necessary
+        },
+        allowedSchemes: ['http', 'https', 'mailto', 'tel'],
+      });
+
+      // Update the document content if edited
+      if (content !== document.content) {
+        // Optionally sanitize the HTML content here to prevent XSS
+        // We'll cover sanitization in the next section
+        document.content = sanitizedContent; // Assuming content is sanitized
+        await document.save();
+      }
+
       // Update signature as signed and store signature data
       signatureRecord.signed = true;
       signatureRecord.signedAt = new Date();
@@ -288,6 +316,7 @@ module.exports = (models) => {
       res.status(400).json({ error: "Failed to sign document." });
     }
   });
+
 
   return router;
 };

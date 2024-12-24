@@ -90,19 +90,32 @@
 
           const signatureData = signaturePad.toDataURL(); // Base64 encoded image
 
+          // Get the edited content from the document div
+          const editedContent = document.getElementById('document').innerHTML;
+
+          // Optional: Validate that content is not empty
+          if (!editedContent.trim()) {
+            alert("Document content cannot be empty.");
+            return;
+          }
+
           fetch(`/plugins/doc-sign-plugin/sign/${token}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include', // Ensure cookies are sent for auth
-            body: JSON.stringify({ signature: signatureData }),
+            body: JSON.stringify({ 
+              signature: signatureData,
+              content: editedContent // Send the edited content
+             }),
           })
           .then(response => response.json())
           .then(data => {
             if (data.message) {
               document.getElementById('message').innerText = data.message;
               signButton.disabled = true;
-              // Optionally, disable the canvas to prevent further signatures
+              // Disable the signature pad and editing
               signaturePad.off();
+              document.getElementById('document').contentEditable = false;
             } else if (data.error) {
               alert(data.error);
             }
