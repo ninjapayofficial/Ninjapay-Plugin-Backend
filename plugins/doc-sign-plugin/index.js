@@ -18,6 +18,12 @@ module.exports = {
       res.sendFile(path.join(__dirname, "views", "dashboard.html"));
     });
 
+    // Serve the admin dashboard
+    router.get("/", (req, res) => {
+      res.sendFile(path.join(__dirname, "views", "dashboard.html"));
+    });
+
+
     // Import routes
     const routes = require("./routes")(models, sequelize);
 
