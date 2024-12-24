@@ -1,0 +1,91 @@
+<!-- plugins/doc-sign-plugin/views/sign.html -->
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sign Document</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      h1 {
+        color: #333;
+      }
+      .document-content {
+        border: 1px solid #ddd;
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+      }
+      .signed-message {
+        color: green;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Sign Document</h1>
+
+    <div id="document" class="document-content">
+      <!-- Document content will be loaded here -->
+    </div>
+
+    <button id="signButton">Sign Document</button>
+    <p id="message"></p>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const urlParts = window.location.pathname.split('/');
+        const token = urlParts[urlParts.length - 1];
+
+        // Fetch document content from the API route
+        fetch(`/plugins/doc-sign-plugin/api/document/${token}`, {
+          method: 'GET',
+          credentials: 'include', // Ensure cookies are sent for auth
+        })
+        .then(response => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error('Failed to load document.');
+          }
+        })
+        .then(data => {
+          document.getElementById('document').innerHTML = data.content;
+        })
+        .catch(error => {
+          console.error('Error fetching document:', error);
+          document.getElementById('document').innerText = 'Error loading document.';
+          document.getElementById('signButton').disabled = true;
+        });
+
+        const signButton = document.getElementById('signButton');
+        signButton.addEventListener('click', function() {
+          fetch(`/plugins/doc-sign-plugin/sign/${token}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include', // Ensure cookies are sent for auth
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.message) {
+              document.getElementById('message').innerText = data.message;
+              signButton.disabled = true;
+            } else if (data.error) {
+              alert(data.error);
+            }
+          })
+          .catch(error => {
+            console.error('Error signing document:', error);
+            alert('Error signing document.');
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,176 @@
+<!-- plugins/doc-sign-plugin/views/dashboard.html -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Doc Sign Plugin - Admin Dashboard</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      h1 {
+        color: #333;
+      }
+      form {
+        margin-bottom: 40px;
+      }
+      label {
+        display: block;
+        margin-top: 10px;
+      }
+      input, textarea, button {
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+      }
+      .signers {
+        margin-top: 10px;
+      }
+      .signer {
+        display: flex;
+        margin-bottom: 5px;
+      }
+      .signer input {
+        flex: 1;
+      }
+      .signer button {
+        width: 50px;
+        margin-left: 5px;
+      }
+      #documentsTable {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      #documentsTable th, #documentsTable td {
+        border: 1px solid #ddd;
+        padding: 8px;
+      }
+      #documentsTable th {
+        background-color: #f2f2f2;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Doc Sign Plugin - Admin Dashboard</h1>
+
+    <h2>Create New Document</h2>
+    <form id="createDocForm">
+      <label for="title">Document Title:</label>
+      <input type="text" id="title" name="title" required />
+
+      <label for="content">Document Content (HTML allowed):</label>
+      <textarea id="content" name="content" rows="10" required></textarea>
+
+      <label>Signers' Emails:</label>
+      <div id="signersList" class="signers">
+        <div class="signer">
+          <input type="email" name="signers" required />
+          <button type="button" class="remove-signer">-</button>
+        </div>
+      </div>
+      <button type="button" id="addSigner">Add Signer</button>
+
+      <button type="submit">Create Document</button>
+    </form>
+
+    <h2>Existing Documents</h2>
+    <table id="documentsTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>Created By</th>
+          <th>Created At</th>
+          <th>Signatures</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Documents will be populated here -->
+      </tbody>
+    </table>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const addSignerBtn = document.getElementById('addSigner');
+        const signersList = document.getElementById('signersList');
+
+        addSignerBtn.addEventListener('click', function() {
+          const signerDiv = document.createElement('div');
+          signerDiv.classList.add('signer');
+          signerDiv.innerHTML = `
+            <input type="email" name="signers" required />
+            <button type="button" class="remove-signer">-</button>
+          `;
+          signersList.appendChild(signerDiv);
+        });
+
+        signersList.addEventListener('click', function(e) {
+          if (e.target.classList.contains('remove-signer')) {
+            e.target.parentElement.remove();
+          }
+        });
+
+        const createDocForm = document.getElementById('createDocForm');
+        createDocForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          const title = document.getElementById('title').value;
+          const content = document.getElementById('content').value;
+          const signerInputs = document.querySelectorAll('input[name="signers"]');
+          const signerEmails = Array.from(signerInputs).map(input => input.value);
+
+          fetch('/plugins/doc-sign-plugin/dashboard/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, content, signerEmails }),
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.message) {
+              alert(data.message);
+              createDocForm.reset();
+              // Optionally, refresh the documents table
+              loadDocuments();
+            } else if (data.error) {
+              alert(data.error);
+            }
+          })
+          .catch(error => {
+            console.error('Error creating document:', error);
+            alert('Error creating document.');
+          });
+        });
+
+        // Function to load existing documents
+        function loadDocuments() {
+          fetch('/plugins/doc-sign-plugin/dashboard/data', {
+            method: 'GET',
+            credentials: 'include',
+          })
+          .then(response => response.json())
+          .then(data => {
+            const tbody = document.querySelector('#documentsTable tbody');
+            tbody.innerHTML = '';
+            data.documents.forEach(doc => {
+              const tr = document.createElement('tr');
+              tr.innerHTML = `
+                <td>${doc.id}</td>
+                <td>${doc.title}</td>
+                <td>${doc.createdBy}</td>
+                <td>${new Date(doc.createdAt).toLocaleString()}</td>
+                <td>${doc.Signatures.length}</td>
+              `;
+              tbody.appendChild(tr);
+            });
+          })
+          .catch(error => {
+            console.error('Error fetching documents:', error);
+          });
+        }
+
+        // Initial load
+        loadDocuments();
+      });
+    </script>
+  </body>
+</html>
