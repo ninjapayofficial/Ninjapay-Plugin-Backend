@@ -42,6 +42,7 @@ async function authMiddleware(req, res, next) {
         uid,
         walletId: userData.walletId, // Nullable
         isAdmin: userData.isAdmin || false, // Include isAdmin
+        email: userData.email, // Include email
       };
 
       // Retrieve the default provider
