@@ -90,6 +90,7 @@ module.exports = (sequelize, models) => {
         userInvoiceKey: "", // Initialize empty; can be set when adding a provider
         userAdminKey: "", // Initialize empty; can be set when adding a provider
         isAdmin: false, // Initialize as false
+        email: email, // Add email that used for signup
         fundingProviders: [], // Initialize as empty array
       });
 
