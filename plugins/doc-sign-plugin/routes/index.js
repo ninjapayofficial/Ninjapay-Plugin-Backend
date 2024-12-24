@@ -196,7 +196,7 @@ module.exports = (models) => {
         return res.status(404).json({ error: "Document not found." });
       }
 
-      res.json({ content: document.content });
+      res.json({ content: document.content, title: document.title });
     } catch (error) {
       console.error("Error fetching document:", error);
       res.status(400).json({ error: "Failed to fetch document." });
