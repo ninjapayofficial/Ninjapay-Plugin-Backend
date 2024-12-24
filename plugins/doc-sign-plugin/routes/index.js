@@ -6,6 +6,7 @@ const router = express.Router();
 const path = require("path");
 const crypto = require("crypto");
 const nodemailer = require('nodemailer');
+const marked = require('marked'); // Import marked
 require('dotenv').config();
 const { Op } = require("sequelize");
 const PDFDocument = require('pdfkit');
@@ -58,7 +59,9 @@ module.exports = (models) => {
       const doc = new PDFDocument();
       const writeStream = fs.createWriteStream(outputPath);
       doc.pipe(writeStream);
-      doc.text(documentContent);
+      doc.text(documentContent, {
+        align: 'left'
+      });
       if (signatureImage) {
         const imgData = signatureImage.replace(/^data:image\/\w+;base64,/, "");
         const imgBuffer = Buffer.from(imgData, 'base64');
@@ -196,7 +199,10 @@ module.exports = (models) => {
         return res.status(404).json({ error: "Document not found." });
       }
 
-      res.json({ content: document.content, title: document.title });
+      // Convert markdown to HTML
+      const htmlContent = marked(document.content);
+
+      res.json({ content: htmlContent, title: document.title });
     } catch (error) {
       console.error("Error fetching document:", error);
       res.status(400).json({ error: "Failed to fetch document." });
