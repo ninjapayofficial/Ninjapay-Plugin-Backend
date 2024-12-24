@@ -37,6 +37,7 @@
         padding: 10px 20px;
         font-size: 16px;
         margin-right: 10px;
+        cursor: pointer;
       }
       .signed-message {
         color: green;
@@ -47,7 +48,12 @@
         display: block;
         margin-top: 20px;
       }
+      /* Optional: Disable text selection when not editable */
+      .document-content[contenteditable="false"] {
+        user-select: none;
+      }
     </style>
+    <!-- Existing Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/turndown@7.1.1/dist/turndown.min.js"></script>
@@ -59,9 +65,13 @@
     <div id="title" class="title-content">
       <!-- Title content will be loaded here -->
     </div>
-    <div id="document" class="document-content" contenteditable="true">
+    <div id="document" class="document-content" contenteditable="false">
       <!-- Document content will be loaded here -->
     </div>
+
+    <!-- New Edit and Save Buttons -->
+    <button id="editButton">Edit Document</button>
+    <button id="saveButton" style="display: none;">Save Changes</button>
 
     <canvas id="signatureCanvas" width="400" height="200"></canvas>
     <button id="clearButton">Clear Signature</button>
@@ -81,6 +91,26 @@
         const clearButton = document.getElementById('clearButton');
         clearButton.addEventListener('click', () => {
           signaturePad.clear();
+        });
+
+        // Edit and Save Buttons
+        const editButton = document.getElementById('editButton');
+        const saveButton = document.getElementById('saveButton');
+        const documentDiv = document.getElementById('document');
+
+        editButton.addEventListener('click', () => {
+          documentDiv.contentEditable = "true";
+          documentDiv.focus();
+          editButton.style.display = "none";
+          saveButton.style.display = "inline-block";
+        });
+
+        saveButton.addEventListener('click', () => {
+          // Optional: You can add validation or confirmation here
+          documentDiv.contentEditable = "false";
+          editButton.style.display = "inline-block";
+          saveButton.style.display = "none";
+          alert("Changes have been saved.");
         });
 
         const signButton = document.getElementById('signButton');
@@ -123,7 +153,9 @@
               signButton.disabled = true;
               // Disable the signature pad and editing
               signaturePad.off();
-              document.getElementById('document').contentEditable = false;
+              documentDiv.contentEditable = false;
+              editButton.style.display = "none";
+              saveButton.style.display = "none";
             } else if (data.error) {
               alert(data.error);
             }
@@ -154,6 +186,7 @@
           console.error('Error fetching document:', error);
           document.getElementById('document').innerText = 'Error loading document.';
           document.getElementById('signButton').disabled = true;
+          editButton.disabled = true;
         });
       });
     </script>
