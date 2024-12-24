@@ -13,6 +13,7 @@ module.exports = {
       signedAt: { type: DataTypes.DATE },
       signatureUrl: { type: DataTypes.STRING }, // URL for signing
       expiresAt: { type: DataTypes.DATE, allowNull: true },
+      signatureImage: { type: DataTypes.TEXT, allowNull: true },
       createdAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
       updatedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
     });

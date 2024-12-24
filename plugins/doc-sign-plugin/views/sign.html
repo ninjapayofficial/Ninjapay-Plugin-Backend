@@ -21,12 +21,19 @@
       button {
         padding: 10px 20px;
         font-size: 16px;
+        margin-right: 10px;
       }
       .signed-message {
         color: green;
         font-weight: bold;
       }
+      #signatureCanvas {
+        border: 1px solid #000000;
+        display: block;
+        margin-top: 20px;
+      }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
   </head>
   <body>
     <h1>Sign Document</h1>
@@ -35,13 +42,57 @@
       <!-- Document content will be loaded here -->
     </div>
 
+    <canvas id="signatureCanvas" width="400" height="200"></canvas>
+    <button id="clearButton">Clear Signature</button>
     <button id="signButton">Sign Document</button>
     <p id="message"></p>
 
     <script>
       document.addEventListener('DOMContentLoaded', function() {
+        // Extract the token from the URL
         const urlParts = window.location.pathname.split('/');
         const token = urlParts[urlParts.length - 1];
+
+        // Initialize Signature Pad
+        const canvas = document.getElementById('signatureCanvas');
+        const signaturePad = new SignaturePad(canvas);
+
+        const clearButton = document.getElementById('clearButton');
+        clearButton.addEventListener('click', () => {
+          signaturePad.clear();
+        });
+
+        const signButton = document.getElementById('signButton');
+        signButton.addEventListener('click', function() {
+          if (signaturePad.isEmpty()) {
+            alert("Please provide a signature first.");
+            return;
+          }
+
+          const signatureData = signaturePad.toDataURL(); // Base64 encoded image
+
+          fetch(`/plugins/doc-sign-plugin/sign/${token}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include', // Ensure cookies are sent for auth
+            body: JSON.stringify({ signature: signatureData }),
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.message) {
+              document.getElementById('message').innerText = data.message;
+              signButton.disabled = true;
+              // Optionally, disable the canvas to prevent further signatures
+              signaturePad.off();
+            } else if (data.error) {
+              alert(data.error);
+            }
+          })
+          .catch(error => {
+            console.error('Error signing document:', error);
+            alert('Error signing document.');
+          });
+        });
 
         // Fetch document content from the API route
         fetch(`/plugins/doc-sign-plugin/api/document/${token}`, {
@@ -62,28 +113,6 @@
           console.error('Error fetching document:', error);
           document.getElementById('document').innerText = 'Error loading document.';
           document.getElementById('signButton').disabled = true;
-        });
-
-        const signButton = document.getElementById('signButton');
-        signButton.addEventListener('click', function() {
-          fetch(`/plugins/doc-sign-plugin/sign/${token}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include', // Ensure cookies are sent for auth
-          })
-          .then(response => response.json())
-          .then(data => {
-            if (data.message) {
-              document.getElementById('message').innerText = data.message;
-              signButton.disabled = true;
-            } else if (data.error) {
-              alert(data.error);
-            }
-          })
-          .catch(error => {
-            console.error('Error signing document:', error);
-            alert('Error signing document.');
-          });
         });
       });
     </script>

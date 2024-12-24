@@ -24,6 +24,7 @@ module.exports = (sequelize) => {
         signedAt: { type: DataTypes.DATE },
         signatureUrl: { type: DataTypes.STRING },
         expiresAt: { type: DataTypes.DATE, allowNull: true },
+        signatureImage: { type: DataTypes.TEXT, allowNull: true },
       },
       {
         tableName: "Signatures",

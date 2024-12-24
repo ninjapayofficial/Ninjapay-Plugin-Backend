@@ -13,6 +13,7 @@
   "license": "ISC",
   "description": "Document Signing Plugin",
   "dependencies": {
-    "nodemailer": "^6.9.16"
+    "nodemailer": "^6.9.16",
+    "pdfkit": "^0.15.2"
   }
 }

@@ -8,6 +8,8 @@ const crypto = require("crypto");
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 const { Op } = require("sequelize");
+const PDFDocument = require('pdfkit');
+const fs = require('fs');
 
 module.exports = (models) => {
   const { Document, Signature } = models;
@@ -50,6 +52,36 @@ module.exports = (models) => {
     });
   }
 
+  // Generate PDF and store or send as needed
+  async function generatePDF(documentContent, signatureImage, outputPath) {
+    return new Promise((resolve, reject) => {
+      const doc = new PDFDocument();
+      const writeStream = fs.createWriteStream(outputPath);
+      doc.pipe(writeStream);
+      doc.text(documentContent);
+      if (signatureImage) {
+        const imgData = signatureImage.replace(/^data:image\/\w+;base64,/, "");
+        const imgBuffer = Buffer.from(imgData, 'base64');
+        doc.image(imgBuffer, {
+          fit: [250, 300],
+          align: 'center',
+          valign: 'bottom'
+        });
+      }
+      doc.end();
+
+      writeStream.on('finish', () => {
+        console.log(`PDF generated at ${outputPath}`);
+        resolve();
+      });
+
+      writeStream.on('error', (err) => {
+        console.error('Error generating PDF:', err);
+        reject(err);
+      });
+    });
+  }
+
   // Route to serve the admin dashboard
   router.get("/dashboard", authMiddleware, async (req, res) => {
     if (!req.user.isAdmin) {
@@ -82,7 +114,7 @@ module.exports = (models) => {
       const signatures = signerEmails.map((email) => {
         const token = generateSignatureUrl(document.id, email);
         const expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + 30);
+        expiresAt.setDate(expiresAt.getDate() + 30); // Token valid for 30 days
         return {
           documentId: document.id,
           signerEmail: email,
@@ -127,7 +159,7 @@ module.exports = (models) => {
           where: month
             ? {
                 updatedAt: {
-                  [models.Sequelize.Op.between]: [startDate, endDate],
+                  [Op.between]: [startDate, endDate],
                 },
               }
             : {},
@@ -201,27 +233,48 @@ module.exports = (models) => {
   // API Route to handle signing
   router.post("/sign/:token", authMiddleware, async (req, res) => {
     const { token } = req.params;
+    const { signature } = req.body;
+
+    if (!signature) {
+      return res.status(400).json({ error: "Signature data is required." });
+    }
 
     try {
-      const signature = await Signature.findOne({ where: { signatureUrl: token } });
+      const signatureRecord = await Signature.findOne({ where: { signatureUrl: token } });
 
-      if (!signature) {
+      if (!signatureRecord) {
         return res.status(404).json({ error: "Signature not found." });
       }
 
       // Ensure the logged-in user's email matches the signer email
-      if (!req.user || req.user.email !== signature.signerEmail) {
+      if (!req.user || req.user.email !== signatureRecord.signerEmail) {
         return res.status(403).json({ error: "Unauthorized to sign this document." });
       }
 
-      if (signature.signed) {
+      if (signatureRecord.signed) {
         return res.status(400).json({ error: "Document already signed." });
       }
 
-      // Update signature as signed
-      signature.signed = true;
-      signature.signedAt = new Date();
-      await signature.save();
+      // Fetch the associated document
+      const document = await Document.findByPk(signatureRecord.documentId);
+      if (!document) {
+        return res.status(404).json({ error: "Associated document not found." });
+      }
+
+      // Update signature as signed and store signature data
+      signatureRecord.signed = true;
+      signatureRecord.signedAt = new Date();
+      signatureRecord.signatureImage = signature; // Ensure this field exists in your Signature model
+      await signatureRecord.save();
+
+      // Generate PDF with the signature
+      const outputDir = path.join(__dirname, "../signed_documents");
+      // Ensure the directory exists
+      if (!fs.existsSync(outputDir)){
+        fs.mkdirSync(outputDir);
+      }
+      const outputPath = path.join(outputDir, `document_${signatureRecord.id}.pdf`);
+      await generatePDF(document.content, signatureRecord.signatureImage, outputPath);
 
       res.status(200).json({ message: "Document signed successfully." });
     } catch (error) {
