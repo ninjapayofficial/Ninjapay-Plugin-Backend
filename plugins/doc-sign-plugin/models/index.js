@@ -23,6 +23,7 @@ module.exports = (sequelize) => {
         signed: { type: DataTypes.BOOLEAN, defaultValue: false },
         signedAt: { type: DataTypes.DATE },
         signatureUrl: { type: DataTypes.STRING },
+        expiresAt: { type: DataTypes.DATE, allowNull: true },
       },
       {
         tableName: "Signatures",

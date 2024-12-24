@@ -81,11 +81,13 @@ module.exports = (models) => {
       // Create Signatures
       const signatures = signerEmails.map((email) => {
         const token = generateSignatureUrl(document.id, email);
-        console.log("token:", token);
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 30);
         return {
           documentId: document.id,
           signerEmail: email,
           signatureUrl: token,
+          expiresAt: expiresAt,
         };
       });
       
@@ -183,6 +185,10 @@ module.exports = (models) => {
       // Check if user is authenticated and email matches
       if (!req.user || req.user.email !== signature.signerEmail) {
         return res.status(403).send("Unauthorized access.");
+      }
+
+      if (signature.expiresAt < new Date()) {
+        throw new Error("Token has expired.");
       }
 
       res.sendFile(path.join(__dirname, "../views", "sign.html"));

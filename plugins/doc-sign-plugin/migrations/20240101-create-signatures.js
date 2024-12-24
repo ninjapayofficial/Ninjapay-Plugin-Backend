@@ -12,6 +12,7 @@ module.exports = {
       signed: { type: DataTypes.BOOLEAN, defaultValue: false },
       signedAt: { type: DataTypes.DATE },
       signatureUrl: { type: DataTypes.STRING }, // URL for signing
+      expiresAt: { type: DataTypes.DATE, allowNull: true },
       createdAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
       updatedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
     });
