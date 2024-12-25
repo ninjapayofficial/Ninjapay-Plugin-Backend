@@ -15,7 +15,8 @@
     "ejs": "^3.1.9",
     "express": "^4.18.2",
     "lightweight-charts": "^4.2.2",
-    "sequelize": "^6.37.5"
+    "sequelize": "^6.37.5",
+    "yahoo-finance2": "^2.13.3"
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",

@@ -19,6 +19,11 @@ module.exports = {
     });
 
     // Serve the admin dashboard
+    router.get("/login", (req, res) => {
+      res.sendFile(path.join(__dirname, "views", "login.html"));
+    });
+
+    // Serve the admin dashboard
     router.get("/", (req, res) => {
       res.sendFile(path.join(__dirname, "views", "dashboard.html"));
     });

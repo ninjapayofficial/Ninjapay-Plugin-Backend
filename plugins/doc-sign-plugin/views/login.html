@@ -1,0 +1,61 @@
+<!-- login.html -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Login</title>
+    <!-- Include Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+    <!-- Include Firebase config from server -->
+    <script src="../../firebase-config.js"></script>
+  </head>
+  <body>
+    <h1>Login</h1>
+    <input type="email" id="email" placeholder="Email" />
+    <br />
+    <input type="password" id="password" placeholder="Password" />
+    <br />
+    <button onclick="login()">Login</button>
+    <div id="loginMessage"></div>
+
+    <script>
+      
+      function login() {
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        firebase
+          .auth()
+          .signInWithEmailAndPassword(email, password)
+          .then((userCredential) => {
+            return userCredential.user.getIdToken();
+          })
+          .then((idToken) => {
+            return fetch("/auth/sessionLogin", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ idToken }),
+              credentials: "include", // Include credentials in the request
+            });
+          })
+          .then((response) => {
+            if (response.ok) {
+              window.location.href = "/plugins/doc-sign-plugin/dashboard";
+            } else {
+              return response.text().then((text) => {
+                throw new Error(text);
+              });
+            }
+          })
+          .catch((error) => {
+            console.error("Login error:", error);
+            document.getElementById("loginMessage").innerHTML =
+              '<p style="color: red;">' + error.message + "</p>";
+          });
+      }
+    </script>
+  </body>
+</html>
