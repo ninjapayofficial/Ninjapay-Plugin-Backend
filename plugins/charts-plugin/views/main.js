@@ -281,7 +281,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </button>
                 </div>
                 <p style="margin: 0; margin-left: 5px; font-size:10px; color: black;">
-                    $${price.toFixed(2)} <span style="color: ${percentColor};">${formattedPercentChange}</span>
+                    ${price.toFixed(2)} <span style="color: ${percentColor};">${formattedPercentChange}</span>
                 </p>
             </div>
         `;
