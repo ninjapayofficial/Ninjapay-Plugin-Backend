@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function addSMASeries(data, length = 14, color) {
-        const smaData = calculateSMA(data, length);
+        const smaData = calculateSMA(data, length).filter(d => d.value !== null);
         const smaSeries = chart.addLineSeries({
             color: color,
             lineWidth: 2
@@ -241,7 +241,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (candle) {
             ohlcInfoDiv.innerHTML = `
-                <p><strong>${param.time}</strong></p>
+                <p><strong>${new Date(candle.time).toLocaleString()}</strong></p>
                 <p>O: ${candle.open.toFixed(2)} H: ${candle.high.toFixed(2)} L: ${candle.low.toFixed(2)} C: ${candle.close.toFixed(2)}</p>
                 <p>Vol: ${candle.volume}</p>
             `;
