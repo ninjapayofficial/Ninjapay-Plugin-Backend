@@ -313,7 +313,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         addRSISeriesToRSIChart(data, 14, '#ff9900');
 
         // Adjust the visible range to focus on the latest data (main chart)
-        const visibleBars = 50; 
+        const visibleBars = 80; 
         const totalBars = data.length;
         if (totalBars > visibleBars) {
             chart.timeScale().setVisibleLogicalRange({
@@ -334,7 +334,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     addRSISeriesToRSIChart(data, 14, '#ff9900'); // RSI in separate chart
 
     // Focus on the latest data
-    const visibleBars = 50;
+    const visibleBars = 80;
     const totalBars = data.length;
     if (totalBars > visibleBars) {
         chart.timeScale().setVisibleLogicalRange({
@@ -604,7 +604,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 addRSISeriesToRSIChart(data, 14, '#ff9900');
                 latestPrice = data.length > 0 ? data[data.length - 1].close : null;
 
-                const visibleBars = 50;
+                const visibleBars = 80;
                 const totalBars = data.length;
                 if (totalBars > visibleBars) {
                     chart.timeScale().setVisibleLogicalRange({
