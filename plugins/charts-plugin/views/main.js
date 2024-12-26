@@ -4,7 +4,11 @@
 /* global LightweightCharts */
 document.addEventListener('DOMContentLoaded', async () => {
     const { createChart, CrosshairMode } = LightweightCharts;
+
+    // ========== DOM Elements ==========
     const chartContainer = document.getElementById('chart-container');
+    const rsiChartContainer = document.getElementById('rsi-chart-container'); // <--- New container for RSI
+
     const actionsDiv = document.getElementById('actions');
     const ohlcInfoDiv = document.getElementById('ohlc-info');
     const toolbar = document.getElementById('toolbar');
@@ -32,14 +36,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 throw new Error('Network response was not ok');
             }
             data = await response.json();
-            // If no data returned, handle gracefully
             if (!Array.isArray(data) || data.length === 0) {
                 console.log('No data found for symbol:', symbol);
                 data = [];
             }
         } catch (err) {
             console.error('Error fetching data for symbol:', err);
-            // Fallback to default data if needed
             data = [];
         }
     } else {
@@ -58,19 +60,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         ];
     }
 
+    // ========== MAIN CHART ==========
     const chart = createChart(chartContainer, {
         width: chartContainer.clientWidth,
-        height: 600,
+        height: 600, // or set a fixed height if desired
         layout: {
-            background: {
-                color: '#0b0e11' // Dark background
-            },
+            background: { color: '#0b0e11' }, // Dark background
             textColor: '#e0e0e0',
         },
         timeScale: {
             borderColor: '#2f3336',
-            barSpacing: 15, // Increase barSpacing to zoom in
-            // Optional: Add more configurations as needed
+            barSpacing: 15,
         },
         rightPriceScale: {
             borderColor: '#2f3336',
@@ -86,10 +86,37 @@ document.addEventListener('DOMContentLoaded', async () => {
         },
     });
 
-    // Keep track of all series here
-    let allSeries = [];
-    let horizontalLines = []; // store references to horizontal line series
+    // ========== NEW RSI CHART (SEPARATE) ==========
+    const rsiChart = createChart(rsiChartContainer, {
+        width: rsiChartContainer.clientWidth,
+        height: 200,
+        layout: {
+            background: { color: '#0b0e11' },
+            textColor: '#e0e0e0',
+        },
+        timeScale: {
+            borderColor: '#2f3336',
+        },
+        rightPriceScale: {
+            borderColor: '#2f3336',
+        },
+        grid: {
+            vertLines: { color: '#2f3336', style: 1 },
+            horzLines: { color: '#2f3336', style: 1 },
+        },
+        crosshair: {
+            mode: CrosshairMode.Normal,
+            vertLine: { visible: true, style: 2, color: '#9194a3', labelVisible: false },
+            horzLine: { visible: true, style: 2, color: '#9194a3', labelVisible: false },
+        },
+    });
 
+
+    // Keep track of all series on the main chart
+    let allSeries = [];
+    let horizontalLines = []; // store references to horizontal line series (main chart)
+
+    // ========== Basic Series Helpers ==========
     function addCandleSeries(data) {
         const s = chart.addCandlestickSeries({
             upColor: '#2DBD85',
@@ -136,14 +163,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         return sma;
     }
 
-    /**
-     * Calculate Relative Strength Index (RSI)
-     * @param {Array} data - Array of data points with at least a 'close' property
-     * @param {number} period - The number of periods to use for RSI calculation
-     * @returns {Array} - Array of RSI values with corresponding timestamps
-     */
+    function addSMASeries(data, length = 14, color) {
+        const smaData = calculateSMA(data, length).filter(d => d.value !== null);
+        const smaSeries = chart.addLineSeries({
+            color: color,
+            lineWidth: 2
+        });
+        smaSeries.setData(smaData);
+        allSeries.push(smaSeries);
+    }
+
+    // ========== RSI Calculation ==========
     function calculateRSI(data, period = 14) {
         let rsi = [];
+        if (data.length < period) {
+            // Not enough data to calculate RSI
+            return rsi;
+        }
+
         let gains = 0;
         let losses = 0;
 
@@ -153,14 +190,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (change > 0) {
                 gains += change;
             } else {
-                losses -= change; // losses are positive numbers
+                losses -= change; // losses are stored as positive
             }
         }
 
         let avgGain = gains / period;
         let avgLoss = losses / period;
         let rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
-        rsi.push({ time: data[period].time, value: 100 - (100 / (1 + rs)) });
+
+        // First valid RSI value
+        rsi.push({
+            time: data[period].time,
+            value: 100 - (100 / (1 + rs))
+        });
 
         // Calculate RSI for the rest of the data
         for (let i = period + 1; i < data.length; i++) {
@@ -172,155 +214,145 @@ document.addEventListener('DOMContentLoaded', async () => {
                 avgGain = (avgGain * (period - 1)) / period;
                 avgLoss = ((avgLoss * (period - 1)) - change) / period;
             }
-
             rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
-            rsi.push({ time: data[i].time, value: 100 - (100 / (1 + rs)) });
+            rsi.push({
+                time: data[i].time,
+                value: 100 - (100 / (1 + rs))
+            });
         }
 
         return rsi;
     }
 
+    // ========== RSI on the Separate Chart ==========
+    function addRSISeriesToRSIChart(data, period = 14, color = '#ff9900') {
+        // Compute RSI data
+        const rsiData = calculateRSI(data, period);
 
-    function addSMASeries(data, length = 14, color) {
-        const smaData = calculateSMA(data, length).filter(d => d.value !== null);
-        const smaSeries = chart.addLineSeries({
+        // Create a new line series on the rsiChart
+        const rsiSeries = rsiChart.addLineSeries({
             color: color,
             lineWidth: 2
         });
-        smaSeries.setData(smaData);
-        allSeries.push(smaSeries);
-    }
 
-    // Function to add RSI series
-    function addRSISeries(data, period = 14, color = '#ff9900') {
-        const rsiData = calculateRSI(data, period);
-
-        // Add a new line series for RSI
-        const rsiSeries = chart.addLineSeries({
-            color: color,
-            lineWidth: 2,
-            priceScaleId: 'rsi-scale', // Link to the new price scale
-        });
-
-        // Assign the RSI series to the 'rsi-scale' price scale
-        const rsiPriceScale = chart.priceScale('rsi-scale');
-        rsiPriceScale.applyOptions({
-            position: 'right', // Position can be 'left' or 'right'
-            scaleMargins: {
-                top: 0.8,    // Adjust to position RSI below the main chart
-                bottom: 0.2,
-            },
-            autoScale: true,
-            borderVisible: false,
-            visible: true,
-        });
-
-        // Set RSI data
         rsiSeries.setData(rsiData);
-        allSeries.push(rsiSeries);
 
-        // Add Overbought and Oversold lines
-        addHorizontalLine(70, '#ff0000'); // Overbought
-        addHorizontalLine(30, '#00ff00'); // Oversold
+        // Add Overbought (70) & Oversold (30) lines on the RSI chart
+        addHorizontalLineToRSI(70, '#ff0000'); // Overbought
+        addHorizontalLineToRSI(30, '#00ff00'); // Oversold
     }
 
-    /**
-     * Add horizontal line to the RSI pane
-     * @param {number} value - The y-axis value where the line should be drawn
-     * @param {string} color - Color of the line
-     */
-    function addHorizontalLine(value, color = '#ffffff') {
-        const lineSeries = chart.addLineSeries({
+    function addHorizontalLineToRSI(value, color = '#ffffff') {
+        if (data.length < 1) return;
+        const lineSeries = rsiChart.addLineSeries({
             color: color,
             lineWidth: 1,
-            priceScaleId: 'rsi-scale',
             lineStyle: LightweightCharts.LineStyle.Dotted,
         });
-
         lineSeries.setData([
             { time: data[0].time, value: value },
             { time: data[data.length - 1].time, value: value },
         ]);
-
-        allSeries.push(lineSeries);
     }
 
- 
+    // ========== Clear Series Helpers ==========
+    function clearAllSeries() {
+        // Remove each series from main chart
+        for (let i = 0; i < allSeries.length; i++) {
+            chart.removeSeries(allSeries[i]);
+        }
+        // Also remove horizontal lines from main chart
+        for (let j = 0; j < horizontalLines.length; j++) {
+            chart.removeSeries(horizontalLines[j]);
+        }
+        allSeries = [];
+        horizontalLines = [];
 
+        // Clear RSI chart series
+        rsiChart.remove();
+        // Recreate a fresh RSI chart so lines are cleared
+        // (Alternatively, you can store references to each RSI series and remove them individually.)
+        const newRsiChart = createChart(rsiChartContainer, rsiChart.options());
+        // We must reassign rsiChart, so future RSI additions go to the new chart.
+        Object.assign(rsiChart, newRsiChart);
+    }
 
+    // ========== Set Chart Type ==========
+    function setChartType(type) {
+        clearAllSeries(); // remove current series from main chart & rebuild RSI chart
 
-    // document.addEventListener("htmx:afterRequest", (event) => {
-    //     if (event.detail.target.id === "chart-container") {
-    //         try {
-    //             // The response from HTMX will be in the event.detail.xhr.responseText
-    //             const newData = event.detail.xhr.responseText ? JSON.parse(event.detail.xhr.responseText) : [];
-     
-    //             if (!Array.isArray(newData) || newData.length === 0) {
-    //                 console.log("No data available for the selected symbol.");
-    //                 return;
-    //             }
-    
-    //             // Clear existing chart series
-    //             clearAllSeries();
-    
-    //             // Add new candlestick series
-    //             const candleSeries = chart.addCandlestickSeries({
-    //                 upColor: "#26a69a",
-    //                 downColor: "#ef5350",
-    //                 borderUpColor: "#26a69a",
-    //                 borderDownColor: "#ef5350",
-    //                 wickUpColor: "#26a69a",
-    //                 wickDownColor: "#ef5350",
-    //             });
-    //             candleSeries.setData(newData);
-    
-    //             // Add volume series
-    //             addVolumeSeries(newData);
-    
-    //             // Add SMA series
-    //             addSMASeries(newData, 14, "#f1c40f");
-    //             addSMASeries(newData, 7, "#9b59b6");
-    //             addSMASeries(newData, 25, "#e74c3c");
-    
-    //             // Adjust chart view
-    //             chart.timeScale().fitContent();
-    //             console.log("Chart updated successfully!");
-    //         } catch (error) {
-    //             console.error("Error processing response:", error);
-    //         }
-    //     }
-    // });
-    
-    
-    
-    
-    
+        // MAIN chart rebuild
+        if (type === 'candlestick') {
+            addCandleSeries(data);
+        } else if (type === 'line') {
+            const mainSeries = chart.addLineSeries({ color: '#ffffff', lineWidth: 2 });
+            const lineData = data.map(d => ({ time: d.time, value: d.close }));
+            mainSeries.setData(lineData);
+            allSeries.push(mainSeries);
+        } else if (type === 'area') {
+            const mainSeries = chart.addAreaSeries({ 
+                topColor: 'rgba(67,83,254,0.7)', 
+                bottomColor: 'rgba(67,83,254,0.3)', 
+                lineColor: 'rgba(67,83,254,1)', 
+                lineWidth: 2 
+            });
+            const areaData = data.map(d => ({ time: d.time, value: d.close }));
+            mainSeries.setData(areaData);
+            allSeries.push(mainSeries);
+        }
 
-    // Initial load of series
+        // Re-add volume to main chart
+        addVolumeSeries(data);
+
+        // Re-add SMAs
+        addSMASeries(data, 14, '#f1c40f');
+        addSMASeries(data, 7, '#9b59b6');
+        addSMASeries(data, 25, '#e74c3c');
+
+        // Re-add RSI in the separate rsiChart
+        addRSISeriesToRSIChart(data, 14, '#ff9900');
+
+        // Adjust the visible range to focus on the latest data (main chart)
+        const visibleBars = 50; 
+        const totalBars = data.length;
+        if (totalBars > visibleBars) {
+            chart.timeScale().setVisibleLogicalRange({
+                from: totalBars - visibleBars,
+                to: totalBars,
+            });
+        } else {
+            chart.timeScale().fitContent();
+        }
+    }
+
+    // ========== Initial Load of Series ==========
     let candleSeries = addCandleSeries(data);
     addVolumeSeries(data);
     addSMASeries(data, 14, '#f1c40f');
     addSMASeries(data, 7, '#9b59b6');
     addSMASeries(data, 25, '#e74c3c');
-    addRSISeries(data, 14, '#ff9900'); // 14-period RSI with orange color
+    addRSISeriesToRSIChart(data, 14, '#ff9900'); // RSI in separate chart
 
-    // Adjust the visible range to focus on the latest data
-    const visibleBars = 50; // Number of recent bars to display
+    // Focus on the latest data
+    const visibleBars = 50;
     const totalBars = data.length;
-
     if (totalBars > visibleBars) {
         chart.timeScale().setVisibleLogicalRange({
             from: totalBars - visibleBars,
             to: totalBars,
         });
     } else {
-        chart.timeScale().fitContent(); // Fallback if data is less than visibleBars
+        chart.timeScale().fitContent();
     }
 
+    // ========== Resize Handling ==========
     window.addEventListener('resize', () => {
         chart.applyOptions({ width: chartContainer.clientWidth });
+        rsiChart.applyOptions({ width: rsiChartContainer.clientWidth });
     });
 
+
+    // ========== Crosshair Handling (Main Chart) ==========
     let currentCrosshairPrice = null;
     let latestPrice = data.length > 0 ? data[data.length - 1].close : null;
 
@@ -339,8 +371,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const formattedPercentChange = percentChange >= 0
             ? `(+${percentChange.toFixed(2)}%)`
             : `(${percentChange.toFixed(2)}%)`;
-
-        // Determine color based on positive or negative change
         const percentColor = percentChange >= 0 ? '#16a085' : '#c0392b';
 
         if (candle) {
@@ -357,7 +387,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         ohlcInfoDiv.style.display = 'block';
 
-        // **Updated Actions Popup with [+] Button Next to Price and Percentage**
+        // Actions popup
         actionsDiv.innerHTML = `
             <div style="display: flex; align-items: center;"> 
                 <button id="toggle-actions" style="
@@ -390,10 +420,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
         `;
 
-        // **Event Listener for [+] Button to Toggle Action Buttons**
         const toggleActionsBtn = document.getElementById('toggle-actions');
         const actionButtonsDiv = document.getElementById('action-buttons');
-
         if (toggleActionsBtn) {
             toggleActionsBtn.onclick = () => {
                 if (actionButtonsDiv.style.display === 'none') {
@@ -404,7 +432,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             };
         }
 
-        // **Event Listeners for Buy, Sell, and Draw Buttons**
         const buyButton = document.getElementById('buy-button');
         const sellButton = document.getElementById('sell-button');
         const drawButton = document.getElementById('draw-button');
@@ -449,6 +476,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         actionsDiv.style.top = `${y}px`;
     });
 
+    // Small help text
     const instructions = document.createElement('div');
     instructions.style.position = 'absolute';
     instructions.style.top = '10px';
@@ -458,103 +486,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     instructions.innerHTML = 'Scroll to zoom, drag to pan';
     chartContainer.appendChild(instructions);
 
-    function clearAllSeries() {
-        // Remove each series
-        for (let i = 0; i < allSeries.length; i++) {
-            chart.removeSeries(allSeries[i]);
-        }
-        // Also remove horizontal lines
-        for (let j = 0; j < horizontalLines.length; j++) {
-            chart.removeSeries(horizontalLines[j]);
-        }
-        allSeries = [];
-        horizontalLines = [];
-    }
-
-    function setChartType(type) {
-        clearAllSeries(); // remove current series
-
-        let mainSeries;
-        if (type === 'candlestick') {
-            // mainSeries = chart.addCandlestickSeries({
-            //     upColor: '#26a69a',
-            //     downColor: '#ef5350',
-            //     borderDownColor: '#ef5350',
-            //     borderUpColor: '#26a69a',
-            //     wickDownColor: '#ef5350',
-            //     wickUpColor: '#26a69a'
-            // });
-            // mainSeries.setData(data);
-            // allSeries.push(mainSeries);
-            candleSeries = addCandleSeries(data);
-        } else if (type === 'line') {
-            mainSeries = chart.addLineSeries({ color: '#ffffff', lineWidth: 2 });
-            const lineData = data.map(d => ({ time: d.time, value: d.close }));
-            mainSeries.setData(lineData);
-            allSeries.push(mainSeries);
-        } else if (type === 'area') {
-            mainSeries = chart.addAreaSeries({ 
-                topColor: 'rgba(67,83,254,0.7)', 
-                bottomColor: 'rgba(67,83,254,0.3)', 
-                lineColor: 'rgba(67,83,254,1)', 
-                lineWidth: 2 
-            });
-            const areaData = data.map(d => ({ time: d.time, value: d.close }));
-            mainSeries.setData(areaData);
-            allSeries.push(mainSeries);
-        }
-
-        // Re-add volume
-        const volumeSeries = chart.addHistogramSeries({
-            priceScaleId: 'my-overlay'
-        });
-        const priceScale = chart.priceScale('my-overlay');
-        priceScale.applyOptions({
-            priceFormat: { type: 'volume' },
-            priceScaleId: '',
-            scaleMargins: { top: 0.8, bottom: 0 }
-        });
-        const volumeData = data.map(d => {
-            const color = d.close > d.open ? '#26a69a' : '#ef5350';
-            return { time: d.time, value: d.volume, color: color };
-        });
-        volumeSeries.setData(volumeData);
-        allSeries.push(volumeSeries);
-
-        // Re-add SMA
-        addSMASeries(data, 14, '#f1c40f');
-        addSMASeries(data, 7, '#9b59b6');
-        addSMASeries(data, 25, '#e74c3c');
-        
-        // Re-add RSI
-        addRSISeries(data, 14, '#ff9900'); // 14-period RSI with orange color
-
-        // Adjust the visible range to focus on the latest data
-        const visibleBars = 50; // Number of recent bars to display
-        const totalBars = data.length;
-
-        if (totalBars > visibleBars) {
-            chart.timeScale().setVisibleLogicalRange({
-                from: totalBars - visibleBars,
-                to: totalBars,
-            });
-        } else {
-            chart.timeScale().fitContent(); // Fallback if data is less than visibleBars
-        }
-
-        // Re-draw previously drawn horizontal lines if you want that persistence (not required)
-        // In this example, we cleared them, so no re-draw.
-    }  
-
+    // ========== Event Listeners for Chart Type Buttons ==========
     candleBtn.addEventListener('click', () => setChartType('candlestick'));
     lineBtn.addEventListener('click', () => setChartType('line'));
     areaBtn.addEventListener('click', () => setChartType('area'));
 
-    // -----------------------
-    // Drawing Mode Setup
-    // -----------------------
-    
-    // Create the drawing canvas
+    // ========== Drawing Mode Setup ==========
     const drawingCanvas = document.createElement('canvas');
     drawingCanvas.style.position = 'absolute';
     drawingCanvas.style.top = '0';
@@ -579,25 +516,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     let lastY = 0;
     let isDrawingMode = false;
 
-    // Drawing Button Event Listener
+    // Enable Drawing Mode
     drawBtn.addEventListener('click', () => {
-        if (isDrawingMode) return; // Already in drawing mode
-
+        if (isDrawingMode) return;
         isDrawingMode = true;
-        drawingCanvas.style.pointerEvents = 'auto'; // Enable drawing
-        chartContainer.classList.add('chart-drawing-mode'); // Change cursor
-        drawingToolbar.style.display = 'block'; // Show Close button
+        drawingCanvas.style.pointerEvents = 'auto';
+        chartContainer.classList.add('chart-drawing-mode');
+        drawingToolbar.style.display = 'block';
     });
 
-    // Close Drawing Mode Button Event Listener
+    // Close Drawing Mode
     closeDrawBtn.addEventListener('click', () => {
-        if (!isDrawingMode) return; // Not in drawing mode
-
+        if (!isDrawingMode) return;
         isDrawingMode = false;
-        drawingCanvas.style.pointerEvents = 'none'; // Disable drawing
-        chartContainer.classList.remove('chart-drawing-mode'); // Restore cursor
-        drawingToolbar.style.display = 'none'; // Hide Close button
-        ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height); // Optionally clear drawings
+        drawingCanvas.style.pointerEvents = 'none';
+        chartContainer.classList.remove('chart-drawing-mode');
+        drawingToolbar.style.display = 'none';
+        ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height); 
     });
 
     // Start drawing
@@ -616,8 +551,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
 
-        ctx.strokeStyle = '#fff'; // White color for drawing
-        ctx.lineWidth = 2;        // Thickness of the line
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
         ctx.lineCap = 'round';
         ctx.beginPath();
         ctx.moveTo(lastX, lastY);
@@ -640,60 +575,51 @@ document.addEventListener('DOMContentLoaded', async () => {
         isDrawing = false;
     });
 
-    // Symbol Loader Logic
+    // ========== Symbol Loader Logic ==========
     const loadSymbolBtn = document.getElementById('load-symbol');
     const symbolInput = document.getElementById('symbol-input');
 
     loadSymbolBtn.addEventListener('click', () => {
         const symbol = symbolInput.value.trim();
-        
         if (!symbol) {
             console.log("Please enter a symbol.");
-            return;  // Don't make a request if no symbol is entered
+            return;
         }
 
-        // Now manually make the fetch request to the backend
         const url = `/plugins/charts-plugin/api/data?symbol=${symbol}`;
-
-        // Fetch the data
         fetch(url)
             .then(response => response.json())
             .then(newData => {
                 data = newData;
-                // Check if the data is valid
                 if (!Array.isArray(data) || data.length === 0) {
                     console.log("No data available for the selected symbol.");
                     return;
                 }
-                // Update the chart with the new data
                 clearAllSeries();
-                candleSeries = addCandleSeries(data); // Assign to the global candleSeries
+                candleSeries = addCandleSeries(data);
                 addVolumeSeries(data);
                 addSMASeries(data, 14, '#f1c40f');
                 addSMASeries(data, 7, '#9b59b6');
                 addSMASeries(data, 25, '#e74c3c');
-                addRSISeries(data, 14, '#ff9900');
+                addRSISeriesToRSIChart(data, 14, '#ff9900');
                 latestPrice = data.length > 0 ? data[data.length - 1].close : null;
 
-                // Adjust the visible range to focus on the latest data
-                const visibleBars = 50; // Number of recent bars to display
+                const visibleBars = 50;
                 const totalBars = data.length;
-
                 if (totalBars > visibleBars) {
                     chart.timeScale().setVisibleLogicalRange({
                         from: totalBars - visibleBars,
                         to: totalBars,
                     });
                 } else {
-                    chart.timeScale().fitContent(); // Fallback if data is less than visibleBars
+                    chart.timeScale().fitContent();
                 }
-            
             })
             .catch(error => {
                 console.error('Error fetching data:', error);
             });
     });
-
+    
     // -----------------------
     // ADDING THE DELTA TOOLTIP PRIMITIVE (Commented Out)
     // -----------------------
