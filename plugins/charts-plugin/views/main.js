@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         },
         crosshair: {
             mode: CrosshairMode.Normal,
-            vertLine: { visible: true, style: 2, color: '#9194a3', labelVisible: false },
+            vertLine: { visible: true, style: 2, color: '#9194a3', labelVisible: true },
             horzLine: { visible: true, style: 2, color: '#9194a3', labelVisible: false },
         },
     });
