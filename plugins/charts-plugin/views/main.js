@@ -136,6 +136,51 @@ document.addEventListener('DOMContentLoaded', async () => {
         return sma;
     }
 
+    /**
+     * Calculate Relative Strength Index (RSI)
+     * @param {Array} data - Array of data points with at least a 'close' property
+     * @param {number} period - The number of periods to use for RSI calculation
+     * @returns {Array} - Array of RSI values with corresponding timestamps
+     */
+    function calculateRSI(data, period = 14) {
+        let rsi = [];
+        let gains = 0;
+        let losses = 0;
+
+        // Calculate initial average gain and loss
+        for (let i = 1; i <= period; i++) {
+            let change = data[i].close - data[i - 1].close;
+            if (change > 0) {
+                gains += change;
+            } else {
+                losses -= change; // losses are positive numbers
+            }
+        }
+
+        let avgGain = gains / period;
+        let avgLoss = losses / period;
+        let rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
+        rsi.push({ time: data[period].time, value: 100 - (100 / (1 + rs)) });
+
+        // Calculate RSI for the rest of the data
+        for (let i = period + 1; i < data.length; i++) {
+            let change = data[i].close - data[i - 1].close;
+            if (change > 0) {
+                avgGain = ((avgGain * (period - 1)) + change) / period;
+                avgLoss = (avgLoss * (period - 1)) / period;
+            } else {
+                avgGain = (avgGain * (period - 1)) / period;
+                avgLoss = ((avgLoss * (period - 1)) - change) / period;
+            }
+
+            rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
+            rsi.push({ time: data[i].time, value: 100 - (100 / (1 + rs)) });
+        }
+
+        return rsi;
+    }
+
+
     function addSMASeries(data, length = 14, color) {
         const smaData = calculateSMA(data, length).filter(d => d.value !== null);
         const smaSeries = chart.addLineSeries({
@@ -145,6 +190,64 @@ document.addEventListener('DOMContentLoaded', async () => {
         smaSeries.setData(smaData);
         allSeries.push(smaSeries);
     }
+
+    // Function to add RSI series
+    function addRSISeries(data, period = 14, color = '#ff9900') {
+        const rsiData = calculateRSI(data, period);
+
+        // Add a new line series for RSI
+        const rsiSeries = chart.addLineSeries({
+            color: color,
+            lineWidth: 2,
+            priceScaleId: 'rsi-scale', // Link to the new price scale
+        });
+
+        // Assign the RSI series to the 'rsi-scale' price scale
+        const rsiPriceScale = chart.priceScale('rsi-scale');
+        rsiPriceScale.applyOptions({
+            position: 'right', // Position can be 'left' or 'right'
+            scaleMargins: {
+                top: 0.8,    // Adjust to position RSI below the main chart
+                bottom: 0.2,
+            },
+            autoScale: true,
+            borderVisible: false,
+            visible: true,
+        });
+
+        // Set RSI data
+        rsiSeries.setData(rsiData);
+        allSeries.push(rsiSeries);
+
+        // Add Overbought and Oversold lines
+        addHorizontalLine(70, '#ff0000'); // Overbought
+        addHorizontalLine(30, '#00ff00'); // Oversold
+    }
+
+    /**
+     * Add horizontal line to the RSI pane
+     * @param {number} value - The y-axis value where the line should be drawn
+     * @param {string} color - Color of the line
+     */
+    function addHorizontalLine(value, color = '#ffffff') {
+        const lineSeries = chart.addLineSeries({
+            color: color,
+            lineWidth: 1,
+            priceScaleId: 'rsi-scale',
+            lineStyle: LightweightCharts.LineStyle.Dotted,
+        });
+
+        lineSeries.setData([
+            { time: data[0].time, value: value },
+            { time: data[data.length - 1].time, value: value },
+        ]);
+
+        allSeries.push(lineSeries);
+    }
+
+ 
+
+
 
     // document.addEventListener("htmx:afterRequest", (event) => {
     //     if (event.detail.target.id === "chart-container") {
@@ -199,6 +302,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     addSMASeries(data, 14, '#f1c40f');
     addSMASeries(data, 7, '#9b59b6');
     addSMASeries(data, 25, '#e74c3c');
+    addRSISeries(data, 14, '#ff9900'); // 14-period RSI with orange color
 
     // Adjust the visible range to focus on the latest data
     const visibleBars = 50; // Number of recent bars to display
@@ -421,6 +525,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         addSMASeries(data, 14, '#f1c40f');
         addSMASeries(data, 7, '#9b59b6');
         addSMASeries(data, 25, '#e74c3c');
+        
+        // Re-add RSI
+        addRSISeries(data, 14, '#ff9900'); // 14-period RSI with orange color
 
         // Adjust the visible range to focus on the latest data
         const visibleBars = 50; // Number of recent bars to display
@@ -565,6 +672,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 addSMASeries(data, 14, '#f1c40f');
                 addSMASeries(data, 7, '#9b59b6');
                 addSMASeries(data, 25, '#e74c3c');
+                addRSISeries(data, 14, '#ff9900');
                 latestPrice = data.length > 0 ? data[data.length - 1].close : null;
 
                 // Adjust the visible range to focus on the latest data
