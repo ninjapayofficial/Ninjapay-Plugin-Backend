@@ -620,6 +620,50 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
     });
     
+
+    // Get references to the time scales
+    const mainTimeScale = chart.timeScale();
+    const rsiTimeScale = rsiChart.timeScale();
+
+    // Flags to prevent infinite ping-pong updates
+    let updatingMainChart = false;
+    let updatingRsiChart = false;
+
+    // MAIN -> RSI
+    mainTimeScale.subscribeVisibleLogicalRangeChange((newRange) => {
+        if (updatingMainChart) return; // skip if this is triggered by RSI -> Main
+
+        if (!newRange) return; // can be null if no data
+        let { from, to } = newRange;
+        // If the range is inverted, swap it
+        if (from > to) {
+            [from, to] = [to, from];
+        }
+
+        // Now update RSI
+        updatingRsiChart = true;
+        rsiTimeScale.setVisibleLogicalRange({ from, to });
+        updatingRsiChart = false;
+    });
+
+    // RSI -> MAIN
+    rsiTimeScale.subscribeVisibleLogicalRangeChange((newRange) => {
+        if (updatingRsiChart) return;
+
+        if (!newRange) return;
+        let { from, to } = newRange;
+        if (from > to) {
+            [from, to] = [to, from];
+        }
+
+        updatingMainChart = true;
+        mainTimeScale.setVisibleLogicalRange({ from, to });
+        updatingMainChart = false;
+    });
+
+
+    
+
     // -----------------------
     // ADDING THE DELTA TOOLTIP PRIMITIVE (Commented Out)
     // -----------------------
