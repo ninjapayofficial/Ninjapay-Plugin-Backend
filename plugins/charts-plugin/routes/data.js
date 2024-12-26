@@ -3,13 +3,18 @@
 // // DATA FETCHING USING YAHOO FINANCE
 const express = require("express");
 const yahooFinance = require("yahoo-finance2").default;
-
 const router = express.Router();
 
+const cache = {};
 router.get("/data", async (req, res) => {
   const symbol = req.query.symbol;
   if (!symbol) {
     return res.status(400).json({ error: "No symbol provided" });
+  }
+
+  // Check if data is cached | Use redis later for caching
+  if (cache[symbol]) {
+    return res.json(cache[symbol]);
   }
 
   try {
@@ -37,6 +42,11 @@ router.get("/data", async (req, res) => {
       volume: bar.volume
     }));
 
+    // Cache the result for 5 minutes
+    cache[symbol] = formattedData;
+    setTimeout(() => {
+      delete cache[symbol];
+    }, 5 * 60 * 1000); // 5 minutes
     res.json(formattedData);
   } catch (err) {
     console.error(err);
