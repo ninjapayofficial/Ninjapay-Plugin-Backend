@@ -661,6 +661,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         updatingMainChart = false;
     });
 
+        // // To Try to sync with barspacing
+        // // Get references to the time scales
+        // const mainTimeScale = chart.timeScale();
+        // const rsiTimeScale = rsiChart.timeScale();
+    
+        // mainTimeScale.subscribeVisibleTimeRangeChange(syncHandler)
+        // function syncHandler(e) {
+        //     var barSpacing1 = mainTimeScale.options.barSpacing;
+        //     var scrollPosition1 = mainTimeScale.scrollPosition();
+        //     rsiTimeScale.applyOptions({ rightOffset: scrollPosition1, barSpacing: barSpacing1 })
+        // }
+            
+        // rsiTimeScale.subscribeVisibleTimeRangeChange(syncHandler2)
+        // function syncHandler2(e) {
+        //     var barSpacing1 = rsiTimeScale.options.barSpacing;
+        //     var scrollPosition1 = rsiTimeScale.scrollPosition();
+        //     mainTimeScale.applyOptions({ rightOffset: scrollPosition1, barSpacing: barSpacing1 })
+        // }
 
     
 
