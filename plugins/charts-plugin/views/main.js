@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         width: chartContainer.clientWidth,
         height: 600,
         layout: {
-            background: { color: '#0b0e11' }, // Dark background
+            // background: { color: '#0b0e11' }, // Dark background
             textColor: '#e0e0e0',
         },
         timeScale: {
@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         width: rsiChartContainer.clientWidth,
         height: 200,
         layout: {
-            background: { color: '#0b0e11' },
+            // background: { color: '#0b0e11' },
             textColor: '#e0e0e0',
         },
         timeScale: {
