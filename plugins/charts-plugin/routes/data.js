@@ -25,21 +25,20 @@ router.get("/data", async (req, res) => {
 
     // Fetch historical data from Yahoo Finance
     const queryOptions = { period1: period1.toISOString(), period2: period2.toISOString(), interval: '1d' };
-    const result = await yahooFinance.historical(symbol, queryOptions);
-
+    const result = await yahooFinance.chart(symbol, queryOptions);
     if (!result || result.length === 0) {
       return res.json([]); // No data, return empty array
     }
 
     // Convert Yahoo Finance data to Lightweight Charts format:
     // { time: 'YYYY-MM-DD', open, high, low, close, volume }
-    const formattedData = result.map(bar => ({
-      time: bar.date.toISOString().split("T")[0],
-      open: bar.open,
-      high: bar.high,
-      low: bar.low,
-      close: bar.close,
-      volume: bar.volume
+    const formattedData = result.quotes.map(quote => ({
+      time: quote.date.toISOString().split("T")[0],
+      open: quote.open,
+      high: quote.high,
+      low: quote.low,
+      close: quote.close,
+      volume: quote.volume
     }));
 
     // Cache the result for 5 minutes
