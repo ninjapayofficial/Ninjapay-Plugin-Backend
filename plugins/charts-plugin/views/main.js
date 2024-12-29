@@ -189,13 +189,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ========== RSI Calculation ==========
     function calculateRSI(data, period = 14) {
         let rsi = [];
-        if (data.length < period) {
+        if (data.length < period + 1) {
             // Not enough data to calculate RSI
+            data.forEach(d => rsi.push({ time: d.time, value: null }));
             return rsi;
         }
+    
         let gains = 0;
         let losses = 0;
-
+    
         // Calculate initial average gain and loss
         for (let i = 1; i <= period; i++) {
             let change = data[i].close - data[i - 1].close;
@@ -205,17 +207,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 losses -= change; // losses are stored as positive
             }
         }
-
+    
         let avgGain = gains / period;
         let avgLoss = losses / period;
         let rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
-
-        // First valid RSI value
-        rsi.push({
-            time: data[period].time,
-            value: 100 - (100 / (1 + rs))
-        });
-
+        let firstRSI = 100 - (100 / (1 + rs)); // First valid RSI value
+        rsi.push({ time: data[period].time, value: firstRSI });
+    
         // Calculate RSI for the rest of the data
         for (let i = period + 1; i < data.length; i++) {
             let change = data[i].close - data[i - 1].close;
@@ -227,19 +225,28 @@ document.addEventListener('DOMContentLoaded', async () => {
                 avgLoss = ((avgLoss * (period - 1)) - change) / period;
             }
             rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
-            rsi.push({
-                time: data[i].time,
-                value: 100 - (100 / (1 + rs))
-            });
+            rsi.push({ time: data[i].time, value: 100 - (100 / (1 + rs)) });
         }
-        return rsi;
+    
+        // Pad the RSI data with nulls for the initial periods
+        let fullRsiData = [];
+        for (let i = 0; i < data.length; i++) {
+            if (i < period) {
+                fullRsiData.push({ time: data[i].time, value: null });
+            } else {
+                fullRsiData.push(rsi[i - period]);
+            }
+        }
+    
+        return fullRsiData;
     }
+    
 
     // Add RSI line(s) to separate RSI chart
     function addRSISeriesToRSIChart(data, period = 14, color = '#ff9900') {
         // Compute RSI data
         const rsiData = calculateRSI(data, period);
-
+    
         // Create a new line series on the rsiChart
         const rsiSeries = rsiChart.addLineSeries({
             color: color,
