@@ -1,0 +1,70 @@
+/* Simple grid layout with three columns: left (order book), 
+   center (chart + buy/sell), right (tabs, watchlist, trades) */
+   .container {
+    display: grid;
+    grid-template-columns: 250px 1fr 300px; 
+    grid-gap: 1rem;
+    height: 100vh;
+    color: #e0e0e0;
+    background: #0b0e11;
+    padding: 1rem;
+    box-sizing: border-box;
+  }
+  
+  /* Left column: order book */
+  .orderBook {
+    background: #151a1e;
+    padding: 1rem;
+    overflow-y: auto;
+  }
+  
+  /* Middle column is further split into top (chart) and bottom (trade panel) */
+  .centerColumn {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .chartSection {
+    flex: 1;
+    background: #20252a;
+    margin-bottom: 1rem;
+    padding: 1rem;
+  }
+  
+  .tradeSection {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 1rem;
+  }
+  
+  .buySell {
+    background: #151a1e;
+    padding: 1rem;
+  }
+  .openOrders {
+    background: #151a1e;
+    padding: 1rem;
+  }
+  
+  /* Right column: watchlists, tabs, etc. */
+  .rightColumn {
+    background: #151a1e;
+    padding: 1rem;
+    overflow-y: auto;
+  }
+  
+  .tabs {
+    display: flex;
+    gap: 1rem;
+    list-style-type: none;
+    margin: 0 0 1rem 0;
+    padding: 0;
+  }
+  
+  .tradeHistory {
+    background: #20252a;
+    height: calc(100% - 40px);
+    padding: 1rem;
+    overflow-y: auto;
+  }
+  

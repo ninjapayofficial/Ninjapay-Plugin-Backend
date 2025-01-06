@@ -9,6 +9,15 @@ async function authMiddleware(req, res, next) {
   let uid;
   let userData;
 
+  // // If the request is for Next.js static files, skip auth
+  // // If you mount your Next.js at /plugins/terminal-plugin, 
+  // // the path might be /plugins/terminal-plugin/_next/static/... 
+  // // or the originalUrl might contain that. 
+  // // So skip if it matches:
+  // if (req.originalUrl.startsWith('/plugins/terminal-plugin/_next/static')) {
+  //   return next();  // let Next.js serve static assets freely
+  // }
+
   try {
     const sessionCookie = req.cookies[SESSION_COOKIE_NAME] || "";
     // Check for provider keys in headers
