@@ -1,0 +1,477 @@
+<!-- plugins/khata-plugin/views/index.html -->
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Khata Plugin</title>
+    <style>
+      /* Basic styles */
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      h1,
+      h2 {
+        color: #333;
+      }
+      .section {
+        margin-bottom: 40px;
+      }
+      .error {
+        color: red;
+      }
+      .message {
+        color: green;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+      .form-group {
+        margin-bottom: 10px;
+      }
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Khata Plugin</h1>
+
+    <!-- Company Section -->
+    <div class="section" id="companySection">
+      <h2>Add Company</h2>
+      <div class="form-group">
+        <label for="companyName">Company Name:</label>
+        <input type="text" id="companyName" placeholder="Enter company name" />
+      </div>
+      <button id="addCompanyBtn">Add Company</button>
+      <div id="companyMessage" class="message"></div>
+      <div id="companyError" class="error"></div>
+    </div>
+
+    <!-- Parties Section -->
+    <div class="section hidden" id="partiesSection">
+      <h2>Company: <span id="selectedCompanyName"></span></h2>
+      <h3>Customers and Suppliers</h3>
+      <button id="addPartyBtn">Add Customer/Supplier</button>
+      <table id="partiesTable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Current Balance</th>
+            <th>Reminder Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Parties will be populated here -->
+        </tbody>
+      </table>
+      <div id="partiesError" class="error"></div>
+    </div>
+
+    <!-- Transactions Section -->
+    <div class="section hidden" id="transactionsSection">
+      <h3>Transactions for <span id="selectedPartyName"></span></h3>
+      <button id="addTransactionBtn">Add Transaction</button>
+      <table id="transactionsTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Amount</th>
+            <th>Description</th>
+            <th>Balance After</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Transactions will be populated here -->
+        </tbody>
+      </table>
+      <div id="transactionsError" class="error"></div>
+    </div>
+
+    <!-- Modals and Forms -->
+    <!-- Add Party Form -->
+    <div id="addPartyForm" class="hidden">
+      <h3>Add Customer/Supplier</h3>
+      <div class="form-group">
+        <label for="partyType">Type:</label>
+        <select id="partyType">
+          <option value="customer">Customer</option>
+          <option value="supplier">Supplier</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="partyName">Name:</label>
+        <input type="text" id="partyName" placeholder="Enter name" />
+      </div>
+      <!-- Additional fields can be added here -->
+      <button id="savePartyBtn">Save</button>
+      <button id="cancelAddPartyBtn">Cancel</button>
+      <div id="addPartyError" class="error"></div>
+    </div>
+
+    <!-- Add Transaction Form -->
+    <div id="addTransactionForm" class="hidden">
+      <h3>Add Transaction for <span id="transactionPartyName"></span></h3>
+      <div class="form-group">
+        <label>Transaction Type:</label>
+        <button id="iGaveBtn">I Gave</button>
+        <button id="iGotBtn">I Got</button>
+      </div>
+      <div class="form-group">
+        <label for="transactionAmount">Amount:</label>
+        <input
+          type="number"
+          id="transactionAmount"
+          placeholder="Enter amount"
+        />
+      </div>
+      <div class="form-group">
+        <label for="transactionDescription">Description:</label>
+        <input
+          type="text"
+          id="transactionDescription"
+          placeholder="Enter description"
+        />
+      </div>
+      <button id="saveTransactionBtn">Save</button>
+      <button id="cancelAddTransactionBtn">Cancel</button>
+      <div id="addTransactionError" class="error"></div>
+    </div>
+
+    <script>
+      let selectedCompanyId = null;
+      let selectedPartyId = null;
+      let transactionType = null;
+
+      // Function to add a company
+      document.getElementById("addCompanyBtn").addEventListener("click", () => {
+        const name = document.getElementById("companyName").value.trim();
+
+        if (!name) {
+          alert("Please enter a company name.");
+          return;
+        }
+
+        fetch("/plugins/khata-plugin/addCompany", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name }),
+          credentials: "include",
+        })
+          .then(async (response) => {
+            if (response.status === 401) {
+              throw new Error("Unauthorized. Please log in.");
+            }
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(errorText || "Error adding company.");
+            }
+            return response.json();
+          })
+          .then((company) => {
+            selectedCompanyId = company.id;
+            document.getElementById("selectedCompanyName").textContent =
+              company.name;
+            document.getElementById("companySection").classList.add("hidden");
+            document
+              .getElementById("partiesSection")
+              .classList.remove("hidden");
+            loadParties();
+          })
+          .catch((error) => {
+            console.error("Error adding company:", error);
+            document.getElementById("companyError").textContent = error.message;
+            if (error.message.includes("Unauthorized")) {
+              alert("Session expired or unauthorized. Please log in again.");
+              window.location.href = "/login"; // Redirect to login page
+            }
+          });
+      });
+
+      // Function to load parties
+      function loadParties() {
+        fetch(`/plugins/khata-plugin/getParties/${selectedCompanyId}`, {
+          credentials: "include",
+        })
+          .then(async (response) => {
+            if (response.status === 401) {
+              throw new Error("Unauthorized. Please log in.");
+            }
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(errorText || "Error loading parties.");
+            }
+            return response.json();
+          })
+          .then((parties) => {
+            const tbody = document.querySelector("#partiesTable tbody");
+            tbody.innerHTML = "";
+            parties.forEach((party) => {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+            <td>${party.name}</td>
+            <td>${party.type}</td>
+            <td>${party.currentBalance}</td>
+            <td>${
+              party.reminderDate
+                ? new Date(party.reminderDate).toLocaleDateString()
+                : "N/A"
+            }</td>
+            <td><button onclick="viewTransactions(${party.id}, '${party.name}')">View</button></td>
+          `;
+              tbody.appendChild(tr);
+            });
+            document.getElementById("partiesError").textContent = "";
+          })
+          .catch((error) => {
+            console.error("Error loading parties:", error);
+            document.getElementById("partiesError").textContent = error.message;
+            if (error.message.includes("Unauthorized")) {
+              alert("Session expired or unauthorized. Please log in again.");
+              window.location.href = "/login"; // Redirect to login page
+            }
+          });
+      }
+
+      // Function to view transactions
+      function viewTransactions(partyId, partyName) {
+        selectedPartyId = partyId;
+        document.getElementById("selectedPartyName").textContent = partyName;
+        document
+          .getElementById("transactionsSection")
+          .classList.remove("hidden");
+        loadTransactions();
+      }
+
+      // Function to load transactions
+      function loadTransactions() {
+        fetch(`/plugins/khata-plugin/getTransactions/${selectedPartyId}`, {
+          credentials: "include",
+        })
+          .then(async (response) => {
+            if (response.status === 401) {
+              throw new Error("Unauthorized. Please log in.");
+            }
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(errorText || "Error loading transactions.");
+            }
+            return response.json();
+          })
+          .then((transactions) => {
+            const tbody = document.querySelector("#transactionsTable tbody");
+            tbody.innerHTML = "";
+            transactions.forEach((tx) => {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+            <td>${new Date(tx.entryDate).toLocaleDateString()}</td>
+            <td>${tx.amount}</td>
+            <td>${tx.description || "N/A"}</td>
+            <td>${tx.balanceAfter}</td>
+          `;
+              tbody.appendChild(tr);
+            });
+            document.getElementById("transactionsError").textContent = "";
+          })
+          .catch((error) => {
+            console.error("Error loading transactions:", error);
+            document.getElementById("transactionsError").textContent =
+              error.message;
+            if (error.message.includes("Unauthorized")) {
+              alert("Session expired or unauthorized. Please log in again.");
+              window.location.href = "/login"; // Redirect to login page
+            }
+          });
+      }
+
+      // Function to add a party
+      document.getElementById("addPartyBtn").addEventListener("click", () => {
+        document.getElementById("addPartyForm").classList.remove("hidden");
+      });
+
+      document
+        .getElementById("cancelAddPartyBtn")
+        .addEventListener("click", () => {
+          document.getElementById("addPartyForm").classList.add("hidden");
+        });
+
+      document.getElementById("savePartyBtn").addEventListener("click", () => {
+        const type = document.getElementById("partyType").value;
+        const name = document.getElementById("partyName").value.trim();
+
+        if (!name) {
+          alert("Please enter a name.");
+          return;
+        }
+
+        fetch("/plugins/khata-plugin/addParty", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ companyId: selectedCompanyId, type, name }),
+          credentials: "include",
+        })
+          .then(async (response) => {
+            if (response.status === 401) {
+              throw new Error("Unauthorized. Please log in.");
+            }
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(errorText || "Error adding party.");
+            }
+            return response.json();
+          })
+          .then((party) => {
+            document.getElementById("addPartyForm").classList.add("hidden");
+            loadParties();
+          })
+          .catch((error) => {
+            console.error("Error adding party:", error);
+            document.getElementById("addPartyError").textContent =
+              error.message;
+            if (error.message.includes("Unauthorized")) {
+              alert("Session expired or unauthorized. Please log in again.");
+              window.location.href = "/login"; // Redirect to login page
+            }
+          });
+      });
+
+      // Function to add a transaction
+      document
+        .getElementById("addTransactionBtn")
+        .addEventListener("click", () => {
+          document
+            .getElementById("addTransactionForm")
+            .classList.remove("hidden");
+          document.getElementById("transactionPartyName").textContent =
+            document.getElementById("selectedPartyName").textContent;
+        });
+
+      document
+        .getElementById("cancelAddTransactionBtn")
+        .addEventListener("click", () => {
+          document.getElementById("addTransactionForm").classList.add("hidden");
+        });
+
+      document.getElementById("iGaveBtn").addEventListener("click", () => {
+        transactionType = "I Gave";
+      });
+
+      document.getElementById("iGotBtn").addEventListener("click", () => {
+        transactionType = "I Got";
+      });
+
+      document
+        .getElementById("saveTransactionBtn")
+        .addEventListener("click", () => {
+          let amount = parseFloat(
+            document.getElementById("transactionAmount").value,
+          );
+          const description = document.getElementById(
+            "transactionDescription",
+          ).value;
+
+          if (isNaN(amount) || !transactionType) {
+            alert("Please enter a valid amount and select transaction type.");
+            return;
+          }
+
+          if (transactionType === "I Gave") {
+            amount = -amount; // Negative amount
+          }
+
+          fetch("/plugins/khata-plugin/addTransaction", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              partyId: selectedPartyId,
+              amount,
+              description,
+            }),
+            credentials: "include",
+          })
+            .then(async (response) => {
+              if (response.status === 401) {
+                throw new Error("Unauthorized. Please log in.");
+              }
+              if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || "Error adding transaction.");
+              }
+              return response.json();
+            })
+            .then((transaction) => {
+              document
+                .getElementById("addTransactionForm")
+                .classList.add("hidden");
+              loadTransactions();
+              loadParties(); // Refresh parties to update balances
+            })
+            .catch((error) => {
+              console.error("Error adding transaction:", error);
+              document.getElementById("addTransactionError").textContent =
+                error.message;
+              if (error.message.includes("Unauthorized")) {
+                alert("Session expired or unauthorized. Please log in again.");
+                window.location.href = "/login"; // Redirect to login page
+              }
+            });
+        });
+
+      // On page load, check if the user has companies
+      window.onload = () => {
+        fetch("/plugins/khata-plugin/getCompanies", {
+          credentials: "include",
+        })
+          .then(async (response) => {
+            if (response.status === 401) {
+              throw new Error("Unauthorized. Please log in.");
+            }
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(errorText || "Error fetching companies.");
+            }
+            return response.json();
+          })
+          .then((companies) => {
+            if (companies && companies.length > 0) {
+              const company = companies[0];
+              selectedCompanyId = company.id;
+              document.getElementById("selectedCompanyName").textContent =
+                company.name;
+              document.getElementById("companySection").classList.add("hidden");
+              document
+                .getElementById("partiesSection")
+                .classList.remove("hidden");
+              loadParties();
+            } else {
+              document
+                .getElementById("companySection")
+                .classList.remove("hidden");
+            }
+          })
+          .catch((error) => {
+            console.error("Error fetching companies:", error);
+            document.getElementById("companyError").textContent = error.message;
+            if (error.message.includes("Unauthorized")) {
+              alert("Session expired or unauthorized. Please log in again.");
+              window.location.href = "/login"; // Redirect to login page
+            }
+          });
+      };
+    </script>
+  </body>
+</html>

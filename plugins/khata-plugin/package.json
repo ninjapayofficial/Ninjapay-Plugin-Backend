@@ -1,0 +1,28 @@
+{
+  "name": "khata-plugin",
+  "version": "1.0.0",
+  "description": "This is a simple hello world express.js server.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "start": "node index.js",
+    "build": "webpack"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.7",
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "sequelize": "^6.37.5"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.26.0",
+    "@babel/preset-env": "^7.26.0",
+    "babel-loader": "^9.2.1",
+    "nodemon": "^3.0.1",
+    "webpack": "^5.96.1",
+    "webpack-cli": "^5.1.4"
+  },
+  "keywords": []
+}
