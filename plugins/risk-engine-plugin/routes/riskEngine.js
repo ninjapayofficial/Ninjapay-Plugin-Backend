@@ -1,12 +1,18 @@
+/* eslint-disable no-unused-vars */
 // plugins/risk-engine-plugin/routes/riskEngine.js
 const express = require("express");
 const router = express.Router();
 
 /**
  * GET /transactions/anomalies?userId=XYZ
- *  1) Fetch user transactions (trades, deposits, withdraws)
- *  2) Run basic anomaly checks
- *  3) Return suspicious transactions
+ *   - Gathers user profile & transaction data, then performs advanced checks:
+ *     (1) User Profile (KYC, risk rating, account age)
+ *     (2) Geolocation / IP changes
+ *     (3) Device fingerprint collisions
+ *     (4) Velocity checks
+ *     (5) Historical pattern (compare to user’s own average)
+ *     (6) AML watchlist
+ *     (7) Peer comparisons
  */
 router.get("/transactions/anomalies", async (req, res) => {
   const { userId } = req.query;
@@ -15,22 +21,36 @@ router.get("/transactions/anomalies", async (req, res) => {
   }
 
   try {
-    // =========================================
-    // 1) Fetch transactions from DB or plugin
-    // =========================================
-    // For demonstration, let's mock it:
+    // 1) Fetch transactions for user
     const userTransactions = await mockFetchUserTransactions(userId);
 
+    // 2) Fetch user profile
+    const userProfile = await mockFetchUserProfile(userId);
+
+    // 3) Fetch user login history (ip, device info)
+    const loginHistory = await mockFetchUserLoginHistory(userId);
+
+    // 4) Fetch AML / watchlists
+    const watchlists = await mockFetchAMLWatchlists();
+
+    // 5) Fetch peer data
+    const peerData = await mockFetchPeerData(userProfile);
+
     if (!userTransactions || userTransactions.length === 0) {
-      return res.json({ anomalies: [], message: "No transactions found." });
+      return res.json({
+        anomalies: [],
+        message: "No transactions found for this user.",
+      });
     }
 
-    // =========================================
-    // 2) Basic anomaly detection
-    //    2a) Rule-based checks
-    //    2b) Statistical checks (optional)
-    // =========================================
-    const anomalies = detectAnomalies(userTransactions);
+    // Run detection logic
+    const anomalies = detectAnomalies(
+      userTransactions,
+      userProfile,
+      loginHistory,
+      watchlists,
+      peerData,
+    );
 
     return res.json({
       userId,
@@ -47,19 +67,24 @@ router.get("/transactions/anomalies", async (req, res) => {
 });
 
 /**
- * Example function that fetches transactions.
- * In production, you'd query your DB or call other plugin APIs.
+ * ------------
+ * MOCK DATA FETCHERS
+ * ------------
+ * In production, replace with real DB queries / external calls.
  */
+
 async function mockFetchUserTransactions(userId) {
-  // Return a mock array of trade, deposit, withdraw
-  // Timestamps are out of order just for demonstration
+  // Transaction types: deposit, withdraw, trade
+  // Additional fields: currency, timestamp, location, deviceId, etc.
   return [
     {
       userId,
-      type: "deposit", // or withdraw, trade
+      type: "deposit",
       amount: 5000,
       currency: "INR",
       timestamp: "2023-12-01T10:05:00Z",
+      ipAddress: "192.168.1.100",
+      deviceId: "device-aaa",
     },
     {
       userId,
@@ -67,6 +92,8 @@ async function mockFetchUserTransactions(userId) {
       amount: 25000,
       currency: "INR",
       timestamp: "2023-12-02T12:00:00Z",
+      ipAddress: "192.168.1.101",
+      deviceId: "device-bbb",
     },
     {
       userId,
@@ -74,6 +101,8 @@ async function mockFetchUserTransactions(userId) {
       amount: 1000000, // suspiciously large
       currency: "INR",
       timestamp: "2023-12-03T09:15:00Z",
+      ipAddress: "10.0.0.55", // potentially suspicious
+      deviceId: "device-bbb",
     },
     {
       userId,
@@ -81,6 +110,8 @@ async function mockFetchUserTransactions(userId) {
       amount: 100,
       currency: "INR",
       timestamp: "2023-12-03T09:20:00Z",
+      ipAddress: "192.168.1.101",
+      deviceId: "device-bbb",
     },
     {
       userId,
@@ -88,95 +119,293 @@ async function mockFetchUserTransactions(userId) {
       amount: 100,
       currency: "INR",
       timestamp: "2023-12-03T09:25:00Z",
+      ipAddress: "192.168.1.101",
+      deviceId: "device-bbb",
     },
-    // ... More data ...
+    {
+      userId,
+      type: "withdraw",
+      amount: 20000,
+      currency: "INR",
+      timestamp: "2023-12-03T09:27:00Z",
+      ipAddress: "192.168.50.5", // new IP
+      deviceId: "device-aaa", // old device
+    },
   ];
 }
 
+async function mockFetchUserProfile(userId) {
+  // E.g. from your Users table
+  return {
+    userId,
+    kycStatus: "VERIFIED", // or 'UNVERIFIED'
+    riskRating: 2, // 1 = low risk, 5 = high risk
+    accountAgeDays: 120, // 120 days old
+    region: "India",
+    deviceIds: ["device-aaa", "device-bbb"], // devices associated with user
+  };
+}
+
+async function mockFetchUserLoginHistory(userId) {
+  // E.g. last 10 logins
+  return [
+    {
+      userId,
+      timestamp: "2023-12-01T10:00:00Z",
+      ipAddress: "192.168.1.100",
+      deviceId: "device-aaa",
+      country: "India",
+    },
+    {
+      userId,
+      timestamp: "2023-12-02T11:50:00Z",
+      ipAddress: "192.168.1.101",
+      deviceId: "device-bbb",
+      country: "India",
+    },
+    {
+      userId,
+      timestamp: "2023-12-03T09:10:00Z",
+      ipAddress: "10.0.0.55",
+      deviceId: "device-bbb",
+      country: "SomeOtherCountry",
+    },
+    // ...
+  ];
+}
+
+async function mockFetchAMLWatchlists() {
+  return {
+    blacklistedIPs: ["10.0.0.55", "123.45.67.89"],
+    blacklistedDevices: ["device-xyz"],
+    highRiskCountries: ["NorthKorea", "Iran", "SomeOtherCountry"],
+  };
+}
+
+async function mockFetchPeerData(userProfile) {
+  // Suppose we find average deposit/withdraw/trade amounts among peers with:
+  //  - same region
+  //  - similar account age
+  //  - same KYC status
+  // We just mock some stats:
+  return {
+    averageDeposit: 4000,
+    averageWithdraw: 5000,
+    averageTrade: 20000,
+    depositStdDev: 1000,
+    withdrawStdDev: 1500,
+    tradeStdDev: 5000,
+  };
+}
+
 /**
- * Detect anomalies in a list of transactions.
- * - Basic rule-based checks: e.g. large deposit/withdraw
- * - Basic statistical approach (Z-score) if needed
+ * ------------
+ * DETECTION LOGIC
+ * ------------
+ * We combine multiple checks:
+ *   1) User profile checks (KYC, risk rating)
+ *   2) Geolocation & IP checks
+ *   3) Device fingerprint collisions
+ *   4) Velocity checks
+ *   5) Historical pattern vs. user's own transaction history
+ *   6) AML watchlists
+ *   7) Peer comparisons
  */
-function detectAnomalies(transactions) {
+function detectAnomalies(
+  transactions,
+  userProfile,
+  loginHistory,
+  watchlists,
+  peerData,
+) {
   const anomalies = [];
+  const {
+    blacklistedIPs,
+    blacklistedDevices,
+    highRiskCountries,
+  } = watchlists;
 
-  // 1) Large transaction rule (e.g., > 5,00,000)
-  const LARGE_TX_THRESHOLD = 500000; // adjust to your business logic
-
-  // 2) Frequency-based checks
-  const FREQUENCY_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
-  // e.g. more than 3 transactions in 5 minutes => suspicious
-
-  // 3) Optionally a Z-score approach across amounts
-  const amounts = transactions.map((t) => t.amount);
-  const mean = average(amounts);
-  const stdDev = standardDeviation(amounts, mean);
-  const zThreshold = 2.5; // e.g. 2.5 is suspicious
-
-  // We’ll keep a sorted version for frequency checks
+  // We’ll keep transactions sorted by time to do velocity checks
   const sortedTx = [...transactions].sort(
-    (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
+    (a, b) => new Date(a.timestamp) - new Date(b.timestamp),
   );
 
-  // Check each transaction
+  // 1) Compute the user’s own historical average for each type
+  const { userAvg, userStd } = computeUserHistoricalStats(sortedTx);
+
+  // 2) For velocity checks, we pick a window
+  const VELOCITY_WINDOW_MS = 5 * 60 * 1000; // e.g. 5 min window
+  const MAX_TX_PER_5_MIN = 3; // example threshold
+
+  // Large transaction threshold for quick rule-of-thumb
+  const LARGE_TX_THRESHOLD = 500000; // e.g. 5 lakh
+
   for (let i = 0; i < sortedTx.length; i++) {
     const tx = sortedTx[i];
-    // eslint-disable-next-line no-unused-vars
-    const { amount, type } = tx;
-    let flaggedReasons = [];
+    const flaggedReasons = [];
+    const txTime = new Date(tx.timestamp).getTime();
 
-    // ---------- RULE 1: Large Tx ----------
-    if (Math.abs(amount) > LARGE_TX_THRESHOLD) {
-      flaggedReasons.push("Transaction amount exceeds threshold");
+    // ============= (A) User Profile Checks =============
+    // e.g. If KYC is UNVERIFIED but transaction is large
+    if (
+      userProfile.kycStatus !== "VERIFIED" &&
+      Math.abs(tx.amount) > 50000
+    ) {
+      flaggedReasons.push("UNVERIFIED user with large transaction");
     }
 
-    // ---------- RULE 2: High frequency in short window ----------
-    // Look at how many transactions occurred in last 5 minutes
-    let recentCount = 0;
-    const txTime = new Date(tx.timestamp).getTime();
-    // Scan backward
+    // If user risk rating is high (4 or 5), be extra cautious
+    if (userProfile.riskRating >= 4 && Math.abs(tx.amount) > 20000) {
+      flaggedReasons.push("High-risk user making large transaction");
+    }
+
+    // ============= (B) Geolocation / IP Checks =============
+    //  e.g. if IP is blacklisted or from a high-risk country
+    if (blacklistedIPs.includes(tx.ipAddress)) {
+      flaggedReasons.push(`Transaction from blacklisted IP: ${tx.ipAddress}`);
+    }
+    // Cross-check country from loginHistory if timestamps are close
+    const matchedLogin = loginHistory.find(
+      (lh) =>
+        lh.ipAddress === tx.ipAddress &&
+        Math.abs(new Date(lh.timestamp).getTime() - txTime) < 30 * 60 * 1000,
+    );
+    if (matchedLogin && highRiskCountries.includes(matchedLogin.country)) {
+      flaggedReasons.push(
+        `Transaction from high-risk country: ${matchedLogin.country}`,
+      );
+    }
+
+    // ============= (C) Device Fingerprint Checks =============
+    //  e.g. device is blacklisted or not associated with user
+    if (blacklistedDevices.includes(tx.deviceId)) {
+      flaggedReasons.push(
+        `Transaction from blacklisted device: ${tx.deviceId}`,
+      );
+    }
+    // If device not in userProfile.deviceIds (unexpected device)
+    if (!userProfile.deviceIds.includes(tx.deviceId)) {
+      flaggedReasons.push(`Transaction from unrecognized device: ${tx.deviceId}`);
+    }
+
+    // ============= (D) Velocity Checks =============
+    //  Count how many tx in last 5 min
+    let recentCount = 1; // count current tx
     for (let j = i - 1; j >= 0; j--) {
       const olderTxTime = new Date(sortedTx[j].timestamp).getTime();
-      if (txTime - olderTxTime <= FREQUENCY_WINDOW_MS) {
+      if (txTime - olderTxTime <= VELOCITY_WINDOW_MS) {
         recentCount++;
       } else {
         break;
       }
     }
-    if (recentCount >= 3) {
-      flaggedReasons.push("High transaction frequency in short timeframe");
+    if (recentCount > MAX_TX_PER_5_MIN) {
+      flaggedReasons.push("High transaction frequency in 5-minute window");
     }
 
-    // ---------- RULE 3: Z-score on amounts ----------
-    const zScore = stdDev === 0 ? 0 : (amount - mean) / stdDev;
-    if (Math.abs(zScore) > zThreshold) {
-      flaggedReasons.push(`Z-score outlier (z=${zScore.toFixed(2)})`);
+    // ============= (E) Historical Pattern (User’s Own Stats) =============
+    const typeKey = tx.type; // deposit | withdraw | trade
+    if (userAvg[typeKey] && userStd[typeKey]) {
+      const mean = userAvg[typeKey];
+      const stdDev = userStd[typeKey];
+      const zScore = stdDev === 0 ? 0 : (tx.amount - mean) / stdDev;
+      // For demonstration, threshold = 2.5
+      if (Math.abs(zScore) > 2.5) {
+        flaggedReasons.push(
+          `User's transaction amount is outlier (z=${zScore.toFixed(2)}) vs. user history`,
+        );
+      }
     }
 
-    // If any reasons flagged, push to anomalies
+    // Quick large transaction rule-of-thumb
+    if (Math.abs(tx.amount) > LARGE_TX_THRESHOLD) {
+      flaggedReasons.push("Transaction amount exceeds quick threshold limit");
+    }
+
+    // ============= (F) AML Watchlists =============
+    // We already checked blacklisted IP/device above.
+    // Could also check user’s bank accounts or wallet addresses if we had them.
+    // e.g. watchlists.blacklistedWallets.includes(tx.walletAddress)...
+
+    // ============= (G) Peer Comparisons =============
+    // Compare to average deposit/trade/withdraw among similar peers
+    // For demonstration, we do a simple check if amount > mean + 3*stdDev
+    if (peerData) {
+      let peerMean, peerStdDev;
+      if (tx.type === "deposit") {
+        peerMean = peerData.averageDeposit;
+        peerStdDev = peerData.depositStdDev;
+      } else if (tx.type === "withdraw") {
+        peerMean = peerData.averageWithdraw;
+        peerStdDev = peerData.withdrawStdDev;
+      } else if (tx.type === "trade") {
+        peerMean = peerData.averageTrade;
+        peerStdDev = peerData.tradeStdDev;
+      }
+
+      if (peerMean && peerStdDev) {
+        const peerZ = (tx.amount - peerMean) / peerStdDev;
+        if (peerZ > 3) {
+          flaggedReasons.push(
+            `Transaction significantly above peer average (z=${peerZ.toFixed(2)})`,
+          );
+        }
+      }
+    }
+
+    // If any reasons flagged, record as anomaly
     if (flaggedReasons.length > 0) {
       anomalies.push({
         ...tx,
         flaggedReasons,
       });
     }
-  }
+  } // end loop
 
   return anomalies;
 }
 
 /**
- * Helpers: average, standard deviation
+ * Compute user’s own average & stdDev per transaction type
  */
-function average(array) {
-  const sum = array.reduce((acc, val) => acc + val, 0);
-  return sum / array.length;
-}
-function standardDeviation(array, mean) {
-  const squareDiffs = array.map((val) => (val - mean) ** 2);
-  const avgSquareDiff = average(squareDiffs);
-  return Math.sqrt(avgSquareDiff);
+function computeUserHistoricalStats(transactions) {
+  const sums = {};
+  const counts = {};
+  const userAvg = {};
+  const userStd = {};
+
+  // First pass: sum and count
+  for (const tx of transactions) {
+    const t = tx.type;
+    if (!sums[t]) {
+      sums[t] = 0;
+      counts[t] = 0;
+    }
+    sums[t] += tx.amount;
+    counts[t]++;
+  }
+
+  // Compute means
+  for (const t of Object.keys(sums)) {
+    userAvg[t] = sums[t] / counts[t];
+  }
+
+  // Second pass: compute variance
+  const variances = {};
+  for (const t of Object.keys(sums)) {
+    variances[t] = 0;
+  }
+  for (const tx of transactions) {
+    const t = tx.type;
+    const diff = tx.amount - userAvg[t];
+    variances[t] += diff * diff;
+  }
+  for (const t of Object.keys(variances)) {
+    variances[t] = variances[t] / counts[t];
+    userStd[t] = Math.sqrt(variances[t]);
+  }
+
+  return { userAvg, userStd };
 }
 
 module.exports = router;
