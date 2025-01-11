@@ -305,12 +305,13 @@ function detectAnomalies(
 
     // ============= (E) Historical Pattern (User’s Own Stats) =============
     const typeKey = tx.type; // deposit | withdraw | trade
+    const zThreshold = 2.5;
     if (userAvg[typeKey] && userStd[typeKey]) {
       const mean = userAvg[typeKey];
       const stdDev = userStd[typeKey];
       const zScore = stdDev === 0 ? 0 : (tx.amount - mean) / stdDev;
       // For demonstration, threshold = 2.5
-      if (Math.abs(zScore) > 2.5) {
+      if (Math.abs(zScore) > zThreshold) {
         flaggedReasons.push(
           `User's transaction amount is outlier (z=${zScore.toFixed(2)}) vs. user history`,
         );
